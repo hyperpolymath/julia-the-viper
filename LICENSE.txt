@@ -1,155 +1,91 @@
-Julia the Viper - Tri-Licensed Software
-
-SPDX-License-Identifier: MIT OR GPL-3.0-or-later OR Palimpsest-0.8
-
-================================================================================
-                         TRI-LICENSING NOTICE
-================================================================================
-
-Copyright (c) 2025 Julia the Viper Contributors
-
-This software is released under a tri-licensing model. You may choose to use
-this software under the terms of ANY ONE of the following licenses:
-
-1. MIT License
-2. GNU General Public License v3.0 or later (GPL-3.0-or-later)
-3. Palimpsest License v0.8 (PHILOSOPHICALLY ENCOURAGED)
-
-You do NOT need to comply with all three licenses. Simply choose the license
-that best fits your use case and comply with its terms.
+SPDX-License-Identifier: MIT OR AGPL-3.0-or-later
+SPDX-FileCopyrightText: 2024-2025 hyperpolymath
 
 ================================================================================
-                          LICENSE SELECTION GUIDE
+DUAL LICENSE: MIT OR AGPL-3.0-or-later
 ================================================================================
 
-CHOOSE MIT IF:
-  - You want maximum permissiveness and simplicity
-  - You're integrating into proprietary software
-  - You prefer simple attribution requirements
-  - You're a commercial entity wanting minimal restrictions
+This project is dual-licensed under the MIT License OR the GNU Affero General
+Public License v3.0 or later. You may choose to use, copy, modify, and
+distribute this work under the terms of EITHER license (your choice).
 
-CHOOSE GPL-3.0+ IF:
-  - You value copyleft and share-alike principles
-  - You want to ensure derivative works remain open source
-  - You're building free software aligned with FSF values
-  - You want patent protection and explicit termination clauses
+--------------------------------------------------------------------------------
+MIT LICENSE
+--------------------------------------------------------------------------------
 
-CHOOSE PALIMPSEST 0.8 IF: (Philosophically Encouraged)
-  - You value ethical and politically autonomous software
-  - You want to respect data sovereignty and privacy
-  - You believe in transparency and non-discrimination
-  - You're committed to sustainable and responsible technology
-  - You want to promote cultural preservation and accessibility
+Copyright (c) 2024-2025 hyperpolymath
 
-The Palimpsest License is the philosophically encouraged option as it embodies
-the values of security, autonomy, and ethical computing that Julia the Viper
-was designed to promote.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-================================================================================
-                           FULL LICENSE TEXTS
-================================================================================
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-The complete text of each license is available in the following files:
-
-  - LICENSE-MIT               (MIT License)
-  - LICENSE                   (GNU General Public License v3.0)
-  - LICENSE-PALIMPSEST        (Palimpsest License v0.8)
-
-For detailed guidance on choosing the appropriate license for your use case,
-please see: LICENSING.md
-
-================================================================================
-                          PATENT NOTICE
-================================================================================
-
-Contributors grant patent licenses under the terms of whichever license you
-choose (MIT, GPL-3.0+, or Palimpsest 0.8). See individual license files for
-specific patent grant terms.
-
-================================================================================
-                        CONTRIBUTION AGREEMENT
-================================================================================
-
-By contributing to Julia the Viper, you agree that your contributions will be
-licensed under the same tri-licensing terms (MIT OR GPL-3.0-or-later OR
-Palimpsest-0.8).
-
-You represent that:
-  1. You have the right to submit the contribution
-  2. The contribution is your original work or properly attributed
-  3. You grant the tri-license to all users of this software
-
-See CONTRIBUTING.adoc for complete contribution guidelines.
-
-================================================================================
-                          TRADEMARK NOTICE
-================================================================================
-
-"Julia the Viper" and the JtV logo are trademarks of the Julia the Viper
-project. Use of these marks is subject to our trademark policy (see
-CONTRIBUTING.adoc).
-
-The name "Julia the Viper" honors mathematician Julia Robinson (1919-1985).
-
-================================================================================
-                        SECURITY GUARANTEES
-================================================================================
-
-Regardless of which license you choose, Julia the Viper provides the following
-architectural security guarantees:
-
-  1. Code injection is grammatically impossible
-  2. Data expressions are provably total (guaranteed to halt)
-  3. Pure functions cannot have side effects in Data context
-  4. Number operations are overflow-protected
-
-These guarantees are enforced by the language grammar itself, not by runtime
-checks. See SECURITY.md for details.
-
-================================================================================
-                          THIRD-PARTY NOTICES
-================================================================================
-
-Julia the Viper depends on third-party libraries. See NOTICE.md for complete
-attribution and licensing information for dependencies.
-
-Rust dependencies are listed in Cargo.toml with their respective licenses.
-TypeScript/Deno dependencies are listed in import maps.
-
-================================================================================
-                           NO WARRANTY
-================================================================================
-
-THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR
-OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE
-USE OR OTHER DEALINGS IN THE SOFTWARE.
+--------------------------------------------------------------------------------
+GNU AFFERO GENERAL PUBLIC LICENSE v3.0 OR LATER
+--------------------------------------------------------------------------------
 
-This disclaimer applies regardless of which license you choose.
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more
+details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/>.
+
+The full text of the AGPL-3.0 is available at:
+  https://www.gnu.org/licenses/agpl-3.0.txt
+
+--------------------------------------------------------------------------------
+CHOOSING YOUR LICENSE
+--------------------------------------------------------------------------------
+
+You may choose to use this work under:
+  1. MIT License - Standard permissive open source license
+  2. AGPL-3.0-or-later - Copyleft license requiring source disclosure for
+     network services
+
+For most uses, MIT License provides maximum flexibility.
+For ensuring open source remains open (especially for SaaS/network services),
+AGPL-3.0-or-later provides stronger protections.
 
 ================================================================================
-                        ADDITIONAL RESOURCES
+PALIMPSEST PHILOSOPHICAL OVERLAY (NON-BINDING)
 ================================================================================
 
-Project Homepage:    https://github.com/Hyperpolymath/julia-the-viper
-Documentation:       https://docs.julia-viper.dev
-Security Policy:     .well-known/security.txt
-Governance Model:    TPCF.md
-Contribution Guide:  CONTRIBUTING.adoc
-License Guidance:    LICENSING.md
+This project encourages (but does not legally require) adherence to the
+principles of the Palimpsest License - a framework for consent-based digital
+interaction and the future web.
 
-For questions about licensing:
-  Email: legal@julia-viper.dev
+Core Principles (Encouraged):
+  - Respect for emotional and creative lineage
+  - Transparent AI training practices with explicit consent
+  - Preservation of metadata and attribution
+  - Protection of narrative intent and cultural context
 
-For security vulnerabilities:
-  Email: security@julia-viper.dev
-  See: SECURITY.md
+The Palimpsest principles represent our vision for a consent-based internet.
+While not legally binding for use of this software, we encourage all users
+and contributors to familiarize themselves with these principles.
+
+Learn more: https://github.com/hyperpolymath/palimpsest-license
 
 ================================================================================
-
-Last Updated: 2025-01-22
-Tri-Licensing Model: Version 1.0
+END OF LICENSE
+================================================================================
