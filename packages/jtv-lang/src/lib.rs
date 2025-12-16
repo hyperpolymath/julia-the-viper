@@ -9,6 +9,9 @@ pub mod parser;
 pub mod interpreter;
 pub mod number;
 pub mod error;
+pub mod typechecker;
+pub mod purity;
+pub mod reversible;
 pub mod wasm;
 
 pub use ast::*;
@@ -16,6 +19,9 @@ pub use parser::*;
 pub use interpreter::*;
 pub use number::*;
 pub use error::*;
+pub use typechecker::*;
+pub use purity::*;
+pub use reversible::*;
 
 #[cfg(target_arch = "wasm32")]
 pub use wasm::*;
