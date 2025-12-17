@@ -172,6 +172,18 @@ impl Default for TypeEnv {
 pub struct TypeChecker {
     env: TypeEnv,
     errors: Vec<JtvError>,
+    /// Track type constraints for inference
+    constraints: Vec<TypeConstraint>,
+    /// Current function return type (for return statement checking)
+    expected_return: Option<Type>,
+}
+
+/// Type constraint for inference
+#[derive(Debug, Clone)]
+pub struct TypeConstraint {
+    pub lhs: Type,
+    pub rhs: Type,
+    pub context: String,
 }
 
 impl TypeChecker {
@@ -179,6 +191,79 @@ impl TypeChecker {
         TypeChecker {
             env: TypeEnv::new(),
             errors: vec![],
+            constraints: vec![],
+            expected_return: None,
+        }
+    }
+
+    /// Add a type constraint for inference
+    fn add_constraint(&mut self, lhs: Type, rhs: Type, context: &str) {
+        self.constraints.push(TypeConstraint {
+            lhs,
+            rhs,
+            context: context.to_string(),
+        });
+    }
+
+    /// Unify two types, returning the unified type or None if incompatible
+    fn unify(&self, t1: &Type, t2: &Type) -> Option<Type> {
+        if t1 == t2 {
+            return Some(t1.clone());
+        }
+
+        match (t1, t2) {
+            // Any unifies with anything
+            (Type::Any, t) | (t, Type::Any) => Some(t.clone()),
+
+            // Coercible types unify to the wider type
+            (Type::Int, Type::Float) | (Type::Float, Type::Int) => Some(Type::Float),
+            (Type::Int, Type::Rational) | (Type::Rational, Type::Int) => Some(Type::Rational),
+            (Type::Int, Type::Complex) | (Type::Complex, Type::Int) => Some(Type::Complex),
+            (Type::Float, Type::Complex) | (Type::Complex, Type::Float) => Some(Type::Complex),
+            (Type::Hex, Type::Int) | (Type::Int, Type::Hex) => Some(Type::Int),
+            (Type::Binary, Type::Int) | (Type::Int, Type::Binary) => Some(Type::Int),
+
+            // Lists unify if their element types unify
+            (Type::List(a), Type::List(b)) => {
+                self.unify(a, b).map(|t| Type::List(Box::new(t)))
+            }
+
+            // Tuples unify if all elements unify
+            (Type::Tuple(a), Type::Tuple(b)) if a.len() == b.len() => {
+                let unified: Option<Vec<Type>> = a
+                    .iter()
+                    .zip(b.iter())
+                    .map(|(t1, t2)| self.unify(t1, t2))
+                    .collect();
+                unified.map(Type::Tuple)
+            }
+
+            // Functions unify if params and return types unify
+            (Type::Function(p1, r1), Type::Function(p2, r2)) if p1.len() == p2.len() => {
+                let unified_params: Option<Vec<Type>> = p1
+                    .iter()
+                    .zip(p2.iter())
+                    .map(|(t1, t2)| self.unify(t1, t2))
+                    .collect();
+                let unified_ret = self.unify(r1, r2);
+                match (unified_params, unified_ret) {
+                    (Some(params), Some(ret)) => Some(Type::Function(params, Box::new(ret))),
+                    _ => None,
+                }
+            }
+
+            _ => None,
+        }
+    }
+
+    /// Get a helpful suggestion for type mismatches
+    fn type_suggestion(&self, expected: &Type, got: &Type) -> String {
+        match (expected, got) {
+            (Type::Int, Type::Float) => "Consider using a rational instead of float for exact arithmetic".to_string(),
+            (Type::Float, Type::Int) => "You can assign an Int to a Float variable".to_string(),
+            (Type::Bool, t) => format!("Use a comparison expression to convert {} to Bool", t),
+            (Type::List(_), Type::Tuple(_)) => "Lists use [...], tuples use (...)".to_string(),
+            _ => format!("Cannot convert {} to {}", got, expected),
         }
     }
 
@@ -273,20 +358,104 @@ impl TypeChecker {
     fn check_function(&mut self, func: &FunctionDecl) -> Result<()> {
         // Create new scope with parameters
         let old_env = self.env.clone();
+        let old_expected_return = self.expected_return.clone();
+
+        // Set expected return type
+        let expected_ret = func
+            .return_type
+            .as_ref()
+            .map(|t| self.annotation_to_type(&Some(t.clone())))
+            .unwrap_or(Type::Unit);
+        self.expected_return = Some(expected_ret.clone());
 
         for param in &func.params {
             let ty = self.annotation_to_type(&param.type_annotation);
             self.env.set_var(param.name.clone(), ty);
         }
 
-        // Check function body
+        // Check function body and infer return type
+        let mut inferred_return = Type::Unit;
         for stmt in &func.body {
-            self.check_control_stmt(stmt)?;
+            if let Some(ret_ty) = self.check_control_stmt_with_return(stmt)? {
+                inferred_return = ret_ty;
+            }
+        }
+
+        // Verify inferred return matches declared return
+        if expected_ret != Type::Unit && inferred_return != Type::Any {
+            if self.unify(&expected_ret, &inferred_return).is_none() {
+                return Err(JtvError::TypeError(format!(
+                    "Function '{}' declares return type {} but returns {}. {}",
+                    func.name,
+                    expected_ret,
+                    inferred_return,
+                    self.type_suggestion(&expected_ret, &inferred_return)
+                )));
+            }
         }
 
         // Restore environment
         self.env = old_env;
+        self.expected_return = old_expected_return;
         Ok(())
+    }
+
+    /// Check a control statement and return the type if it's a return statement
+    fn check_control_stmt_with_return(&mut self, stmt: &ControlStmt) -> Result<Option<Type>> {
+        match stmt {
+            ControlStmt::Return(expr) => {
+                let ret_ty = if let Some(e) = expr {
+                    self.infer_data_expr(e)?
+                } else {
+                    Type::Unit
+                };
+
+                // Check against expected return type
+                if let Some(expected) = &self.expected_return {
+                    if self.unify(expected, &ret_ty).is_none() {
+                        return Err(JtvError::TypeError(format!(
+                            "Return type mismatch: expected {}, got {}. {}",
+                            expected,
+                            ret_ty,
+                            self.type_suggestion(expected, &ret_ty)
+                        )));
+                    }
+                }
+
+                Ok(Some(ret_ty))
+            }
+            ControlStmt::If(if_stmt) => {
+                self.infer_control_expr(&if_stmt.condition)?;
+                let mut ret_ty = None;
+
+                for s in &if_stmt.then_branch {
+                    if let Some(ty) = self.check_control_stmt_with_return(s)? {
+                        ret_ty = Some(ty);
+                    }
+                }
+                if let Some(else_branch) = &if_stmt.else_branch {
+                    for s in else_branch {
+                        if let Some(ty) = self.check_control_stmt_with_return(s)? {
+                            ret_ty = Some(ty);
+                        }
+                    }
+                }
+                Ok(ret_ty)
+            }
+            ControlStmt::Block(stmts) => {
+                let mut ret_ty = None;
+                for s in stmts {
+                    if let Some(ty) = self.check_control_stmt_with_return(s)? {
+                        ret_ty = Some(ty);
+                    }
+                }
+                Ok(ret_ty)
+            }
+            _ => {
+                self.check_control_stmt(stmt)?;
+                Ok(None)
+            }
+        }
     }
 
     fn check_control_stmt(&mut self, stmt: &ControlStmt) -> Result<()> {
@@ -565,5 +734,110 @@ mod tests {
         let mut checker = TypeChecker::new();
         // Int + Float should coerce to Float
         assert!(checker.check_program(&program).is_ok());
+    }
+
+    #[test]
+    fn test_return_type_check() {
+        let code = r#"
+            fn double(x: Int): Int {
+                return x + x
+            }
+        "#;
+        let program = parse_program(code).unwrap();
+        let mut checker = TypeChecker::new();
+        assert!(checker.check_program(&program).is_ok());
+    }
+
+    #[test]
+    fn test_function_call_type_check() {
+        let code = r#"
+            fn add(a: Int, b: Int): Int {
+                return a + b
+            }
+            result = add(5, 3)
+        "#;
+        let program = parse_program(code).unwrap();
+        let mut checker = TypeChecker::new();
+        assert!(checker.check_program(&program).is_ok());
+    }
+
+    #[test]
+    fn test_list_type_inference() {
+        let code = r#"
+            numbers = [1, 2, 3, 4, 5]
+        "#;
+        let program = parse_program(code).unwrap();
+        let mut checker = TypeChecker::new();
+        assert!(checker.check_program(&program).is_ok());
+    }
+
+    #[test]
+    fn test_tuple_type_inference() {
+        let code = r#"
+            point = (10, 20, 30)
+        "#;
+        let program = parse_program(code).unwrap();
+        let mut checker = TypeChecker::new();
+        assert!(checker.check_program(&program).is_ok());
+    }
+
+    #[test]
+    fn test_comparison_type_bool() {
+        let code = r#"
+            x = 5
+            if x > 0 {
+                y = 1
+            }
+        "#;
+        let program = parse_program(code).unwrap();
+        let mut checker = TypeChecker::new();
+        assert!(checker.check_program(&program).is_ok());
+    }
+
+    #[test]
+    fn test_logical_operators_type() {
+        let code = r#"
+            x = 5
+            y = 10
+            if x > 0 && y > 0 {
+                z = 1
+            }
+        "#;
+        let program = parse_program(code).unwrap();
+        let mut checker = TypeChecker::new();
+        assert!(checker.check_program(&program).is_ok());
+    }
+
+    #[test]
+    fn test_undefined_variable_error() {
+        let code = r#"
+            y = undefined_var + 1
+        "#;
+        let program = parse_program(code).unwrap();
+        let mut checker = TypeChecker::new();
+        assert!(checker.check_program(&program).is_err());
+    }
+
+    #[test]
+    fn test_undefined_function_error() {
+        let code = r#"
+            result = unknown_func(5)
+        "#;
+        let program = parse_program(code).unwrap();
+        let mut checker = TypeChecker::new();
+        assert!(checker.check_program(&program).is_err());
+    }
+
+    #[test]
+    fn test_arity_mismatch_error() {
+        let code = r#"
+            fn add(a: Int, b: Int): Int {
+                return a + b
+            }
+            result = add(5)
+        "#;
+        let program = parse_program(code).unwrap();
+        let mut checker = TypeChecker::new();
+        assert!(checker.check_program(&program).is_err());
     }
 }

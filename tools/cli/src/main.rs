@@ -6,7 +6,7 @@
 // Julia the Viper - Command Line Interface
 use clap::{Parser, Subcommand};
 use colored::*;
-use jtv_lang::{parse_program, Interpreter};
+use jtv_lang::{parse_program, Interpreter, TypeChecker, PurityChecker};
 use std::fs;
 use std::io::{self, Read};
 use std::path::PathBuf;
@@ -173,9 +173,19 @@ fn parse_file(file_path: &str, format: &str) -> Result<(), String> {
 fn check_file(file_path: &str) -> Result<(), String> {
     let code = read_file(file_path)?;
 
-    parse_program(&code).map_err(|e| format!("Parse error: {}", e))?;
+    let program = parse_program(&code).map_err(|e| format!("Parse error: {}", e))?;
 
-    // TODO: Add type checking, purity checking, totality checking
+    // Type checking
+    let mut type_checker = TypeChecker::new();
+    type_checker
+        .check_program(&program)
+        .map_err(|e| format!("Type error: {}", e))?;
+
+    // Purity checking
+    let mut purity_checker = PurityChecker::new();
+    purity_checker
+        .check_program(&program)
+        .map_err(|e| format!("Purity error: {}", e))?;
 
     Ok(())
 }
