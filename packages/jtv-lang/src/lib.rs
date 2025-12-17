@@ -13,11 +13,13 @@ pub mod typechecker;
 pub mod purity;
 pub mod reversible;
 pub mod wasm;
+pub mod wasmgen;
+pub mod libraries;  // Library system (common + JtV-specific)
 
 pub use ast::*;
 pub use parser::*;
 pub use interpreter::*;
-pub use number::*;
+pub use number::Value;  // Only re-export Value from number (canonical definition)
 pub use error::*;
 pub use typechecker::*;
 pub use purity::*;
