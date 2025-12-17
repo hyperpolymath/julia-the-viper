@@ -141,7 +141,7 @@ fn parse_control_stmt(pair: pest::iterators::Pair<Rule>) -> Result<ControlStmt> 
         }
         Rule::if_stmt => {
             let mut parts = inner.into_inner();
-            let condition = parse_data_expr(parts.next().unwrap())?;
+            let condition = parse_control_expr(parts.next().unwrap())?;
 
             let then_block = parts.next().unwrap();
             let mut then_branch = Vec::new();
@@ -165,7 +165,7 @@ fn parse_control_stmt(pair: pest::iterators::Pair<Rule>) -> Result<ControlStmt> 
         }
         Rule::while_stmt => {
             let mut parts = inner.into_inner();
-            let condition = parse_data_expr(parts.next().unwrap())?;
+            let condition = parse_control_expr(parts.next().unwrap())?;
 
             let mut body = Vec::new();
             for stmt in parts.next().unwrap().into_inner() {
@@ -238,7 +238,7 @@ fn parse_reversible_stmt(pair: pest::iterators::Pair<Rule>) -> Result<Reversible
         Rule::if_stmt => {
             // Parse as regular if statement
             let mut parts = inner.into_inner();
-            let condition = parse_data_expr(parts.next().unwrap())?;
+            let condition = parse_control_expr(parts.next().unwrap())?;
 
             let then_block = parts.next().unwrap();
             let mut then_branch = Vec::new();

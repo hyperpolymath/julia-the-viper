@@ -48,14 +48,14 @@ pub struct Assignment {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct IfStmt {
-    pub condition: DataExpr,
+    pub condition: ControlExpr,
     pub then_branch: Vec<ControlStmt>,
     pub else_branch: Option<Vec<ControlStmt>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct WhileStmt {
-    pub condition: DataExpr,
+    pub condition: ControlExpr,
     pub body: Vec<ControlStmt>,
 }
 

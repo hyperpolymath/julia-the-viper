@@ -102,7 +102,7 @@ impl Interpreter {
                 Ok(None)
             }
             ControlStmt::If(if_stmt) => {
-                let condition = self.eval_data_expr(&if_stmt.condition)?;
+                let condition = self.eval_control_expr_to_value(&if_stmt.condition)?;
 
                 self.add_trace("if", &format!("if {}", condition));
 
@@ -124,7 +124,7 @@ impl Interpreter {
             ControlStmt::While(while_stmt) => {
                 self.add_trace("while", "entering while loop");
 
-                while self.eval_data_expr(&while_stmt.condition)?.is_truthy() {
+                while self.eval_control_expr_to_value(&while_stmt.condition)?.is_truthy() {
                     self.iteration_count += 1;
                     self.check_iteration_limit()?;
 
@@ -229,7 +229,7 @@ impl Interpreter {
                     self.set_variable(target.clone(), new_value);
                 }
                 ReversibleStmt::If(if_stmt) => {
-                    let condition = self.eval_data_expr(&if_stmt.condition)?;
+                    let condition = self.eval_control_expr_to_value(&if_stmt.condition)?;
                     if condition.is_truthy() {
                         for stmt in &if_stmt.then_branch {
                             self.eval_control_stmt(stmt)?;
@@ -423,10 +423,8 @@ mod tests {
     }
 
     #[test]
-    #[ignore] // Known parser edge case: function calls in assignments after function definitions
     fn test_function_call() {
         // Test function definition and direct execution
-        // TODO: Parser needs fix for function call in assignment after function def
         let code = r#"
 fn add(a: Int, b: Int): Int {
     return a + b
