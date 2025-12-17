@@ -12,9 +12,6 @@ pub mod error;
 pub mod typechecker;
 pub mod purity;
 pub mod reversible;
-pub mod formatter;
-pub mod bytecode;
-pub mod stdlib;
 pub mod wasm;
 pub mod wasmgen;
 pub mod libraries;  // Library system (common + JtV-specific)
@@ -27,11 +24,6 @@ pub use error::*;
 pub use typechecker::*;
 pub use purity::*;
 pub use reversible::*;
-pub use formatter::*;
-// Note: bytecode has its own Value type for compilation, use bytecode::Value explicitly
-pub use bytecode::{Opcode, BytecodeCompiler, BytecodeVM, CompiledModule, CompiledFunction};
-pub use stdlib::*;
-pub use wasmgen::{WasmGenerator, compile_to_wasm, compile_to_wasm_file};
 
 #[cfg(target_arch = "wasm32")]
 pub use wasm::*;
