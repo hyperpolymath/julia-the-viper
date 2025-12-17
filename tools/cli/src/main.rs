@@ -170,6 +170,22 @@ fn parse_file(file_path: &str, format: &str) -> Result<(), String> {
     Ok(())
 }
 
+fn format_file(file_path: &str, write_back: bool) -> Result<(), String> {
+    let code = read_file(file_path)?;
+
+    let formatted = format_code(&code)?;
+
+    if write_back && file_path != "-" {
+        fs::write(file_path, &formatted)
+            .map_err(|e| format!("Failed to write file '{}': {}", file_path, e))?;
+        println!("{} {}", "Formatted:".green().bold(), file_path);
+    } else {
+        print!("{}", formatted);
+    }
+
+    Ok(())
+}
+
 fn check_file(file_path: &str) -> Result<(), String> {
     let code = read_file(file_path)?;
 
