@@ -11,7 +11,9 @@ use std::fs;
 use std::io::{self, Read};
 use std::path::PathBuf;
 
+mod repl;
 mod rsr_check;
+use repl::Repl;
 use rsr_check::RsrChecker;
 
 #[derive(Parser)]
@@ -70,6 +72,9 @@ enum Commands {
 
     /// Check RSR (Rhodium Standard Repository) compliance
     RsrCheck,
+
+    /// Start the interactive REPL
+    Repl,
 }
 
 fn main() {
@@ -106,6 +111,13 @@ fn main() {
         Commands::RsrCheck => {
             let mut checker = RsrChecker::new();
             checker.check_all();
+        }
+        Commands::Repl => {
+            let mut repl = Repl::new();
+            if let Err(e) = repl.run() {
+                eprintln!("{} {}", "Error:".red().bold(), e);
+                std::process::exit(1);
+            }
         }
     }
 }

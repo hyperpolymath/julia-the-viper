@@ -13,6 +13,7 @@ pub struct Interpreter {
     iteration_count: usize,
     trace_enabled: bool,
     trace: Vec<TraceEntry>,
+    last_result: Option<Value>,
 }
 
 #[derive(Debug, Clone)]
@@ -31,6 +32,7 @@ impl Interpreter {
             iteration_count: 0,
             trace_enabled: false,
             trace: vec![],
+            last_result: None,
         }
     }
 
@@ -38,8 +40,24 @@ impl Interpreter {
         self.trace_enabled = true;
     }
 
+    pub fn disable_trace(&mut self) {
+        self.trace_enabled = false;
+        self.trace.clear();
+    }
+
     pub fn get_trace(&self) -> &[TraceEntry] {
         &self.trace
+    }
+
+    pub fn get_variables(&self) -> Vec<(String, Value)> {
+        self.globals
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect()
+    }
+
+    pub fn get_last_result(&self) -> Option<&Value> {
+        self.last_result.as_ref()
     }
 
     fn add_trace(&mut self, stmt_type: &str, line: &str) {
@@ -58,6 +76,8 @@ impl Interpreter {
     }
 
     pub fn run(&mut self, program: &Program) -> Result<()> {
+        self.last_result = None;
+        self.trace.clear();
         for statement in &program.statements {
             self.eval_top_level(statement)?;
         }
@@ -98,6 +118,7 @@ impl Interpreter {
                 };
 
                 self.add_trace("assignment", &format!("{} = {}", assignment.target, value));
+                self.last_result = Some(value.clone());
                 self.set_variable(assignment.target.clone(), value);
                 Ok(None)
             }
