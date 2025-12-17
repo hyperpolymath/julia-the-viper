@@ -15,3 +15,5 @@ jtv-lang = { path = "../../packages/jtv-lang" }
 clap = { version = "4.0", features = ["derive"] }
 colored = "2.0"
 serde_json = "1.0"
+rustyline = "14.0"
+dirs = "5.0"

@@ -28,9 +28,9 @@ control_stmt = {
 
 assignment = { identifier ~ "=" ~ (data_expr | control_expr) }
 
-if_stmt = { "if" ~ data_expr ~ block ~ ("else" ~ block)? }
+if_stmt = { "if" ~ control_expr ~ block ~ ("else" ~ block)? }
 
-while_stmt = { "while" ~ data_expr ~ block }
+while_stmt = { "while" ~ control_expr ~ block }
 
 for_stmt = { "for" ~ identifier ~ "in" ~ range_expr ~ block }
 
@@ -42,7 +42,8 @@ block = { "{" ~ control_stmt* ~ "}" }
 
 reverse_block = { "reverse" ~ "{" ~ reversible_stmt* ~ "}" }
 reversible_stmt = { reversible_assignment | if_stmt }
-reversible_assignment = { identifier ~ ("+=" | "-=") ~ data_expr }
+reversible_assignment = { identifier ~ reversible_op ~ data_expr }
+reversible_op = { "+=" | "-=" }
 
 // ===== DATA LANGUAGE (Total, addition-only) =====
 data_expr = { additive_expr }
@@ -53,8 +54,8 @@ term = { factor }
 
 factor = {
     number
-    | identifier
     | function_call
+    | identifier
     | list_literal
     | tuple_literal
     | unary_op ~ factor
