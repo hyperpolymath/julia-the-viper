@@ -6,7 +6,7 @@
 // Julia the Viper - Command Line Interface
 use clap::{Parser, Subcommand};
 use colored::*;
-use jtv_lang::{parse_program, Interpreter, TypeChecker, PurityChecker};
+use jtv_lang::{parse_program, Interpreter, TypeChecker, PurityChecker, format_code};
 use std::fs;
 use std::io::{self, Read};
 use std::path::PathBuf;
@@ -75,6 +75,16 @@ enum Commands {
 
     /// Start the interactive REPL
     Repl,
+
+    /// Format a JtV file
+    Fmt {
+        /// Path to the .jtv file (use '-' for stdin)
+        file: String,
+
+        /// Write formatted output back to file (in-place)
+        #[arg(short, long)]
+        write: bool,
+    },
 }
 
 fn main() {
@@ -115,6 +125,12 @@ fn main() {
         Commands::Repl => {
             let mut repl = Repl::new();
             if let Err(e) = repl.run() {
+                eprintln!("{} {}", "Error:".red().bold(), e);
+                std::process::exit(1);
+            }
+        }
+        Commands::Fmt { file, write } => {
+            if let Err(e) = format_file(&file, write) {
                 eprintln!("{} {}", "Error:".red().bold(), e);
                 std::process::exit(1);
             }
@@ -165,6 +181,22 @@ fn parse_file(file_path: &str, format: &str) -> Result<(), String> {
             println!("{}", "=== Abstract Syntax Tree ===".cyan().bold());
             println!("{:#?}", program);
         }
+    }
+
+    Ok(())
+}
+
+fn format_file(file_path: &str, write_back: bool) -> Result<(), String> {
+    let code = read_file(file_path)?;
+
+    let formatted = format_code(&code)?;
+
+    if write_back && file_path != "-" {
+        fs::write(file_path, &formatted)
+            .map_err(|e| format!("Failed to write file '{}': {}", file_path, e))?;
+        println!("{} {}", "Formatted:".green().bold(), file_path);
+    } else {
+        print!("{}", formatted);
     }
 
     Ok(())
