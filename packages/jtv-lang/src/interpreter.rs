@@ -2,6 +2,7 @@
 use crate::ast::*;
 use crate::number::Value;
 use crate::error::{JtvError, Result};
+use crate::stdlib::StdLib;
 use std::collections::HashMap;
 
 const MAX_ITERATIONS: usize = 1_000_000; // Safety limit for loops
@@ -14,6 +15,7 @@ pub struct Interpreter {
     trace_enabled: bool,
     trace: Vec<TraceEntry>,
     last_result: Option<Value>,
+    stdlib: StdLib,
 }
 
 #[derive(Debug, Clone)]
@@ -33,6 +35,7 @@ impl Interpreter {
             trace_enabled: false,
             trace: vec![],
             last_result: None,
+            stdlib: StdLib::new(),
         }
     }
 
@@ -345,6 +348,16 @@ impl Interpreter {
     }
 
     fn eval_function_call(&mut self, call: &FunctionCall) -> Result<Value> {
+        // First check if it's a stdlib function
+        if self.stdlib.has(&call.name) {
+            let mut arg_values = Vec::new();
+            for arg in &call.args {
+                arg_values.push(self.eval_data_expr(arg)?);
+            }
+            return self.stdlib.call(&call.name, &arg_values);
+        }
+
+        // Then check user-defined functions
         let func = self.functions.get(&call.name)
             .ok_or_else(|| JtvError::UndefinedFunction(call.name.clone()))?
             .clone();
