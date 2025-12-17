@@ -17,6 +17,7 @@ pub mod bytecode;
 pub mod stdlib;
 pub mod wasm;
 pub mod wasmgen;
+pub mod libraries;  // Library system (common + JtV-specific)
 
 pub use ast::*;
 pub use parser::*;
