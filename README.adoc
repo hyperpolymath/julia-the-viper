@@ -6,6 +6,12 @@
 :experimental:
 
 [.lead]
+
+JtV is an attempt to draw together in one language the Von Neumann architecture and the Harvard architecture. It articulates this through the Undecidability of JtV's Control Language with the Decidability of JtV's Data Language, to add some, well, 'bite' to languages through aspect injection.
+
+The 'Harvard Block' and the highly developed Adder are designed act as an amplifier for extreme performance in ANY ebnf grammar, however as a language, it is itself provably Turing complete.
+
+The name Julia is a tribute to the work of Julia Robinson (1919–1985) on the Matiyasevich–Robinson Theorem, and a demonstration of what can be accomplished when different 'cultures' come together (be that the Harvard or Von Neumann architectures, or the American Robinson and the Soviet Yuri Matiyasevich).
 *Harvard Architecture Language for Security-Critical Applications*
 
 image:https://img.shields.io/badge/version-0.1.0-blue.svg[Version]
@@ -14,7 +20,7 @@ image:https://img.shields.io/badge/RSR-Gold-yellow.svg[RSR Compliance]
 
 [quote]
 ____
-"It's basically the same thing as an adder" -- Where a humble calculator becomes a quantum-ready security language
+"It's basically an adder" -- Where a humble calculator becomes a quantum-ready security language
 ____
 
 == Overview
