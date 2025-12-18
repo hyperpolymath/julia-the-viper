@@ -75,10 +75,10 @@
 - [ ] Debugging support
 
 ### Tooling
-- [ ] CLI tool (jtv command)
+- [x] CLI tool (jtv command) - **COMPLETED** in `tools/cli/`
+- [x] REPL - **COMPLETED** (`jtv repl`)
 - [ ] LSP server
-- [ ] Formatter
-- [ ] REPL
+- [ ] Formatter improvements
 
 ### Documentation
 - [ ] Tutorial series
@@ -159,7 +159,7 @@
 1. **CRITICAL**: Complete WASM code generation
 2. **HIGH**: Run actual benchmarks to validate performance claims
 3. **HIGH**: Write comprehensive tutorials
-4. **MEDIUM**: Implement CLI tool
+4. **MEDIUM**: Implement LSP server
 5. **MEDIUM**: Improve error messages
 
 ## 🐛 Known Issues

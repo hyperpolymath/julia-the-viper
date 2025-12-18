@@ -6,13 +6,11 @@
 :experimental:
 
 [.lead]
-
-JtV is an attempt to draw together in one language the Von Neumann architecture and the Harvard architecture. It articulates this through the Undecidability of JtV's Control Language with the Decidability of JtV's Data Language, to add some, well, 'bite' to languages through aspect injection.
-
-The 'Harvard Block' and the highly developed Adder are designed act as an amplifier for extreme performance in ANY ebnf grammar, however as a language, it is itself provably Turing complete.
-
-The name Julia is a tribute to the work of Julia Robinson (1919–1985) on the Matiyasevich–Robinson Theorem, and a demonstration of what can be accomplished when different 'cultures' come together (be that the Harvard or Von Neumann architectures, or the American Robinson and the Soviet Yuri Matiyasevich).
 *Harvard Architecture Language for Security-Critical Applications*
+
+JtV enforces strict *separation* between Control (Turing-complete, undecidable) and Data (Total, decidable) languages. This grammatical boundary makes code injection impossible by design—not through runtime checks, but through architectural guarantees.
+
+The name honors *Julia Robinson* (1919–1985) and the Matiyasevich–Robinson theorem, celebrating what becomes possible when different traditions collaborate—just as JtV bridges security and expressiveness through principled separation.
 
 image:https://img.shields.io/badge/version-0.1.0-blue.svg[Version]
 image:https://img.shields.io/badge/license-MIT%20OR%20GPL--3.0%20OR%20Palimpsest--0.8-green.svg[License]
@@ -235,7 +233,7 @@ Safety-Critical Systems:: Formal guarantees for aerospace, medical, financial sy
 | 20,000+ words (guides, specifications, vision docs)
 |===
 
-Status: *80% Complete* ✅
+Status: *~60% Complete* (see link:STATUS.md[STATUS.md])
 
 === v2 (Beta) - Quantum Leap
 
@@ -368,23 +366,24 @@ julia-the-viper/
 
 == RSR Compliance
 
-Julia the Viper achieves *Gold* level (93%) in the link:https://rhodium-standard.org[Rhodium Standard Repository] framework:
+Julia the Viper targets compliance with the link:https://rhodium-standard.org[Rhodium Standard Repository] framework:
 
 [source,bash]
 ----
+# Run the compliance checker
 jtv rsr-check
-# Score: 42/45 (93%)
-# Grade: 🥈 Gold
 ----
 
-✅ Complete documentation suite +
+Current compliance areas:
+
+✅ Complete documentation suite (README, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY) +
 ✅ RFC 9116 compliant security.txt +
-✅ TPCF governance model +
-✅ Dual licensing (MIT + Palimpsest) +
+✅ TPCF governance model (3 perimeters defined) +
+✅ Tri-licensing (MIT + GPL-3.0 + Palimpsest) +
 ✅ Nix reproducible builds +
-✅ GitLab CI/CD pipeline (check, test, build, deploy) +
+✅ GitLab CI/CD pipeline +
 ✅ No unsafe Rust code in core +
-✅ Offline-first (no network dependencies)
+✅ Offline-first (no network dependencies in core)
 
 == Roadmap
 
