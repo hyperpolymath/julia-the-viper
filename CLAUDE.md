@@ -10,18 +10,34 @@ JtV grammatically separates **Control Language** (Turing-complete, imperative) f
 
 ## Current Repository State
 
-This repository currently contains the conceptual foundation:
+The repository contains a working v1 Alpha implementation (~60% complete):
 
 ```
 julia-the-viper/
-├── README.md           # Project tagline: "It's basically the same thing as an adder"
-├── julia-viper         # Pseudocode showing the humorous starting point
-├── LICENSE             # GPL-3.0
-├── .gitignore          # Git ignore rules
-└── CLAUDE.md           # This file - project vision and handover doc
+├── packages/
+│   ├── jtv-lang/              # Core Rust implementation
+│   │   ├── src/               # Parser, interpreter, number systems, purity checker
+│   │   ├── stdlib/            # 4 standard library modules (105+ functions)
+│   │   ├── tests/             # Parser and integration tests
+│   │   └── benches/           # Performance benchmarks
+│   └── jtv-analyzer/          # Deno/TypeScript analyzer for legacy code
+├── tools/
+│   └── cli/                   # Command-line interface (jtv command)
+├── examples/
+│   ├── basic/                 # Tutorial programs
+│   ├── advanced/              # Fibonacci, matrices, sorting
+│   ├── contracts/             # Smart contracts (ERC-20, NFT, DAO)
+│   └── integrations/          # Python/JS interop examples
+├── docs/                      # Technical documentation
+├── wiki/                      # GitHub wiki content
+├── README.adoc                # Primary README (AsciiDoc)
+├── STATUS.md                  # Detailed implementation status
+├── CLAUDE.md                  # This file - project vision and handover doc
+├── Justfile                   # Build commands (not Makefile)
+└── flake.nix                  # Nix reproducible build
 ```
 
-**Note**: The full implementation (jtv-core Rust crate, examples, v2 specification) may exist in other branches or repositories. This document describes the complete vision.
+See `STATUS.md` for detailed progress tracking.
 
 ## Architecture & Security Model
 
@@ -49,15 +65,17 @@ julia-the-viper/
 
 ### v1 (Alpha 1) - FOUNDATION
 
-Full Rust implementation in `jtv-core/`:
+Rust implementation in `packages/jtv-lang/`:
 
-- **Parser**: nom combinators for Control + Data languages
+- **Parser**: Pest combinator parser enforcing Harvard Architecture
 - **Interpreter**: 7 number systems (int, float, rational, complex, hex, binary, symbolic)
-- **Instrumentation API**: Execution traces for visualization
-- **Examples**: 5 programs in `examples/`
-- **Status**: COMPLETED ✅
+- **Purity Checker**: Enforces pure function rules in Data context
+- **CLI**: Full command-line tool with REPL, RSR checker
+- **Standard Library**: 4 modules, 105+ pure functions
+- **Examples**: 17 programs across basic, advanced, and smart contract categories
+- **Status**: ~60% complete (see `STATUS.md` for details)
 
-**Critical**: v1 MUST be mastered before approaching v2 (see `GRAMMAR_EVOLUTION.md`)
+**Critical**: v1 MUST be mastered before approaching v2 (see `docs/GRAMMAR_EVOLUTION.md`)
 
 ### v2 (Beta 1) - QUANTUM LEAP
 
@@ -75,27 +93,34 @@ Specification in `docs/`:
 
 Must-read files for context:
 
-- `README_JTV.md` - Main project README
-- `STATUS.md` - Current implementation status
+- `README.adoc` - Primary project README (AsciiDoc format)
+- `STATUS.md` - Current implementation status and progress tracking
 - `docs/GRAMMAR_EVOLUTION.md` - v1 vs v2 separation rationale
 - `docs/QUANTUM_VISION.md` - Quantum computing abstraction
-- `Justfile` - Build system (NOT Makefile)
-- `Cargo.lock` - Committed for reproducibility
-- `target/` - In .gitignore (build artifacts)
+- `docs/ROADMAP.md` - Development roadmap and milestones
+- `Justfile` - Build system (NOT Makefile) - run `just --list`
+- `packages/jtv-lang/Cargo.toml` - Core Rust crate configuration
+- `packages/jtv-lang/src/grammar.pest` - The Pest grammar specification
 
 ## Development Roadmap
 
-### Next Steps (Priority Order)
+### Current Priorities (from STATUS.md)
 
-1. **WASM Compilation**: `just build-wasm` using wasm-pack
-2. **ReScript PWA**: Scaffold with Vite
-3. **Router Visualization** (THE KILLER DEMO):
+1. **CRITICAL**: Complete WASM code generation (`packages/jtv-lang/src/wasmgen.rs`)
+2. **HIGH**: Run actual benchmarks to validate performance claims
+3. **HIGH**: Write comprehensive tutorials
+4. **MEDIUM**: LSP server for IDE support
+5. **MEDIUM**: Improve error messages
+
+### Future Milestones
+
+1. **ReScript PWA**: Scaffold with Vite (playground)
+2. **Router Visualization** (THE KILLER DEMO):
    - Animate Control (blue) vs Data (red) channel separation
    - Show "bridge" when data results cross to control variables
    - This is the pedagogical key to understanding JtV
-4. **Monaco Editor**: JtV syntax highlighting
-5. **Number System Explorer**: Showcase rationals, complex, symbolic
-6. **v2 Implementation**: Parser extension, purity checker, reverse semantics
+3. **Monaco Editor**: JtV syntax highlighting
+4. **v2 Implementation**: Parser extension, reverse semantics
 
 ### Critical Design Principles
 
