@@ -310,8 +310,35 @@ impl WasmGenerator {
     }
 
     fn calculate_jump_depth(&self, _from: usize, _to: usize, _opcodes: &[Opcode]) -> u32 {
-        // Simplified: return 0 for now, proper implementation needs control flow analysis
-        // WASM structured control flow requires converting to blocks/loops
+        // TODO: Implement proper structured control flow conversion
+        //
+        // WASM uses structured control flow (blocks/loops), not arbitrary jumps.
+        // To properly convert JtV bytecode jumps to WASM:
+        //
+        // 1. Pre-pass: Identify control structures from bytecode
+        //    - Forward jumps → if/else blocks
+        //    - Backward jumps → loops
+        //
+        // 2. Build control flow graph (CFG) from opcodes
+        //    - Mark jump targets as basic block boundaries
+        //    - Identify dominators and loop headers
+        //
+        // 3. Apply Relooper/Stackifier algorithm:
+        //    - Convert CFG to structured WASM blocks
+        //    - For forward edges: emit `block` + `br`
+        //    - For back edges: emit `loop` + `br`
+        //
+        // Reference: Emscripten's Relooper algorithm
+        // https://github.com/WebAssembly/binaryen/blob/main/src/cfg/Relooper.cpp
+        //
+        // For now, returns 0 which works for:
+        // - Simple sequential code
+        // - Leaf functions without control flow
+        //
+        // Does NOT work for:
+        // - if/else statements
+        // - while/for loops
+        // - Complex control flow
         0
     }
 }

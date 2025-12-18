@@ -15,6 +15,7 @@ pub struct Interpreter {
     trace_enabled: bool,
     trace: Vec<TraceEntry>,
     last_result: Option<Value>,
+    stdlib: StdLib,
 }
 
 #[derive(Debug, Clone)]
@@ -34,6 +35,7 @@ impl Interpreter {
             trace_enabled: false,
             trace: vec![],
             last_result: None,
+            stdlib: StdLib::new(),
         }
     }
 
