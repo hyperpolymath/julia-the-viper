@@ -1,0 +1,42 @@
+{
+  "name": "julia-the-viper-site",
+  "displayName": "Julia the Viper",
+  "version": "0.1.0",
+  "language": "Idris 2",
+  "description": "Documentation site for Julia the Viper - Harvard Architecture Language",
+  "author": "hyperpolymath",
+  "license": "MIT OR GPL-3.0-or-later OR Palimpsest-0.8",
+  "ssg": "ddraig-ssg",
+  "ssgVersion": "0.1.0",
+  "content": {
+    "source": "../content",
+    "output": "../_site"
+  },
+  "features": {
+    "markdown": true,
+    "frontmatter": true,
+    "templates": true,
+    "drafts": true,
+    "codeBlocks": true,
+    "inlineFormatting": true
+  },
+  "build": {
+    "command": "idris2 Ddraig.idr -o ddraig",
+    "runtime": "idris2 >= 0.6.0",
+    "output": "build/exec/ddraig"
+  },
+  "test": {
+    "commands": [
+      "./build/exec/ddraig test-markdown",
+      "./build/exec/ddraig test-frontmatter",
+      "./build/exec/ddraig test-full"
+    ]
+  },
+  "ci": {
+    "github-pages": {
+      "container": "ghcr.io/idris-community/idris2:latest",
+      "install": "apk add --no-cache make",
+      "build": "idris2 Ddraig.idr -o ddraig && ./build/exec/ddraig build"
+    }
+  }
+}
