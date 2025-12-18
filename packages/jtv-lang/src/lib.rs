@@ -14,6 +14,9 @@ pub mod purity;
 pub mod reversible;
 pub mod wasm;
 pub mod wasmgen;
+pub mod bytecode;
+pub mod stdlib;
+pub mod formatter;
 pub mod libraries;  // Library system (common + JtV-specific)
 
 pub use ast::*;

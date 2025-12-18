@@ -166,7 +166,7 @@ impl ReversibleInterpreter {
                 Ok(())
             }
             ReversibleStmt::If(if_stmt) => {
-                let condition = self.eval_data_expr(&if_stmt.condition)?;
+                let condition = self.eval_control_expr(&if_stmt.condition)?;
                 let condition_true = condition.is_truthy();
 
                 // Create sub-interpreter to track nested ops
@@ -270,6 +270,38 @@ impl ReversibleInterpreter {
             DataExpr::List(_) | DataExpr::Tuple(_) => Err(JtvError::RuntimeError(
                 "Collections not supported in reversible context".to_string(),
             )),
+        }
+    }
+
+    fn eval_control_expr(&self, expr: &ControlExpr) -> Result<Value> {
+        match expr {
+            ControlExpr::Data(data_expr) => self.eval_data_expr(data_expr),
+            ControlExpr::Comparison(left, op, right) => {
+                let left_val = self.eval_data_expr(left)?;
+                let right_val = self.eval_data_expr(right)?;
+                let result = match op {
+                    Comparator::Eq => left_val == right_val,
+                    Comparator::Ne => left_val != right_val,
+                    Comparator::Lt => left_val.lt(&right_val)?,
+                    Comparator::Le => left_val.le(&right_val)?,
+                    Comparator::Gt => left_val.gt(&right_val)?,
+                    Comparator::Ge => left_val.ge(&right_val)?,
+                };
+                Ok(Value::Bool(result))
+            }
+            ControlExpr::Logical(left, op, right) => {
+                let left_val = self.eval_control_expr(left)?;
+                let right_val = self.eval_control_expr(right)?;
+                let result = match op {
+                    LogicalOp::And => left_val.is_truthy() && right_val.is_truthy(),
+                    LogicalOp::Or => left_val.is_truthy() || right_val.is_truthy(),
+                };
+                Ok(Value::Bool(result))
+            }
+            ControlExpr::Not(inner) => {
+                let val = self.eval_control_expr(inner)?;
+                Ok(Value::Bool(!val.is_truthy()))
+            }
         }
     }
 

@@ -11,25 +11,39 @@ This architectural separation provides formal security guarantees that runtime c
 
 ## Installation
 
-### Via Cargo (Rust)
+### From Source (Recommended)
 
 ```bash
-cargo install jtv-lang
-```
-
-### Via NPM (WASM)
-
-```bash
-npm install @jtv/wasm
-```
-
-### From Source
-
-```bash
+# Clone the repository
 git clone https://github.com/Hyperpolymath/julia-the-viper
 cd julia-the-viper
+
+# Build using Just (requires just command runner)
 just build
+
+# Or build directly with Cargo
+cd packages/jtv-lang
+cargo build --release
+
+# The CLI binary will be at: target/release/jtv
+# Or run via cargo: cargo run --release --bin jtv
 ```
+
+### Using Nix (Reproducible Build)
+
+```bash
+# Enter development shell
+nix develop
+
+# Or run directly
+nix run github:Hyperpolymath/julia-the-viper
+```
+
+### Requirements
+
+- **Rust 1.70+** - for building from source
+- **Just** (optional) - task runner for build commands
+- **Nix** (optional) - for reproducible builds
 
 ## Your First JtV Program
 
@@ -272,18 +286,18 @@ reverse {
 
 ## Next Steps
 
-- **Tutorial**: Work through `examples/tutorial/` for step-by-step lessons
-- **Examples**: Browse `examples/` for real-world patterns
-- **Smart Contracts**: Check `examples/contracts/` for DeFi examples
-- **API Docs**: See `docs/API.md` for complete reference
-- **Playground**: Try online at https://julia-viper.dev
+- **Basic Examples**: Start with `examples/basic/` for fundamentals
+- **Advanced Examples**: See `examples/advanced/` for fibonacci, matrices, sorting
+- **Smart Contracts**: Check `examples/contracts/` for ERC-20, NFT, DAO examples
+- **Integration Examples**: See `examples/integrations/` for Python/JS interop
+- **Wiki**: Browse `wiki/` for in-depth documentation
+- **Standard Library**: Explore `packages/jtv-lang/stdlib/` for built-in functions
 
 ## Getting Help
 
-- **GitHub Issues**: Bug reports and feature requests
-- **Discord**: Community chat and support
-- **Stack Overflow**: Tag questions with `julia-the-viper`
-- **Documentation**: Full docs at https://docs.julia-viper.dev
+- **GitHub Issues**: https://github.com/Hyperpolymath/julia-the-viper/issues
+- **Documentation**: See `docs/` directory and `wiki/`
+- **CLAUDE.md**: Project overview for AI assistants and new contributors
 
 ## Philosophy
 
@@ -296,4 +310,4 @@ JtV proves that security and expressiveness are not mutually exclusive. By struc
 3. **Simplicity**: Addition-only is universal with Control loops
 4. **Reversibility**: Quantum computing simulation (v2)
 
-Welcome to the future of secure computing! 🐍
+Welcome to the future of secure computing.
