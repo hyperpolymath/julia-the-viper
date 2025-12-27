@@ -63,10 +63,8 @@ impl PurityChecker {
         // First pass: collect declared purity levels
         for stmt in &program.statements {
             if let TopLevel::Function(func) = stmt {
-                self.func_purity.insert(
-                    func.name.clone(),
-                    self.declared_to_level(&func.purity),
-                );
+                self.func_purity
+                    .insert(func.name.clone(), self.declared_to_level(&func.purity));
             }
         }
 
@@ -94,7 +92,7 @@ impl PurityChecker {
 
     /// Check a function respects its declared purity
     fn check_function(&mut self, func: &FunctionDecl) -> Result<()> {
-        let declared = self.declared_to_level(&func.purity);
+        let _declared = self.declared_to_level(&func.purity);
         let actual = self.analyze_body(&func.body)?;
 
         if !actual.satisfies(&func.purity) {

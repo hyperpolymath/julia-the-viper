@@ -53,5 +53,10 @@ fn parse_complex_program(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, parse_simple_addition, parse_function, parse_complex_program);
+criterion_group!(
+    benches,
+    parse_simple_addition,
+    parse_function,
+    parse_complex_program
+);
 criterion_main!(benches);

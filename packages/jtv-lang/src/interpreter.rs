@@ -1,7 +1,7 @@
 // Interpreter for Julia the Viper
 use crate::ast::*;
-use crate::number::Value;
 use crate::error::{JtvError, Result};
+use crate::number::Value;
 use std::collections::HashMap;
 
 const MAX_ITERATIONS: usize = 1_000_000; // Safety limit for loops
@@ -62,7 +62,8 @@ impl Interpreter {
 
     fn add_trace(&mut self, stmt_type: &str, line: &str) {
         if self.trace_enabled {
-            let env: HashMap<String, String> = self.globals
+            let env: HashMap<String, String> = self
+                .globals
                 .iter()
                 .map(|(k, v)| (k.clone(), format!("{}", v)))
                 .collect();
@@ -145,7 +146,10 @@ impl Interpreter {
             ControlStmt::While(while_stmt) => {
                 self.add_trace("while", "entering while loop");
 
-                while self.eval_control_expr_to_value(&while_stmt.condition)?.is_truthy() {
+                while self
+                    .eval_control_expr_to_value(&while_stmt.condition)?
+                    .is_truthy()
+                {
                     self.iteration_count += 1;
                     self.check_iteration_limit()?;
 
@@ -162,7 +166,10 @@ impl Interpreter {
                 let start = self.eval_data_expr(&range.start)?;
                 let end = self.eval_data_expr(&range.end)?;
 
-                self.add_trace("for", &format!("for {} in {}..{}", for_stmt.variable, start, end));
+                self.add_trace(
+                    "for",
+                    &format!("for {} in {}..{}", for_stmt.variable, start, end),
+                );
 
                 let (start_int, end_int) = match (start, end) {
                     (Value::Int(s), Value::Int(e)) => (s, e),
@@ -172,7 +179,9 @@ impl Interpreter {
                 let step = if let Some(step_expr) = &range.step {
                     match self.eval_data_expr(step_expr)? {
                         Value::Int(s) => s,
-                        _ => return Err(JtvError::TypeError("Step must be an integer".to_string())),
+                        _ => {
+                            return Err(JtvError::TypeError("Step must be an integer".to_string()))
+                        }
                     }
                 } else {
                     1
@@ -345,7 +354,9 @@ impl Interpreter {
     }
 
     fn eval_function_call(&mut self, call: &FunctionCall) -> Result<Value> {
-        let func = self.functions.get(&call.name)
+        let func = self
+            .functions
+            .get(&call.name)
             .ok_or_else(|| JtvError::UndefinedFunction(call.name.clone()))?
             .clone();
 

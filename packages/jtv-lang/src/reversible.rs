@@ -2,23 +2,17 @@
 // Implements automatic reverse execution for reverse blocks
 
 use crate::ast::*;
-use crate::number::Value;
 use crate::error::{JtvError, Result};
+use crate::number::Value;
 use std::collections::HashMap;
 
 /// A recorded operation that can be reversed
 #[derive(Debug, Clone)]
 pub enum RecordedOp {
     /// x += value (reverse: x -= value)
-    AddAssign {
-        target: String,
-        value: Value,
-    },
+    AddAssign { target: String, value: Value },
     /// x -= value (reverse: x += value)
-    SubAssign {
-        target: String,
-        value: Value,
-    },
+    SubAssign { target: String, value: Value },
     /// Conditional branch (reverse requires same condition)
     If {
         condition_was_true: bool,
@@ -61,9 +55,7 @@ pub struct ReverseTrace {
 
 impl ReverseTrace {
     pub fn new() -> Self {
-        ReverseTrace {
-            operations: vec![],
-        }
+        ReverseTrace { operations: vec![] }
     }
 
     /// Record an operation
@@ -242,7 +234,11 @@ impl ReversibleInterpreter {
                 else_ops,
             } => {
                 // Apply the appropriate branch's operations
-                let ops = if *condition_was_true { then_ops } else { else_ops };
+                let ops = if *condition_was_true {
+                    then_ops
+                } else {
+                    else_ops
+                };
                 for nested_op in ops {
                     self.apply_operation(nested_op)?;
                 }
@@ -409,9 +405,10 @@ mod tests {
         interp.set("x".to_string(), Value::Int(10));
 
         let block = ReverseBlock {
-            body: vec![
-                ReversibleStmt::AddAssign("x".to_string(), DataExpr::Number(Number::Int(5))),
-            ],
+            body: vec![ReversibleStmt::AddAssign(
+                "x".to_string(),
+                DataExpr::Number(Number::Int(5)),
+            )],
         };
 
         interp.execute_forward(&block).unwrap();
@@ -424,9 +421,10 @@ mod tests {
         interp.set("x".to_string(), Value::Int(10));
 
         let block = ReverseBlock {
-            body: vec![
-                ReversibleStmt::AddAssign("x".to_string(), DataExpr::Number(Number::Int(5))),
-            ],
+            body: vec![ReversibleStmt::AddAssign(
+                "x".to_string(),
+                DataExpr::Number(Number::Int(5)),
+            )],
         };
 
         interp.execute_forward(&block).unwrap();
@@ -468,12 +466,10 @@ mod tests {
     fn test_reversibility_check_fails() {
         // x += x is not reversible because we can't recover original x
         let block = ReverseBlock {
-            body: vec![
-                ReversibleStmt::AddAssign(
-                    "x".to_string(),
-                    DataExpr::Identifier("x".to_string()),
-                ),
-            ],
+            body: vec![ReversibleStmt::AddAssign(
+                "x".to_string(),
+                DataExpr::Identifier("x".to_string()),
+            )],
         };
 
         assert!(check_reversibility(&block).is_err());
@@ -483,12 +479,10 @@ mod tests {
     fn test_reversibility_check_passes() {
         // x += y is reversible (y is independent)
         let block = ReverseBlock {
-            body: vec![
-                ReversibleStmt::AddAssign(
-                    "x".to_string(),
-                    DataExpr::Identifier("y".to_string()),
-                ),
-            ],
+            body: vec![ReversibleStmt::AddAssign(
+                "x".to_string(),
+                DataExpr::Identifier("y".to_string()),
+            )],
         };
 
         assert!(check_reversibility(&block).is_ok());

@@ -1,22 +1,124 @@
-name: Rust
+name: Rust CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 env:
   CARGO_TERM_COLOR: always
+  RUSTFLAGS: -Dwarnings
 
 jobs:
-  build:
-
+  check:
+    name: Check
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-action@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            packages/jtv-lang/target
+            tools/cli/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Check jtv-lang
+        run: cargo check --all-features
+        working-directory: packages/jtv-lang
+
+      - name: Check jtv-cli
+        run: cargo check --all-features
+        working-directory: tools/cli
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: check
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-action@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            packages/jtv-lang/target
+            tools/cli/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Run jtv-lang tests
+        run: cargo test --all-features
+        working-directory: packages/jtv-lang
+
+      - name: Build CLI
+        run: cargo build --release
+        working-directory: tools/cli
+
+      - name: Run example
+        run: ./tools/cli/target/release/jtv run examples/basic/01_hello_addition.jtv
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-action@stable
+        with:
+          components: clippy
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            packages/jtv-lang/target
+            tools/cli/target
+          key: ${{ runner.os }}-cargo-clippy-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-clippy-
+
+      - name: Clippy jtv-lang
+        run: cargo clippy --all-features -- -D warnings
+        working-directory: packages/jtv-lang
+
+      - name: Clippy jtv-cli
+        run: cargo clippy --all-features -- -D warnings
+        working-directory: tools/cli
+
+  fmt:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-action@stable
+        with:
+          components: rustfmt
+
+      - name: Check formatting jtv-lang
+        run: cargo fmt --check
+        working-directory: packages/jtv-lang
+
+      - name: Check formatting jtv-cli
+        run: cargo fmt --check
+        working-directory: tools/cli

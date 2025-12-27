@@ -1,5 +1,5 @@
 // Abstract Syntax Tree for Julia the Viper
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Program {
@@ -73,8 +73,8 @@ pub struct ReverseBlock {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ReversibleStmt {
-    AddAssign(String, DataExpr),  // x += expr
-    SubAssign(String, DataExpr),  // x -= expr (auto-generated in reverse)
+    AddAssign(String, DataExpr), // x += expr
+    SubAssign(String, DataExpr), // x -= expr (auto-generated in reverse)
     If(IfStmt),
 }
 
@@ -136,9 +136,9 @@ pub struct FunctionDecl {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Purity {
-    Pure,    // @pure - no loops, no IO
-    Total,   // @total - guaranteed to terminate
-    Impure,  // default - may loop, may have side effects
+    Pure,   // @pure - no loops, no IO
+    Total,  // @total - guaranteed to terminate
+    Impure, // default - may loop, may have side effects
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -182,11 +182,11 @@ pub enum BasicType {
 pub enum Number {
     Int(i64),
     Float(f64),
-    Rational(i64, i64),  // numerator, denominator
-    Complex(f64, f64),   // real, imaginary
+    Rational(i64, i64), // numerator, denominator
+    Complex(f64, f64),  // real, imaginary
     Hex(String),
     Binary(String),
-    Symbolic(String),    // For symbolic math (e.g., "x", "pi")
+    Symbolic(String), // For symbolic math (e.g., "x", "pi")
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

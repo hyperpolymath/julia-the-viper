@@ -122,12 +122,28 @@ impl Repl {
     }
 
     fn print_banner(&self) {
-        println!("{}", "╔═══════════════════════════════════════════════════════════╗".cyan());
-        println!("{}", "║         Julia the Viper - Interactive REPL                ║".cyan());
-        println!("{}", "║    Harvard Architecture: Security through Grammar         ║".cyan());
-        println!("{}", "╚═══════════════════════════════════════════════════════════╝".cyan());
+        println!(
+            "{}",
+            "╔═══════════════════════════════════════════════════════════╗".cyan()
+        );
+        println!(
+            "{}",
+            "║         Julia the Viper - Interactive REPL                ║".cyan()
+        );
+        println!(
+            "{}",
+            "║    Harvard Architecture: Security through Grammar         ║".cyan()
+        );
+        println!(
+            "{}",
+            "╚═══════════════════════════════════════════════════════════╝".cyan()
+        );
         println!();
-        println!("Type {} for commands, {} to exit", ":help".green(), ":quit".green());
+        println!(
+            "Type {} for commands, {} to exit",
+            ":help".green(),
+            ":quit".green()
+        );
         println!();
     }
 
@@ -189,13 +205,49 @@ impl Repl {
     fn print_help(&self) {
         println!("{}", "=== REPL Commands ===".cyan().bold());
         println!();
-        println!("  {}  {:20} {}", ":help".green(), "(:h)", "Show this help message");
-        println!("  {}  {:20} {}", ":quit".green(), "(:q, :exit)", "Exit the REPL");
-        println!("  {}  {:20} {}", ":vars".green(), "(:v)", "Show all variables");
-        println!("  {}  {:20} {}", ":trace".green(), "(:t)", "Toggle execution tracing");
-        println!("  {}  {:20} {}", ":clear".green(), "(:c)", "Clear interpreter state");
-        println!("  {} {:20} {}", ":load".green(), "<file>", "Load and execute a .jtv file");
-        println!("  {}  {} {:20} {}", ":ast".green(), "<code>", "", "Show AST for code");
+        println!(
+            "  {}  {:20} {}",
+            ":help".green(),
+            "(:h)",
+            "Show this help message"
+        );
+        println!(
+            "  {}  {:20} {}",
+            ":quit".green(),
+            "(:q, :exit)",
+            "Exit the REPL"
+        );
+        println!(
+            "  {}  {:20} {}",
+            ":vars".green(),
+            "(:v)",
+            "Show all variables"
+        );
+        println!(
+            "  {}  {:20} {}",
+            ":trace".green(),
+            "(:t)",
+            "Toggle execution tracing"
+        );
+        println!(
+            "  {}  {:20} {}",
+            ":clear".green(),
+            "(:c)",
+            "Clear interpreter state"
+        );
+        println!(
+            "  {} {:20} {}",
+            ":load".green(),
+            "<file>",
+            "Load and execute a .jtv file"
+        );
+        println!(
+            "  {}  {} {:20} {}",
+            ":ast".green(),
+            "<code>",
+            "",
+            "Show AST for code"
+        );
         println!();
         println!("{}", "=== Language Examples ===".cyan().bold());
         println!();
@@ -203,7 +255,11 @@ impl Repl {
         println!("  {}     {}", "y = x + 3".yellow(), "// Expression");
         println!("  {} {}", "if x > 0 { y = 1 }".yellow(), "// Conditional");
         println!("  {}   {}", "while x > 0 { x += -1 }".yellow(), "// Loop");
-        println!("  {}     {}", "reverse { x += 1 }".yellow(), "// Reversible block");
+        println!(
+            "  {}     {}",
+            "reverse { x += 1 }".yellow(),
+            "// Reversible block"
+        );
         println!();
         println!("{}", "=== Data Types ===".cyan().bold());
         println!();
@@ -290,7 +346,9 @@ impl Repl {
         }
 
         // Also start multiline for function definitions
-        if line.starts_with("fn ") || line.starts_with("@pure fn ") || line.starts_with("@total fn ")
+        if line.starts_with("fn ")
+            || line.starts_with("@pure fn ")
+            || line.starts_with("@total fn ")
         {
             return opens > closes;
         }

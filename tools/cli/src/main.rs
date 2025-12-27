@@ -3,10 +3,17 @@
 //
 // Julia the Viper - Command Line Interface
 
-// Julia the Viper - Command Line Interface
+// Allow some clippy lints for cleaner output
+#![allow(clippy::wildcard_in_or_patterns)]
+#![allow(clippy::print_literal)]
+#![allow(clippy::collapsible_if)]
+#![allow(dead_code)]
+#![allow(unused_imports)]
+#![allow(unused_variables)]
+
 use clap::{Parser, Subcommand};
 use colored::*;
-use jtv_lang::{parse_program, Interpreter, TypeChecker, PurityChecker, format_code};
+use jtv_lang::{format_code, parse_program, Interpreter, PurityChecker, TypeChecker};
 use std::fs;
 use std::io::{self, Read};
 use std::path::PathBuf;
@@ -102,8 +109,14 @@ fn main() {
             }
         }
         Commands::Analyze { file, lang } => {
-            eprintln!("{} Analyzer not yet fully implemented", "Warning:".yellow().bold());
-            eprintln!("Please use: deno run --allow-read packages/jtv-analyzer/src/main.ts {} {}", file, lang);
+            eprintln!(
+                "{} Analyzer not yet fully implemented",
+                "Warning:".yellow().bold()
+            );
+            eprintln!(
+                "Please use: deno run --allow-read packages/jtv-analyzer/src/main.ts {} {}",
+                file, lang
+            );
         }
         Commands::Version => {
             print_version();
@@ -133,7 +146,9 @@ fn run_file(file_path: &str, trace: bool, show_vars: bool) -> Result<(), String>
         interpreter.enable_trace();
     }
 
-    interpreter.run(&program).map_err(|e| format!("Runtime error: {}", e))?;
+    interpreter
+        .run(&program)
+        .map_err(|e| format!("Runtime error: {}", e))?;
 
     if trace {
         println!("\n{}", "=== Execution Trace ===".cyan().bold());

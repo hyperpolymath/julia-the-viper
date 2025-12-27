@@ -1,8 +1,10 @@
 // WASM bindings for Julia the Viper
 #[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
 use crate::{parse_program, Interpreter};
+#[cfg(target_arch = "wasm32")]
 use serde_json;
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
@@ -22,10 +24,10 @@ impl JtvWasm {
 
     #[wasm_bindgen]
     pub fn run(&mut self, code: &str) -> Result<String, JsValue> {
-        let program = parse_program(code)
-            .map_err(|e| JsValue::from_str(&format!("{}", e)))?;
+        let program = parse_program(code).map_err(|e| JsValue::from_str(&format!("{}", e)))?;
 
-        self.interpreter.run(&program)
+        self.interpreter
+            .run(&program)
             .map_err(|e| JsValue::from_str(&format!("{}", e)))?;
 
         Ok("Execution successful".to_string())
@@ -33,18 +35,17 @@ impl JtvWasm {
 
     #[wasm_bindgen]
     pub fn get_variable(&self, name: &str) -> Result<String, JsValue> {
-        self.interpreter.get_variable(name)
+        self.interpreter
+            .get_variable(name)
             .map(|v| format!("{}", v))
             .map_err(|e| JsValue::from_str(&format!("{}", e)))
     }
 
     #[wasm_bindgen]
     pub fn parse_only(&self, code: &str) -> Result<String, JsValue> {
-        let program = parse_program(code)
-            .map_err(|e| JsValue::from_str(&format!("{}", e)))?;
+        let program = parse_program(code).map_err(|e| JsValue::from_str(&format!("{}", e)))?;
 
-        serde_json::to_string_pretty(&program)
-            .map_err(|e| JsValue::from_str(&format!("{}", e)))
+        serde_json::to_string_pretty(&program).map_err(|e| JsValue::from_str(&format!("{}", e)))
     }
 
     #[wasm_bindgen]
