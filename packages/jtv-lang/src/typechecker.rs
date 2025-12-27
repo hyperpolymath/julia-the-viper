@@ -216,7 +216,8 @@ impl TypeChecker {
             .map(|t| self.annotation_to_type(&Some(t.clone())))
             .unwrap_or(Type::Unit);
 
-        self.env.set_func(func.name.clone(), params, ret, func.purity.clone());
+        self.env
+            .set_func(func.name.clone(), params, ret, func.purity.clone());
         Ok(())
     }
 
@@ -237,9 +238,12 @@ impl TypeChecker {
             Some(TypeAnnotation::List(inner)) => {
                 Type::List(Box::new(self.annotation_to_type(&Some(*inner.clone()))))
             }
-            Some(TypeAnnotation::Tuple(types)) => {
-                Type::Tuple(types.iter().map(|t| self.annotation_to_type(&Some(t.clone()))).collect())
-            }
+            Some(TypeAnnotation::Tuple(types)) => Type::Tuple(
+                types
+                    .iter()
+                    .map(|t| self.annotation_to_type(&Some(t.clone())))
+                    .collect(),
+            ),
             Some(TypeAnnotation::Function(params, ret)) => {
                 let param_types: Vec<Type> = params
                     .iter()
@@ -421,9 +425,9 @@ impl TypeChecker {
             }
             DataExpr::Negate(inner) => {
                 let inner_ty = self.infer_data_expr(inner)?;
-                inner_ty.negate_result().ok_or_else(|| {
-                    JtvError::TypeError(format!("Cannot negate {}", inner_ty))
-                })
+                inner_ty
+                    .negate_result()
+                    .ok_or_else(|| JtvError::TypeError(format!("Cannot negate {}", inner_ty)))
             }
             DataExpr::FunctionCall(call) => {
                 if let Some((param_types, ret_ty, _)) = self.env.get_func(&call.name) {

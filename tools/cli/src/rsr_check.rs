@@ -3,7 +3,6 @@
 //
 // RSR (Rhodium Standard Repository) Compliance Checker
 
-// RSR (Rhodium Standard Repository) Compliance Checker
 use colored::*;
 use std::fs;
 use std::path::Path;
@@ -52,7 +51,8 @@ impl RsrChecker {
             self.score += 1;
             self.passed.push(format!("{}: {}", category, path));
         } else {
-            self.failed.push(format!("{}: {} (missing)", category, path));
+            self.failed
+                .push(format!("{}: {} (missing)", category, path));
         }
     }
 
@@ -70,10 +70,12 @@ impl RsrChecker {
             if readme.len() > 1000 {
                 self.score += 1;
                 self.max_score += 1;
-                self.passed.push("README: Comprehensive (>1000 chars)".to_string());
+                self.passed
+                    .push("README: Comprehensive (>1000 chars)".to_string());
             } else {
                 self.max_score += 1;
-                self.warnings.push("README: Could be more comprehensive".to_string());
+                self.warnings
+                    .push("README: Could be more comprehensive".to_string());
             }
         }
 
@@ -92,10 +94,12 @@ impl RsrChecker {
             if security_txt.contains("Contact:") && security_txt.contains("Expires:") {
                 self.score += 1;
                 self.max_score += 1;
-                self.passed.push("security.txt: RFC 9116 compliant".to_string());
+                self.passed
+                    .push("security.txt: RFC 9116 compliant".to_string());
             } else {
                 self.max_score += 1;
-                self.warnings.push("security.txt: May not be fully RFC 9116 compliant".to_string());
+                self.warnings
+                    .push("security.txt: May not be fully RFC 9116 compliant".to_string());
             }
         }
 
@@ -115,10 +119,12 @@ impl RsrChecker {
             if recipe_count >= 10 {
                 self.score += 1;
                 self.max_score += 1;
-                self.passed.push(format!("Justfile: {} recipes (≥10)", recipe_count));
+                self.passed
+                    .push(format!("Justfile: {} recipes (≥10)", recipe_count));
             } else {
                 self.max_score += 1;
-                self.warnings.push(format!("Justfile: Only {} recipes (<10)", recipe_count));
+                self.warnings
+                    .push(format!("Justfile: Only {} recipes (<10)", recipe_count));
             }
         }
 
@@ -137,10 +143,12 @@ impl RsrChecker {
         if Path::new("LICENSE-MIT").exists() && Path::new("LICENSE-PALIMPSEST").exists() {
             self.score += 1;
             self.max_score += 1;
-            self.passed.push("Dual licensing: MIT + Palimpsest".to_string());
+            self.passed
+                .push("Dual licensing: MIT + Palimpsest".to_string());
         } else {
             self.max_score += 1;
-            self.warnings.push("Dual licensing not fully implemented".to_string());
+            self.warnings
+                .push("Dual licensing not fully implemented".to_string());
         }
 
         println!();
@@ -155,10 +163,14 @@ impl RsrChecker {
 
         // Check TPCF implementation
         if let Ok(tpcf) = fs::read_to_string("TPCF.md") {
-            if tpcf.contains("Perimeter 1") && tpcf.contains("Perimeter 2") && tpcf.contains("Perimeter 3") {
+            if tpcf.contains("Perimeter 1")
+                && tpcf.contains("Perimeter 2")
+                && tpcf.contains("Perimeter 3")
+            {
                 self.score += 1;
                 self.max_score += 1;
-                self.passed.push("TPCF: All 3 perimeters defined".to_string());
+                self.passed
+                    .push("TPCF: All 3 perimeters defined".to_string());
             }
         } else {
             self.max_score += 1;
@@ -221,9 +233,11 @@ impl RsrChecker {
             self.max_score += 1;
             if found_stages >= 3 {
                 self.score += 1;
-                self.passed.push(format!("CI/CD: {} stages configured", found_stages));
+                self.passed
+                    .push(format!("CI/CD: {} stages configured", found_stages));
             } else {
-                self.warnings.push(format!("CI/CD: Only {} stages found", found_stages));
+                self.warnings
+                    .push(format!("CI/CD: Only {} stages found", found_stages));
             }
         }
 
@@ -265,9 +279,11 @@ impl RsrChecker {
             self.max_score += 1;
             if !has_unsafe {
                 self.score += 1;
-                self.passed.push("Memory safety: No unsafe blocks in core".to_string());
+                self.passed
+                    .push("Memory safety: No unsafe blocks in core".to_string());
             } else {
-                self.warnings.push("Memory safety: Unsafe blocks detected".to_string());
+                self.warnings
+                    .push("Memory safety: Unsafe blocks detected".to_string());
             }
         }
 
@@ -292,9 +308,11 @@ impl RsrChecker {
             self.max_score += 1;
             if !has_network {
                 self.score += 1;
-                self.passed.push("Offline-first: No network dependencies in core".to_string());
+                self.passed
+                    .push("Offline-first: No network dependencies in core".to_string());
             } else {
-                self.warnings.push("Offline-first: Network dependencies detected".to_string());
+                self.warnings
+                    .push("Offline-first: Network dependencies detected".to_string());
             }
         }
 
@@ -308,7 +326,8 @@ impl RsrChecker {
 
         // Check branch protection (would need GitHub API in real implementation)
         self.max_score += 1;
-        self.warnings.push("TPCF: Branch protection (manual verification required)".to_string());
+        self.warnings
+            .push("TPCF: Branch protection (manual verification required)".to_string());
 
         println!();
     }
@@ -333,7 +352,12 @@ impl RsrChecker {
             _ => ("Needs Work", "red"),
         };
 
-        println!("Score: {}/{} ({}%)", self.score.to_string().green().bold(), self.max_score, percentage.to_string().bold());
+        println!(
+            "Score: {}/{} ({}%)",
+            self.score.to_string().green().bold(),
+            self.max_score,
+            percentage.to_string().bold()
+        );
         println!("Grade: {}", grade.0.color(grade.1).bold());
         println!();
 
@@ -365,11 +389,26 @@ impl RsrChecker {
         println!();
 
         if percentage >= 75 {
-            println!("{}", "🎉 Congratulations! This repository meets RSR standards.".green().bold());
+            println!(
+                "{}",
+                "🎉 Congratulations! This repository meets RSR standards."
+                    .green()
+                    .bold()
+            );
         } else if percentage >= 50 {
-            println!("{}", "⚙️  Good progress! A few improvements needed for full compliance.".yellow().bold());
+            println!(
+                "{}",
+                "⚙️  Good progress! A few improvements needed for full compliance."
+                    .yellow()
+                    .bold()
+            );
         } else {
-            println!("{}", "📝 Significant work needed to meet RSR standards.".red().bold());
+            println!(
+                "{}",
+                "📝 Significant work needed to meet RSR standards."
+                    .red()
+                    .bold()
+            );
         }
 
         println!();

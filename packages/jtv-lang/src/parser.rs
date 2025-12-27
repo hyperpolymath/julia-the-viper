@@ -1,8 +1,8 @@
 // Parser implementation using Pest
-use pest::Parser;
-use pest_derive::Parser;
 use crate::ast::*;
 use crate::error::{JtvError, Result};
+use pest::Parser;
+use pest_derive::Parser;
 
 #[derive(Parser)]
 #[grammar = "grammar.pest"]
@@ -12,9 +12,9 @@ pub fn parse_program(input: &str) -> Result<Program> {
     let mut pairs = JtvParser::parse(Rule::program, input)
         .map_err(|e| JtvError::ParseError(format!("Parse error: {}", e)))?;
 
-    let program_pair = pairs.next().ok_or_else(|| {
-        JtvError::ParseError("Expected program".to_string())
-    })?;
+    let program_pair = pairs
+        .next()
+        .ok_or_else(|| JtvError::ParseError("Expected program".to_string()))?;
 
     let mut statements = Vec::new();
 
@@ -52,7 +52,8 @@ fn parse_import(pair: pest::iterators::Pair<Rule>) -> Result<TopLevel> {
     let mut inner = pair.into_inner();
     let module_path = inner.next().unwrap();
 
-    let path: Vec<String> = module_path.into_inner()
+    let path: Vec<String> = module_path
+        .into_inner()
         .map(|p| p.as_str().to_string())
         .collect();
 
@@ -191,7 +192,11 @@ fn parse_control_stmt(pair: pest::iterators::Pair<Rule>) -> Result<ControlStmt> 
             }))
         }
         Rule::return_stmt => {
-            let value = inner.into_inner().next().map(|p| parse_data_expr(p)).transpose()?;
+            let value = inner
+                .into_inner()
+                .next()
+                .map(|p| parse_data_expr(p))
+                .transpose()?;
             Ok(ControlStmt::Return(value))
         }
         Rule::print_stmt => {
@@ -215,7 +220,10 @@ fn parse_control_stmt(pair: pest::iterators::Pair<Rule>) -> Result<ControlStmt> 
             }
             Ok(ControlStmt::Block(stmts))
         }
-        _ => Err(JtvError::ParseError(format!("Unexpected control statement: {:?}", inner.as_rule()))),
+        _ => Err(JtvError::ParseError(format!(
+            "Unexpected control statement: {:?}",
+            inner.as_rule()
+        ))),
     }
 }
 
@@ -232,7 +240,10 @@ fn parse_reversible_stmt(pair: pest::iterators::Pair<Rule>) -> Result<Reversible
             match op {
                 "+=" => Ok(ReversibleStmt::AddAssign(target, expr)),
                 "-=" => Ok(ReversibleStmt::SubAssign(target, expr)),
-                _ => Err(JtvError::ParseError(format!("Invalid reversible operator: {}", op))),
+                _ => Err(JtvError::ParseError(format!(
+                    "Invalid reversible operator: {}",
+                    op
+                ))),
             }
         }
         Rule::if_stmt => {
@@ -260,7 +271,10 @@ fn parse_reversible_stmt(pair: pest::iterators::Pair<Rule>) -> Result<Reversible
                 else_branch,
             }))
         }
-        _ => Err(JtvError::ParseError(format!("Unexpected reversible statement: {:?}", inner.as_rule()))),
+        _ => Err(JtvError::ParseError(format!(
+            "Unexpected reversible statement: {:?}",
+            inner.as_rule()
+        ))),
     }
 }
 
@@ -292,9 +306,7 @@ fn parse_factor(pair: pest::iterators::Pair<Rule>) -> Result<DataExpr> {
             let num = parse_number(pair.into_inner().next().unwrap())?;
             Ok(DataExpr::Number(num))
         }
-        Rule::identifier => {
-            Ok(DataExpr::Identifier(pair.as_str().to_string()))
-        }
+        Rule::identifier => Ok(DataExpr::Identifier(pair.as_str().to_string())),
         Rule::function_call => {
             let mut parts = pair.into_inner();
             let name = parts.next().unwrap().as_str().to_string();
@@ -332,45 +344,57 @@ fn parse_factor(pair: pest::iterators::Pair<Rule>) -> Result<DataExpr> {
 
                 match op {
                     "-" => Ok(DataExpr::Negate(Box::new(expr))),
-                    _ => Err(JtvError::ParseError(format!("Unknown unary operator: {}", op))),
+                    _ => Err(JtvError::ParseError(format!(
+                        "Unknown unary operator: {}",
+                        op
+                    ))),
                 }
             } else {
                 parse_factor(first)
             }
         }
         Rule::data_expr => parse_data_expr(pair),
-        _ => Err(JtvError::ParseError(format!("Unexpected factor: {:?}", pair.as_rule()))),
+        _ => Err(JtvError::ParseError(format!(
+            "Unexpected factor: {:?}",
+            pair.as_rule()
+        ))),
     }
 }
 
 fn parse_number(pair: pest::iterators::Pair<Rule>) -> Result<Number> {
     match pair.as_rule() {
         Rule::integer => {
-            let n = pair.as_str().parse::<i64>()
+            let n = pair
+                .as_str()
+                .parse::<i64>()
                 .map_err(|e| JtvError::ParseError(format!("Invalid integer: {}", e)))?;
             Ok(Number::Int(n))
         }
         Rule::float => {
-            let n = pair.as_str().parse::<f64>()
+            let n = pair
+                .as_str()
+                .parse::<f64>()
                 .map_err(|e| JtvError::ParseError(format!("Invalid float: {}", e)))?;
             Ok(Number::Float(n))
         }
         Rule::rational => {
             let parts: Vec<&str> = pair.as_str().split('/').collect();
-            let num = parts[0].parse::<i64>()
+            let num = parts[0]
+                .parse::<i64>()
                 .map_err(|e| JtvError::ParseError(format!("Invalid rational numerator: {}", e)))?;
-            let den = parts[1].parse::<i64>()
-                .map_err(|e| JtvError::ParseError(format!("Invalid rational denominator: {}", e)))?;
+            let den = parts[1].parse::<i64>().map_err(|e| {
+                JtvError::ParseError(format!("Invalid rational denominator: {}", e))
+            })?;
             Ok(Number::Rational(num, den))
         }
         Rule::complex => {
             // Simplified complex parsing
             let s = pair.as_str();
             if s.ends_with('i') {
-                let real_part = &s[..s.len()-1];
+                let real_part = &s[..s.len() - 1];
                 if let Some(plus_pos) = real_part.rfind('+') {
                     let real = real_part[..plus_pos].parse::<f64>().unwrap_or(0.0);
-                    let imag = real_part[plus_pos+1..].parse::<f64>().unwrap_or(0.0);
+                    let imag = real_part[plus_pos + 1..].parse::<f64>().unwrap_or(0.0);
                     Ok(Number::Complex(real, imag))
                 } else {
                     let imag = real_part.parse::<f64>().unwrap_or(0.0);
@@ -382,7 +406,10 @@ fn parse_number(pair: pest::iterators::Pair<Rule>) -> Result<Number> {
         }
         Rule::hex => Ok(Number::Hex(pair.as_str().to_string())),
         Rule::binary => Ok(Number::Binary(pair.as_str().to_string())),
-        _ => Err(JtvError::ParseError(format!("Unknown number type: {:?}", pair.as_rule()))),
+        _ => Err(JtvError::ParseError(format!(
+            "Unknown number type: {:?}",
+            pair.as_rule()
+        ))),
     }
 }
 
@@ -393,7 +420,10 @@ fn parse_control_expr(pair: pest::iterators::Pair<Rule>) -> Result<ControlExpr> 
         Rule::logical_expr => parse_logical_expr(inner),
         Rule::comparison_expr => parse_comparison_expr(inner),
         Rule::data_expr => Ok(ControlExpr::Data(parse_data_expr(inner)?)),
-        _ => Err(JtvError::ParseError(format!("Unexpected control expression: {:?}", inner.as_rule()))),
+        _ => Err(JtvError::ParseError(format!(
+            "Unexpected control expression: {:?}",
+            inner.as_rule()
+        ))),
     }
 }
 
@@ -435,7 +465,7 @@ fn parse_logical_factor(pair: pest::iterators::Pair<Rule>) -> Result<ControlExpr
             Rule::data_expr => Ok(ControlExpr::Data(parse_data_expr(first)?)),
             Rule::control_expr => parse_control_expr(first),
             _ => parse_logical_factor(first),
-        }
+        },
     }
 }
 
@@ -455,7 +485,11 @@ fn parse_comparison_expr(pair: pest::iterators::Pair<Rule>) -> Result<ControlExp
         _ => return Err(JtvError::ParseError(format!("Unknown comparator: {}", op))),
     };
 
-    Ok(ControlExpr::Comparison(Box::new(left), comparator, Box::new(right)))
+    Ok(ControlExpr::Comparison(
+        Box::new(left),
+        comparator,
+        Box::new(right),
+    ))
 }
 
 fn parse_range_expr(pair: pest::iterators::Pair<Rule>) -> Result<RangeExpr> {
@@ -499,7 +533,7 @@ fn parse_type_annotation(pair: pest::iterators::Pair<Rule>) -> Result<TypeAnnota
             Ok(TypeAnnotation::Tuple(types))
         }
         Rule::function_type => {
-            let mut parts = inner.into_inner();
+            let parts = inner.into_inner();
             let mut param_types = Vec::new();
 
             // Collect all but the last (which is return type)
@@ -513,7 +547,10 @@ fn parse_type_annotation(pair: pest::iterators::Pair<Rule>) -> Result<TypeAnnota
             let ret = Box::new(parse_type_annotation(return_type.clone())?);
             Ok(TypeAnnotation::Function(param_types, ret))
         }
-        _ => Err(JtvError::ParseError(format!("Unknown type annotation: {:?}", inner.as_rule()))),
+        _ => Err(JtvError::ParseError(format!(
+            "Unknown type annotation: {:?}",
+            inner.as_rule()
+        ))),
     }
 }
 

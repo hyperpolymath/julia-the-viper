@@ -78,7 +78,8 @@ impl Formatter {
 
     fn format_module(&mut self, module: &ModuleDecl) {
         self.write_indent();
-        self.output.push_str(&format!("module {} {{\n", module.name));
+        self.output
+            .push_str(&format!("module {} {{\n", module.name));
         self.indent_level += 1;
 
         for stmt in &module.body {

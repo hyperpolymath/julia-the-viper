@@ -1,9 +1,9 @@
 // Number system implementation supporting 7 types
 use crate::ast::Number;
 use crate::error::{JtvError, Result};
-use num_rational::Ratio;
 use num_complex::Complex64;
-use num_traits::{Zero, One};
+use num_rational::Ratio;
+use num_traits::Zero;
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -26,45 +26,32 @@ impl Value {
     // Addition operation (the only arithmetic operation in Data Language)
     pub fn add(&self, other: &Value) -> Result<Value> {
         match (self, other) {
-            (Value::Int(a), Value::Int(b)) => {
-                a.checked_add(*b)
-                    .map(Value::Int)
-                    .ok_or(JtvError::IntegerOverflow)
-            }
+            (Value::Int(a), Value::Int(b)) => a
+                .checked_add(*b)
+                .map(Value::Int)
+                .ok_or(JtvError::IntegerOverflow),
             (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a + b)),
             (Value::Rational(a), Value::Rational(b)) => Ok(Value::Rational(a + b)),
             (Value::Complex(a), Value::Complex(b)) => Ok(Value::Complex(a + b)),
-            (Value::Hex(a), Value::Hex(b)) => {
-                a.checked_add(*b)
-                    .map(Value::Hex)
-                    .ok_or(JtvError::IntegerOverflow)
-            }
-            (Value::Binary(a), Value::Binary(b)) => {
-                a.checked_add(*b)
-                    .map(Value::Binary)
-                    .ok_or(JtvError::IntegerOverflow)
-            }
+            (Value::Hex(a), Value::Hex(b)) => a
+                .checked_add(*b)
+                .map(Value::Hex)
+                .ok_or(JtvError::IntegerOverflow),
+            (Value::Binary(a), Value::Binary(b)) => a
+                .checked_add(*b)
+                .map(Value::Binary)
+                .ok_or(JtvError::IntegerOverflow),
             (Value::Symbolic(a), Value::Symbolic(b)) => {
                 Ok(Value::Symbolic(format!("{} + {}", a, b)))
             }
-            (Value::String(a), Value::String(b)) => {
-                Ok(Value::String(format!("{}{}", a, b)))
-            }
+            (Value::String(a), Value::String(b)) => Ok(Value::String(format!("{}{}", a, b))),
             // Type coercion
             (Value::Int(a), Value::Float(b)) => Ok(Value::Float(*a as f64 + b)),
             (Value::Float(a), Value::Int(b)) => Ok(Value::Float(a + *b as f64)),
-            (Value::Int(a), Value::Rational(b)) => {
-                Ok(Value::Rational(Ratio::from_integer(*a) + b))
-            }
-            (Value::Rational(a), Value::Int(b)) => {
-                Ok(Value::Rational(a + Ratio::from_integer(*b)))
-            }
-            (Value::Float(a), Value::Complex(b)) => {
-                Ok(Value::Complex(Complex64::new(*a, 0.0) + b))
-            }
-            (Value::Complex(a), Value::Float(b)) => {
-                Ok(Value::Complex(a + Complex64::new(*b, 0.0)))
-            }
+            (Value::Int(a), Value::Rational(b)) => Ok(Value::Rational(Ratio::from_integer(*a) + b)),
+            (Value::Rational(a), Value::Int(b)) => Ok(Value::Rational(a + Ratio::from_integer(*b))),
+            (Value::Float(a), Value::Complex(b)) => Ok(Value::Complex(Complex64::new(*a, 0.0) + b)),
+            (Value::Complex(a), Value::Float(b)) => Ok(Value::Complex(a + Complex64::new(*b, 0.0))),
             _ => Err(JtvError::TypeError(format!(
                 "Cannot add {:?} and {:?}",
                 self, other
