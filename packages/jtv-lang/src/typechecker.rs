@@ -301,7 +301,7 @@ impl TypeChecker {
             }
             ControlStmt::If(if_stmt) => {
                 // Condition must be evaluable
-                self.infer_data_expr(&if_stmt.condition)?;
+                self.infer_control_expr(&if_stmt.condition)?;
 
                 for stmt in &if_stmt.then_branch {
                     self.check_control_stmt(stmt)?;
@@ -314,7 +314,7 @@ impl TypeChecker {
                 Ok(())
             }
             ControlStmt::While(while_stmt) => {
-                self.infer_data_expr(&while_stmt.condition)?;
+                self.infer_control_expr(&while_stmt.condition)?;
                 for stmt in &while_stmt.body {
                     self.check_control_stmt(stmt)?;
                 }
@@ -388,7 +388,7 @@ impl TypeChecker {
                 Ok(())
             }
             ReversibleStmt::If(if_stmt) => {
-                self.infer_data_expr(&if_stmt.condition)?;
+                self.infer_control_expr(&if_stmt.condition)?;
                 for stmt in &if_stmt.then_branch {
                     self.check_control_stmt(stmt)?;
                 }

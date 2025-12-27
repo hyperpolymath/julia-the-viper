@@ -142,7 +142,7 @@ impl PurityChecker {
                 }
             }
             ControlStmt::If(if_stmt) => {
-                let cond_level = self.analyze_data_expr(&if_stmt.condition)?;
+                let cond_level = self.analyze_control_expr(&if_stmt.condition)?;
                 let then_level = self.analyze_body(&if_stmt.then_branch)?;
                 let else_level = if let Some(else_branch) = &if_stmt.else_branch {
                     self.analyze_body(else_branch)?
@@ -198,7 +198,7 @@ impl PurityChecker {
                 self.analyze_data_expr(expr)
             }
             ReversibleStmt::If(if_stmt) => {
-                let cond_level = self.analyze_data_expr(&if_stmt.condition)?;
+                let cond_level = self.analyze_control_expr(&if_stmt.condition)?;
                 let then_level = self.analyze_body(&if_stmt.then_branch)?;
                 let else_level = if let Some(else_branch) = &if_stmt.else_branch {
                     self.analyze_body(else_branch)?
