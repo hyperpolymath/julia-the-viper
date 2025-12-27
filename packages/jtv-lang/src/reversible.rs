@@ -166,7 +166,7 @@ impl ReversibleInterpreter {
                 Ok(())
             }
             ReversibleStmt::If(if_stmt) => {
-                let condition = self.eval_data_expr(&if_stmt.condition)?;
+                let condition = self.eval_control_expr(&if_stmt.condition)?;
                 let condition_true = condition.is_truthy();
 
                 // Create sub-interpreter to track nested ops
@@ -247,6 +247,50 @@ impl ReversibleInterpreter {
                     self.apply_operation(nested_op)?;
                 }
                 Ok(())
+            }
+        }
+    }
+
+    fn eval_control_expr(&self, expr: &ControlExpr) -> Result<Value> {
+        match expr {
+            ControlExpr::Data(data) => self.eval_data_expr(data),
+            ControlExpr::Comparison(left, op, right) => {
+                let left_val = self.eval_data_expr(left)?;
+                let right_val = self.eval_data_expr(right)?;
+                let result = match op {
+                    Comparator::Eq => left_val.eq(&right_val)?,
+                    Comparator::Ne => left_val.ne(&right_val)?,
+                    Comparator::Lt => left_val.lt(&right_val)?,
+                    Comparator::Le => left_val.le(&right_val)?,
+                    Comparator::Gt => left_val.gt(&right_val)?,
+                    Comparator::Ge => left_val.ge(&right_val)?,
+                };
+                Ok(Value::Bool(result))
+            }
+            ControlExpr::Logical(left, op, right) => {
+                let left_val = self.eval_control_expr(left)?;
+                match op {
+                    LogicalOp::And => {
+                        if !left_val.is_truthy() {
+                            Ok(Value::Bool(false))
+                        } else {
+                            let right_val = self.eval_control_expr(right)?;
+                            Ok(Value::Bool(right_val.is_truthy()))
+                        }
+                    }
+                    LogicalOp::Or => {
+                        if left_val.is_truthy() {
+                            Ok(Value::Bool(true))
+                        } else {
+                            let right_val = self.eval_control_expr(right)?;
+                            Ok(Value::Bool(right_val.is_truthy()))
+                        }
+                    }
+                }
+            }
+            ControlExpr::Not(inner) => {
+                let val = self.eval_control_expr(inner)?;
+                Ok(Value::Bool(!val.is_truthy()))
             }
         }
     }

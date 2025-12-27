@@ -6,7 +6,7 @@
 // Julia the Viper - Command Line Interface
 use clap::{Parser, Subcommand};
 use colored::*;
-use jtv_lang::{parse_program, Interpreter, TypeChecker, PurityChecker};
+use jtv_lang::{parse_program, Interpreter, TypeChecker, PurityChecker, format_code};
 use std::fs;
 use std::io::{self, Read};
 use std::path::PathBuf;

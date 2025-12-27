@@ -12,6 +12,7 @@ pub mod error;
 pub mod typechecker;
 pub mod purity;
 pub mod reversible;
+pub mod formatter;
 pub mod wasm;
 
 pub use ast::*;
@@ -22,6 +23,7 @@ pub use error::*;
 pub use typechecker::*;
 pub use purity::*;
 pub use reversible::*;
+pub use formatter::*;
 
 #[cfg(target_arch = "wasm32")]
 pub use wasm::*;
