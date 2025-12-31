@@ -220,10 +220,12 @@ impl PurityChecker {
             }
             DataExpr::Negate(inner) => self.analyze_data_expr(inner),
             DataExpr::FunctionCall(call) => {
-                // Called function's purity affects caller's purity
+                // Try qualified name first (Module::func), then unqualified
+                let qualified = call.qualified_name();
                 let func_level = self
                     .func_purity
-                    .get(&call.name)
+                    .get(&qualified)
+                    .or_else(|| self.func_purity.get(&call.name))
                     .cloned()
                     .unwrap_or(PurityLevel::Impure); // Unknown functions assumed impure
 

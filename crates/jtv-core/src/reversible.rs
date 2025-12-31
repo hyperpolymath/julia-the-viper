@@ -397,7 +397,6 @@ fn expr_contains_var(expr: &DataExpr, var: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::parser::parse_program;
 
     #[test]
     fn test_forward_execution() {

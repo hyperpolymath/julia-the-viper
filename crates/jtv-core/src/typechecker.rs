@@ -430,7 +430,14 @@ impl TypeChecker {
                     .ok_or_else(|| JtvError::TypeError(format!("Cannot negate {}", inner_ty)))
             }
             DataExpr::FunctionCall(call) => {
-                if let Some((param_types, ret_ty, _)) = self.env.get_func(&call.name) {
+                // Try qualified name first (Module::func), then unqualified
+                let qualified = call.qualified_name();
+                let func_info = self
+                    .env
+                    .get_func(&qualified)
+                    .or_else(|| self.env.get_func(&call.name));
+
+                if let Some((param_types, ret_ty, _)) = func_info {
                     // Check argument count
                     if call.args.len() != param_types.len() {
                         return Err(JtvError::ArityMismatch {
@@ -452,7 +459,7 @@ impl TypeChecker {
 
                     Ok(ret_ty.clone())
                 } else {
-                    Err(JtvError::UndefinedFunction(call.name.clone()))
+                    Err(JtvError::UndefinedFunction(qualified))
                 }
             }
             DataExpr::List(elements) => {

@@ -1,5 +1,5 @@
 // Parser tests for Julia the Viper
-use jtv_core::{parse_program, ControlStmt, DataExpr, Number};
+use jtv_core::parse_program;
 
 #[test]
 fn test_simple_addition() {
@@ -193,7 +193,6 @@ fn test_comments() {
 }
 
 #[test]
-#[ignore] // Requires v1.1 features: module-qualified calls (Calculator.add) and range expressions with arithmetic (n+1)
 fn test_complex_program() {
     let code = r#"
         module Calculator {
