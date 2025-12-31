@@ -309,7 +309,22 @@ fn parse_factor(pair: pest::iterators::Pair<Rule>) -> Result<DataExpr> {
         Rule::identifier => Ok(DataExpr::Identifier(pair.as_str().to_string())),
         Rule::function_call => {
             let mut parts = pair.into_inner();
-            let name = parts.next().unwrap().as_str().to_string();
+            let qualified_name = parts.next().unwrap();
+
+            // Parse qualified name: Module.submodule.function
+            let name_parts: Vec<String> = qualified_name
+                .into_inner()
+                .map(|p| p.as_str().to_string())
+                .collect();
+
+            let (module, name) = if name_parts.len() > 1 {
+                // Has module path: ["Module", "submod", "func"] -> module=["Module", "submod"], name="func"
+                let last = name_parts.len() - 1;
+                (Some(name_parts[..last].to_vec()), name_parts[last].clone())
+            } else {
+                // No module path
+                (None, name_parts[0].clone())
+            };
 
             let mut args = Vec::new();
             if let Some(arg_list) = parts.next() {
@@ -318,7 +333,7 @@ fn parse_factor(pair: pest::iterators::Pair<Rule>) -> Result<DataExpr> {
                 }
             }
 
-            Ok(DataExpr::FunctionCall(FunctionCall { name, args }))
+            Ok(DataExpr::FunctionCall(FunctionCall { module, name, args }))
         }
         Rule::list_literal => {
             let mut elements = Vec::new();

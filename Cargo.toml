@@ -1,0 +1,53 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Julia the Viper - Workspace Root
+
+[workspace]
+resolver = "2"
+members = [
+    "crates/jtv-core",
+    "crates/jtv-cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Julia the Viper Contributors"]
+license = "GPL-3.0-or-later"
+repository = "https://github.com/hyperpolymath/julia-the-viper"
+keywords = ["security", "formal-verification", "parser", "interpreter", "wasm"]
+categories = ["compilers", "parsing", "wasm"]
+
+[workspace.dependencies]
+# Parser
+pest = "2.7"
+pest_derive = "2.7"
+
+# Number systems
+num-rational = "0.4"
+num-complex = "0.4"
+num-traits = "0.2"
+
+# Error handling
+thiserror = "1.0"
+miette = { version = "7", features = ["fancy"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+
+# WASM
+wasm-bindgen = "0.2"
+
+# CLI
+clap = { version = "4.0", features = ["derive"] }
+colored = "2.0"
+rustyline = "14.0"
+dirs = "5.0"
+
+# Testing
+criterion = "0.5"
+insta = "1"
+
+# Internal crates
+jtv-core = { path = "crates/jtv-core" }

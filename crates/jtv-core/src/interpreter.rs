@@ -8,7 +8,12 @@ const MAX_ITERATIONS: usize = 1_000_000; // Safety limit for loops
 
 pub struct Interpreter {
     globals: HashMap<String, Value>,
+    /// Functions stored by qualified name (e.g., "Math::add" or just "add")
     functions: HashMap<String, FunctionDecl>,
+    /// Module definitions: module_name -> list of function names
+    modules: HashMap<String, Vec<String>>,
+    /// Imported modules (module_name -> optional alias)
+    imports: HashMap<String, Option<String>>,
     call_stack: Vec<HashMap<String, Value>>,
     iteration_count: usize,
     trace_enabled: bool,
@@ -28,6 +33,8 @@ impl Interpreter {
         Interpreter {
             globals: HashMap::new(),
             functions: HashMap::new(),
+            modules: HashMap::new(),
+            imports: HashMap::new(),
             call_stack: vec![],
             iteration_count: 0,
             trace_enabled: false,
@@ -86,18 +93,61 @@ impl Interpreter {
     }
 
     fn eval_top_level(&mut self, top_level: &TopLevel) -> Result<()> {
+        self.eval_top_level_with_context(top_level, None)
+    }
+
+    fn eval_top_level_with_context(
+        &mut self,
+        top_level: &TopLevel,
+        current_module: Option<&str>,
+    ) -> Result<()> {
         match top_level {
             TopLevel::Module(module) => {
+                // Register module and process its body
+                let mut func_names = Vec::new();
+
                 for stmt in &module.body {
-                    self.eval_top_level(stmt)?;
+                    if let TopLevel::Function(func) = stmt {
+                        func_names.push(func.name.clone());
+                    }
+                    self.eval_top_level_with_context(stmt, Some(&module.name))?;
+                }
+
+                self.modules.insert(module.name.clone(), func_names);
+                Ok(())
+            }
+            TopLevel::Import(import) => {
+                // Register import
+                let module_name = import.path.join("::");
+                self.imports
+                    .insert(module_name.clone(), import.alias.clone());
+
+                // If module is already defined, make its functions available
+                if let Some(func_names) = self.modules.get(&module_name).cloned() {
+                    for func_name in func_names {
+                        let qualified = format!("{}::{}", module_name, func_name);
+                        if let Some(func) = self.functions.get(&qualified).cloned() {
+                            // Also register with alias if present
+                            if let Some(alias) = &import.alias {
+                                let aliased = format!("{}::{}", alias, func_name);
+                                self.functions.insert(aliased, func.clone());
+                            }
+                            // Register as unqualified for direct use after import
+                            self.functions.insert(func_name, func);
+                        }
+                    }
                 }
                 Ok(())
             }
-            TopLevel::Import(_) => {
-                // Import handling would go here
-                Ok(())
-            }
             TopLevel::Function(func) => {
+                // Store function with qualified name if in a module context
+                let qualified_name = match current_module {
+                    Some(module) => format!("{}::{}", module, func.name),
+                    None => func.name.clone(),
+                };
+                self.functions.insert(qualified_name, func.clone());
+
+                // Also store with just the name for local access within module
                 self.functions.insert(func.name.clone(), func.clone());
                 Ok(())
             }
@@ -354,10 +404,15 @@ impl Interpreter {
     }
 
     fn eval_function_call(&mut self, call: &FunctionCall) -> Result<Value> {
+        // Try qualified name first (e.g., "Math::add")
+        let qualified = call.qualified_name();
+
+        // Look up function: try qualified name, then unqualified
         let func = self
             .functions
-            .get(&call.name)
-            .ok_or_else(|| JtvError::UndefinedFunction(call.name.clone()))?
+            .get(&qualified)
+            .or_else(|| self.functions.get(&call.name))
+            .ok_or_else(|| JtvError::UndefinedFunction(qualified.clone()))?
             .clone();
 
         if func.params.len() != call.args.len() {

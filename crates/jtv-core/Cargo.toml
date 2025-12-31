@@ -1,0 +1,38 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Julia the Viper - Core Language Implementation
+
+[package]
+name = "jtv-core"
+description = "Harvard Architecture language with provable termination guarantees"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+pest.workspace = true
+pest_derive.workspace = true
+num-rational.workspace = true
+num-complex.workspace = true
+num-traits.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+wasm-bindgen.workspace = true
+
+[dev-dependencies]
+criterion.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[[bench]]
+name = "parser_bench"
+harness = false
+
+[[bench]]
+name = "interpreter_bench"
+harness = false
