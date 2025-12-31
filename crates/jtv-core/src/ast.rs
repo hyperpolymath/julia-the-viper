@@ -149,8 +149,21 @@ pub struct Param {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct FunctionCall {
+    /// Module path, e.g., ["Math"] for Math.add
+    pub module: Option<Vec<String>>,
+    /// Function name
     pub name: String,
     pub args: Vec<DataExpr>,
+}
+
+impl FunctionCall {
+    /// Returns the fully qualified name (e.g., "Math::add" or just "add")
+    pub fn qualified_name(&self) -> String {
+        match &self.module {
+            Some(path) => format!("{}::{}", path.join("::"), self.name),
+            None => self.name.clone(),
+        }
+    }
 }
 
 // ===== TYPE SYSTEM =====

@@ -88,7 +88,9 @@ purity_marker = { "@pure" | "@total" }
 param_list = { param ~ ("," ~ param)* }
 param = { identifier ~ (":" ~ type_annotation)? }
 
-function_call = { identifier ~ "(" ~ arg_list? ~ ")" }
+// Function calls support qualified names: Module.submod.func(args)
+function_call = { qualified_name ~ "(" ~ arg_list? ~ ")" }
+qualified_name = { identifier ~ ("." ~ identifier)* }
 arg_list = { data_expr ~ ("," ~ data_expr)* }
 
 // ===== TYPE SYSTEM =====
