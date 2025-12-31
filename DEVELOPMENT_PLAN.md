@@ -409,10 +409,61 @@ criterion = "0.5"             # Benchmarks
   },
   "suffix": ".res.js",
   "bs-dependencies": [
-    "@rescript/react",
+    "@halcyon/rescript-tea",
     "@rescript/core"
   ]
 }
+```
+
+**Framework: rescript-tea (The Elm Architecture for ReScript)**
+
+The playground uses [`rescript-tea`](https://github.com/halcyon/rescript-tea) which implements
+The Elm Architecture (TEA) / Model-View-Update (MVU) pattern. This provides:
+
+- **Immutable state management** - Single source of truth
+- **Unidirectional data flow** - Predictable updates
+- **Declarative rendering** - Virtual DOM diffing
+- **Natural fit for JtV** - Functional paradigm matches language philosophy
+
+**Key Components to Build:**
+
+| Component | Description | Location |
+|-----------|-------------|----------|
+| `cadre-tea-router` | Router Visualization component showing Control/Data channel separation | `playground/src/CadreTeaRouter.res` |
+| `JtvEditor` | Monaco editor wrapper with JtV syntax highlighting | `playground/src/JtvEditor.res` |
+| `NumberExplorer` | Interactive showcase of 7 number systems | `playground/src/NumberExplorer.res` |
+| `WasmRunner` | WASM execution bridge | `playground/src/WasmRunner.res` |
+
+**cadre-tea-router Architecture:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  cadre-tea-router                            │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌─────────────────┐     ┌─────────────────┐               │
+│  │   CONTROL       │     │     DATA        │               │
+│  │   CHANNEL       │     │    CHANNEL      │               │
+│  │   (Blue)        │     │    (Red)        │               │
+│  │                 │     │                 │               │
+│  │  Loops          │     │  Expressions    │               │
+│  │  Conditionals   │     │  Calculations   │               │
+│  │  I/O            │     │  Pure functions │               │
+│  │  Assignments    │     │  7 number types │               │
+│  │                 │     │                 │               │
+│  └────────┬────────┘     └────────┬────────┘               │
+│           │                       │                         │
+│           └───────────┬───────────┘                         │
+│                       │                                     │
+│              ┌────────▼────────┐                           │
+│              │  BRIDGE         │                           │
+│              │  (Data → Ctrl)  │                           │
+│              │  One-way only   │                           │
+│              └─────────────────┘                           │
+│                                                              │
+│  Legend: Animated flow showing grammatical separation       │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ```json
@@ -501,6 +552,50 @@ jobs:
       - run: cd playground && deno task build
 ```
 
+### 2.5 Container Runtime
+
+**Decision: nerdctl (primary), podman (fallback)**
+
+**NO DOCKER** - per project policy, use containerd-native tools:
+
+```bash
+# Primary: nerdctl (containerd-native, Docker-compatible CLI)
+nerdctl build -t jtv-dev .
+nerdctl run -it --rm jtv-dev
+
+# Fallback: podman (daemonless, rootless)
+podman build -t jtv-dev .
+podman run -it --rm jtv-dev
+```
+
+**Rationale:**
+- **nerdctl**: Native containerd integration, Docker CLI compatible, lighter weight
+- **podman**: Daemonless, rootless by default, OCI-compliant
+- Both are FOSS with no vendor lock-in
+- CI uses GitHub Actions runners (no containers needed for most jobs)
+
+**Container Use Cases:**
+| Use Case | Tool | Notes |
+|----------|------|-------|
+| Local development | nerdctl/podman | Optional, for isolation |
+| CI builds | GitHub Actions | Native runners preferred |
+| Registry deployment | nerdctl | Production containers |
+| Local testing | None | Prefer native `cargo test` |
+
+**Containerfile (multi-stage):**
+```dockerfile
+# Build stage
+FROM rust:1.75-slim as builder
+WORKDIR /app
+COPY . .
+RUN cargo build --release
+
+# Runtime stage
+FROM debian:bookworm-slim
+COPY --from=builder /app/target/release/jtv /usr/local/bin/
+ENTRYPOINT ["jtv"]
+```
+
 ---
 
 ## 3. Directory Structure
@@ -533,14 +628,20 @@ julia-the-viper/
 │   ├── time/
 │   └── json/
 │
-├── playground/                  # Web playground (ReScript)
+├── playground/                  # Web playground (ReScript + rescript-tea)
 │   ├── src/
-│   │   ├── App.res
-│   │   ├── Editor.res
-│   │   ├── RouterViz.res
-│   │   └── Wasm.res
+│   │   ├── Main.res             # Entry point, TEA app setup
+│   │   ├── Model.res            # Application state
+│   │   ├── Update.res           # Message handlers
+│   │   ├── View.res             # Main view
+│   │   ├── CadreTeaRouter.res   # Router Visualization (Control/Data channels)
+│   │   ├── JtvEditor.res        # Monaco editor integration
+│   │   ├── NumberExplorer.res   # 7 number systems showcase
+│   │   ├── WasmRunner.res       # WASM execution bridge
+│   │   └── Subscriptions.res    # Event subscriptions
 │   ├── rescript.json
-│   └── vite.config.js
+│   ├── deno.json                # Deno for dev server
+│   └── index.html
 │
 ├── registry/                    # Package registry (Deno)
 │   ├── src/
