@@ -59,15 +59,24 @@ impl Value {
         }
     }
 
-    // Negation operation
+    // Negation operation (safe: handles i64::MIN overflow)
     pub fn negate(&self) -> Result<Value> {
         match self {
-            Value::Int(n) => Ok(Value::Int(-n)),
+            Value::Int(n) => n
+                .checked_neg()
+                .map(Value::Int)
+                .ok_or(JtvError::IntegerOverflow),
             Value::Float(n) => Ok(Value::Float(-n)),
             Value::Rational(n) => Ok(Value::Rational(-n)),
             Value::Complex(n) => Ok(Value::Complex(-n)),
-            Value::Hex(n) => Ok(Value::Hex(-n)),
-            Value::Binary(n) => Ok(Value::Binary(-n)),
+            Value::Hex(n) => n
+                .checked_neg()
+                .map(Value::Hex)
+                .ok_or(JtvError::IntegerOverflow),
+            Value::Binary(n) => n
+                .checked_neg()
+                .map(Value::Binary)
+                .ok_or(JtvError::IntegerOverflow),
             Value::Symbolic(s) => Ok(Value::Symbolic(format!("-({})", s))),
             _ => Err(JtvError::TypeError(format!("Cannot negate {:?}", self))),
         }
@@ -84,9 +93,19 @@ impl Value {
 
     pub fn lt(&self, other: &Value) -> Result<bool> {
         match (self, other) {
+            // Same types
             (Value::Int(a), Value::Int(b)) => Ok(a < b),
             (Value::Float(a), Value::Float(b)) => Ok(a < b),
             (Value::Rational(a), Value::Rational(b)) => Ok(a < b),
+            (Value::Hex(a), Value::Hex(b)) => Ok(a < b),
+            (Value::Binary(a), Value::Binary(b)) => Ok(a < b),
+            // Cross-type: Int with other numeric types
+            (Value::Int(a), Value::Float(b)) => Ok((*a as f64) < *b),
+            (Value::Float(a), Value::Int(b)) => Ok(*a < (*b as f64)),
+            (Value::Int(a), Value::Rational(b)) => Ok(Ratio::from_integer(*a) < *b),
+            (Value::Rational(a), Value::Int(b)) => Ok(*a < Ratio::from_integer(*b)),
+            (Value::Hex(a), Value::Int(b)) | (Value::Int(b), Value::Hex(a)) => Ok(a < b),
+            (Value::Binary(a), Value::Int(b)) | (Value::Int(b), Value::Binary(a)) => Ok(a < b),
             _ => Err(JtvError::TypeError(format!(
                 "Cannot compare {:?} and {:?}",
                 self, other
@@ -96,9 +115,19 @@ impl Value {
 
     pub fn le(&self, other: &Value) -> Result<bool> {
         match (self, other) {
+            // Same types
             (Value::Int(a), Value::Int(b)) => Ok(a <= b),
             (Value::Float(a), Value::Float(b)) => Ok(a <= b),
             (Value::Rational(a), Value::Rational(b)) => Ok(a <= b),
+            (Value::Hex(a), Value::Hex(b)) => Ok(a <= b),
+            (Value::Binary(a), Value::Binary(b)) => Ok(a <= b),
+            // Cross-type: Int with other numeric types
+            (Value::Int(a), Value::Float(b)) => Ok((*a as f64) <= *b),
+            (Value::Float(a), Value::Int(b)) => Ok(*a <= (*b as f64)),
+            (Value::Int(a), Value::Rational(b)) => Ok(Ratio::from_integer(*a) <= *b),
+            (Value::Rational(a), Value::Int(b)) => Ok(*a <= Ratio::from_integer(*b)),
+            (Value::Hex(a), Value::Int(b)) | (Value::Int(b), Value::Hex(a)) => Ok(a <= b),
+            (Value::Binary(a), Value::Int(b)) | (Value::Int(b), Value::Binary(a)) => Ok(a <= b),
             _ => Err(JtvError::TypeError(format!(
                 "Cannot compare {:?} and {:?}",
                 self, other
@@ -108,9 +137,19 @@ impl Value {
 
     pub fn gt(&self, other: &Value) -> Result<bool> {
         match (self, other) {
+            // Same types
             (Value::Int(a), Value::Int(b)) => Ok(a > b),
             (Value::Float(a), Value::Float(b)) => Ok(a > b),
             (Value::Rational(a), Value::Rational(b)) => Ok(a > b),
+            (Value::Hex(a), Value::Hex(b)) => Ok(a > b),
+            (Value::Binary(a), Value::Binary(b)) => Ok(a > b),
+            // Cross-type: Int with other numeric types
+            (Value::Int(a), Value::Float(b)) => Ok((*a as f64) > *b),
+            (Value::Float(a), Value::Int(b)) => Ok(*a > (*b as f64)),
+            (Value::Int(a), Value::Rational(b)) => Ok(Ratio::from_integer(*a) > *b),
+            (Value::Rational(a), Value::Int(b)) => Ok(*a > Ratio::from_integer(*b)),
+            (Value::Hex(a), Value::Int(b)) | (Value::Int(b), Value::Hex(a)) => Ok(a > b),
+            (Value::Binary(a), Value::Int(b)) | (Value::Int(b), Value::Binary(a)) => Ok(a > b),
             _ => Err(JtvError::TypeError(format!(
                 "Cannot compare {:?} and {:?}",
                 self, other
@@ -120,9 +159,19 @@ impl Value {
 
     pub fn ge(&self, other: &Value) -> Result<bool> {
         match (self, other) {
+            // Same types
             (Value::Int(a), Value::Int(b)) => Ok(a >= b),
             (Value::Float(a), Value::Float(b)) => Ok(a >= b),
             (Value::Rational(a), Value::Rational(b)) => Ok(a >= b),
+            (Value::Hex(a), Value::Hex(b)) => Ok(a >= b),
+            (Value::Binary(a), Value::Binary(b)) => Ok(a >= b),
+            // Cross-type: Int with other numeric types
+            (Value::Int(a), Value::Float(b)) => Ok((*a as f64) >= *b),
+            (Value::Float(a), Value::Int(b)) => Ok(*a >= (*b as f64)),
+            (Value::Int(a), Value::Rational(b)) => Ok(Ratio::from_integer(*a) >= *b),
+            (Value::Rational(a), Value::Int(b)) => Ok(*a >= Ratio::from_integer(*b)),
+            (Value::Hex(a), Value::Int(b)) | (Value::Int(b), Value::Hex(a)) => Ok(a >= b),
+            (Value::Binary(a), Value::Int(b)) | (Value::Int(b), Value::Binary(a)) => Ok(a >= b),
             _ => Err(JtvError::TypeError(format!(
                 "Cannot compare {:?} and {:?}",
                 self, other

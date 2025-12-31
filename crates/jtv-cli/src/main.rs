@@ -140,6 +140,18 @@ fn run_file(file_path: &str, trace: bool, show_vars: bool) -> Result<(), String>
 
     let program = parse_program(&code).map_err(|e| format!("Parse error: {}", e))?;
 
+    // SECURITY: Run type checking before execution
+    let mut type_checker = TypeChecker::new();
+    type_checker
+        .check_program(&program)
+        .map_err(|e| format!("Type error: {}", e))?;
+
+    // SECURITY: Run purity checking before execution
+    let mut purity_checker = PurityChecker::new();
+    purity_checker
+        .check_program(&program)
+        .map_err(|e| format!("Purity error: {}", e))?;
+
     let mut interpreter = Interpreter::new();
 
     if trace {
@@ -159,8 +171,9 @@ fn run_file(file_path: &str, trace: bool, show_vars: bool) -> Result<(), String>
 
     if show_vars {
         println!("\n{}", "=== Variables ===".cyan().bold());
-        // In a real implementation, would iterate over interpreter.globals
-        println!("(Variable display not yet implemented)");
+        for (name, value) in interpreter.get_variables() {
+            println!("  {} = {}", name.green(), value);
+        }
     }
 
     Ok(())

@@ -510,10 +510,8 @@ mod tests {
     }
 
     #[test]
-    #[ignore] // Known parser edge case: function calls in assignments after function definitions
     fn test_function_call() {
-        // Test function definition and direct execution
-        // TODO: Parser needs fix for function call in assignment after function def
+        // Test function definition and call
         let code = r#"
 fn add(a: Int, b: Int): Int {
     return a + b
