@@ -13,7 +13,7 @@
 
 use clap::{Parser, Subcommand};
 use colored::*;
-use jtv_lang::{format_code, parse_program, Interpreter, PurityChecker, TypeChecker};
+use jtv_core::{format_code, parse_program, Interpreter, PurityChecker, TypeChecker};
 use std::fs;
 use std::io::{self, Read};
 use std::path::PathBuf;

@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Julia the Viper - Command Line Interface
+
+[package]
+name = "jtv-cli"
+description = "Command-line interface for Julia the Viper"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "jtv"
+path = "src/main.rs"
+
+[dependencies]
+jtv-core.workspace = true
+clap.workspace = true
+colored.workspace = true
+serde_json.workspace = true
+rustyline.workspace = true
+dirs.workspace = true

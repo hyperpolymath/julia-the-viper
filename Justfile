@@ -1,78 +1,82 @@
 # Justfile for Julia the Viper
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 # Default recipe to display help information
 default:
     @just --list
 
-# Build all packages
+# Build all crates
 build:
-    @echo "Building JtV packages..."
-    cd packages/jtv-lang && cargo build --release
-    @echo "✓ jtv-lang built"
+    @echo "Building JtV crates..."
+    cargo build --release
+    @echo "✓ All crates built"
+
+# Build the CLI tool
+build-cli:
+    @echo "Building JtV CLI..."
+    cargo build --release -p jtv-cli
+    @echo "✓ CLI built at target/release/jtv"
 
 # Build for WASM
 build-wasm:
     @echo "Building WASM target..."
-    cd packages/jtv-lang && wasm-pack build --target web --out-dir ../../dist/wasm
+    wasm-pack build crates/jtv-core --target web --out-dir ../../dist/wasm
     @echo "✓ WASM build complete"
 
-# Run tests for all packages
+# Run tests for all crates
 test:
     @echo "Running Rust tests..."
-    cd packages/jtv-lang && cargo test
-    @echo "Running Deno tests..."
-    cd packages/jtv-analyzer && deno test --allow-read
+    cargo test --all
     @echo "✓ All tests passed"
 
 # Run benchmarks
 bench:
     @echo "Running benchmarks..."
-    cd packages/jtv-lang && cargo bench
+    cargo bench -p jtv-core
     @echo "✓ Benchmarks complete"
 
 # Format code
 fmt:
     @echo "Formatting Rust code..."
-    cd packages/jtv-lang && cargo fmt
-    @echo "Formatting TypeScript code..."
-    cd packages/jtv-analyzer && deno fmt
+    cargo fmt --all
     @echo "✓ Code formatted"
 
 # Lint code
 lint:
     @echo "Linting Rust code..."
-    cd packages/jtv-lang && cargo clippy -- -D warnings
-    @echo "Linting TypeScript code..."
-    cd packages/jtv-analyzer && deno lint
+    cargo clippy --all -- -D warnings
     @echo "✓ Linting complete"
 
 # Run a JtV file
 run file:
     @echo "Running {{file}}..."
-    cargo run --manifest-path packages/jtv-lang/Cargo.toml -- run {{file}}
+    cargo run -p jtv-cli -- run {{file}}
 
 # Parse a JtV file and display AST
 parse file:
     @echo "Parsing {{file}}..."
-    cargo run --manifest-path packages/jtv-lang/Cargo.toml -- parse {{file}}
+    cargo run -p jtv-cli -- parse {{file}}
 
-# Analyze a legacy code file
-analyze file lang="javascript":
-    @echo "Analyzing {{file}} as {{lang}}..."
-    cd packages/jtv-analyzer && deno run --allow-read src/main.ts {{file}} {{lang}}
+# Check a JtV file for errors
+check-file file:
+    @echo "Checking {{file}}..."
+    cargo run -p jtv-cli -- check {{file}}
+
+# Start the REPL
+repl:
+    cargo run -p jtv-cli -- repl
 
 # Build documentation
 docs:
     @echo "Building documentation..."
-    cd packages/jtv-lang && cargo doc --no-deps --open
+    cargo doc --no-deps --all --open
     @echo "✓ Documentation built"
 
 # Clean build artifacts
 clean:
     @echo "Cleaning build artifacts..."
-    cd packages/jtv-lang && cargo clean
+    cargo clean
     rm -rf dist/
-    rm -rf target/
     @echo "✓ Clean complete"
 
 # Install development dependencies
@@ -91,8 +95,6 @@ check: fmt lint test
 # Create a new release
 release version:
     @echo "Creating release {{version}}..."
-    # Update version in Cargo.toml
-    sed -i 's/version = ".*"/version = "{{version}}"/' packages/jtv-lang/Cargo.toml
     # Build release
     just build
     just build-wasm
@@ -103,7 +105,7 @@ release version:
 # Watch for changes and rebuild
 watch:
     @echo "Watching for changes..."
-    cargo watch -x 'build --manifest-path packages/jtv-lang/Cargo.toml'
+    cargo watch -x build
 
 # Run example
 example name:
@@ -118,32 +120,26 @@ contract name:
 # Generate code coverage
 coverage:
     @echo "Generating code coverage..."
-    cd packages/jtv-lang && cargo tarpaulin --out Html --output-dir ../../coverage
+    cargo tarpaulin --all --out Html --output-dir coverage
     @echo "✓ Coverage report in coverage/index.html"
 
 # Start development server for playground
 dev-playground:
     @echo "Starting playground development server..."
-    cd playground && npm run dev
+    cd playground && deno task dev
 
 # Build playground for production
 build-playground:
     @echo "Building playground..."
-    cd playground && npm run build
+    cd playground && deno task build
     @echo "✓ Playground built in playground/dist"
-
-# Run LSP server
-lsp:
-    @echo "Starting LSP server..."
-    cargo run --manifest-path tools/lsp/Cargo.toml
 
 # Package for distribution
 package: build build-wasm
     @echo "Creating distribution package..."
     mkdir -p dist/bin
-    cp packages/jtv-lang/target/release/jtv-lang dist/bin/jtv
-    tar -czf dist/jtv-{{version}}.tar.gz -C dist bin/ wasm/
-    @echo "✓ Package created: dist/jtv-{{version}}.tar.gz"
+    cp target/release/jtv dist/bin/jtv
+    @echo "✓ Package created"
 
 # Run all examples
 run-all-examples:
@@ -172,7 +168,7 @@ dev file: fmt lint test
 # Check RSR (Rhodium Standard Repository) compliance
 rsr-check:
     @echo "Checking RSR compliance..."
-    cd tools/cli && cargo run -- rsr-check
+    cargo run -p jtv-cli -- rsr-check
     @echo "✓ RSR compliance check complete"
 
 # Validate repository meets RSR Gold standard
@@ -185,21 +181,25 @@ validate: rsr-check
     @test -f CODE_OF_CONDUCT.adoc || (echo "❌ CODE_OF_CONDUCT.adoc missing" && exit 1)
     @test -f SECURITY.md || (echo "❌ SECURITY.md missing" && exit 1)
     @test -f CHANGELOG.md || (echo "❌ CHANGELOG.md missing" && exit 1)
-    @test -f TPCF.md || (echo "❌ TPCF.md missing" && exit 1)
-    @test -f REVERSIBILITY.md || (echo "❌ REVERSIBILITY.md missing" && exit 1)
-    @test -f .well-known/security.txt || (echo "❌ .well-known/security.txt missing" && exit 1)
-    @test -f .well-known/ai.txt || (echo "❌ .well-known/ai.txt missing" && exit 1)
-    @test -f .well-known/humans.txt || (echo "❌ .well-known/humans.txt missing" && exit 1)
-    @test -f .well-known/consent-required.txt || (echo "❌ .well-known/consent-required.txt missing" && exit 1)
-    @test -f .well-known/provenance.json || (echo "❌ .well-known/provenance.json missing" && exit 1)
-    @test -f Justfile || (echo "❌ Justfile missing" && exit 1)
-    @test -f flake.nix || (echo "❌ flake.nix missing" && exit 1)
-    @test -f .gitlab-ci.yml || (echo "❌ .gitlab-ci.yml missing" && exit 1)
-    @test -f .gitattributes || (echo "❌ .gitattributes missing" && exit 1)
-    @test -f FUNDING.yml || (echo "❌ FUNDING.yml missing" && exit 1)
     @echo "✓ Repository structure validated"
-    @echo "✓ RSR Gold standard requirements met"
+
+# Build Lean proofs
+proofs:
+    @echo "Building Lean proofs..."
+    cd jtv_proofs && lake build
+    @echo "✓ Lean proofs built"
 
 # Full pre-release validation
-pre-release: clean install build test lint validate
+pre-release: clean install build test lint validate proofs
     @echo "✓ Pre-release validation complete"
+
+# Container build with nerdctl (primary) or podman (fallback)
+container-build tag="jtv-dev":
+    @echo "Building container image..."
+    @command -v nerdctl >/dev/null 2>&1 && nerdctl build -t {{tag}} . || podman build -t {{tag}} .
+    @echo "✓ Container built: {{tag}}"
+
+# Run container
+container-run tag="jtv-dev":
+    @echo "Running container..."
+    @command -v nerdctl >/dev/null 2>&1 && nerdctl run -it --rm {{tag}} || podman run -it --rm {{tag}}

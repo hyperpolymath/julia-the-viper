@@ -4,7 +4,7 @@
 // Julia the Viper - Interactive REPL
 
 use colored::*;
-use jtv_lang::{parse_program, Interpreter};
+use jtv_core::{parse_program, Interpreter};
 use rustyline::error::ReadlineError;
 use rustyline::{Config, DefaultEditor, EditMode};
 
