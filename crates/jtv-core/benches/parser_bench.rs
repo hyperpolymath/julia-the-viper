@@ -1,6 +1,6 @@
 // Benchmark for JtV parser
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use jtv_lang::parse_program;
+use jtv_core::parse_program;
 
 fn parse_simple_addition(c: &mut Criterion) {
     c.bench_function("parse simple addition", |b| {

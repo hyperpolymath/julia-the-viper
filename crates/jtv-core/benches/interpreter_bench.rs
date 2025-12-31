@@ -1,6 +1,6 @@
 // Benchmark for JtV interpreter
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use jtv_lang::{parse_program, Interpreter};
+use jtv_core::{parse_program, Interpreter};
 
 fn fibonacci_iterative(c: &mut Criterion) {
     let code = r#"

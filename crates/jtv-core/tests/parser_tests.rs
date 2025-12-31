@@ -1,5 +1,5 @@
 // Parser tests for Julia the Viper
-use jtv_lang::{parse_program, ControlStmt, DataExpr, Number};
+use jtv_core::{parse_program, ControlStmt, DataExpr, Number};
 
 #[test]
 fn test_simple_addition() {
