@@ -267,12 +267,12 @@ Julia the Viper offers *tri-licensing* to maximize freedom:
 
 [source]
 ----
-SPDX-License-Identifier: MIT OR GPL-3.0-or-later OR Palimpsest-0.8
+SPDX-License-Identifier: PMPL-1.0 OR GPL-3.0-or-later OR Palimpsest-0.8
 ----
 
 You may choose any of:
 
-* **MIT License**: Maximum permissiveness, simple attribution
+* **Palimpsest-MPL-1.0 License**: Maximum permissiveness, simple attribution
 * **GPL-3.0+**: Copyleft, share-alike requirements
 * **Palimpsest 0.8** _(philosophically encouraged)_: Ethical, politically autonomous licensing
 
@@ -449,7 +449,7 @@ Copyright (c) 2025 Julia the Viper Contributors
 
 This project is tri-licensed. You may use it under the terms of any of the following licenses:
 
-* MIT License (link:LICENSE-MIT[LICENSE-MIT])
+* Palimpsest-MPL-1.0 License (link:LICENSE-MIT[LICENSE-MIT])
 * GNU General Public License v3.0 or later (link:LICENSE[LICENSE])
 * Palimpsest License v0.8 (link:LICENSE-PALIMPSEST[LICENSE-PALIMPSEST])
 
