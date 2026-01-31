@@ -2,6 +2,7 @@
 use crate::ast::*;
 use crate::error::{JtvError, Result};
 use crate::number::Value;
+use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 
 const MAX_ITERATIONS: usize = 1_000_000; // Safety limit for loops
@@ -21,7 +22,7 @@ pub struct Interpreter {
     last_result: Option<Value>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TraceEntry {
     pub stmt_type: String,
     pub line: String,
@@ -451,7 +452,7 @@ impl Interpreter {
         Ok(result)
     }
 
-    fn get_variable(&self, name: &str) -> Result<Value> {
+    pub fn get_variable(&self, name: &str) -> Result<Value> {
         // Check call stack (local variables)
         for scope in self.call_stack.iter().rev() {
             if let Some(value) = scope.get(name) {
