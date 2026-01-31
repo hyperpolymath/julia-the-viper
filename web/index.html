@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Julia the Viper - Harvard Architecture language playground">
+  <meta name="theme-color" content="#2196f3">
+  <title>Julia the Viper Playground</title>
+  <link rel="manifest" href="/manifest.json">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 1.5rem;
+      color: white;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .tagline {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      font-style: italic;
+    }
+
+    main {
+      flex: 1;
+      padding: 2rem;
+      display: flex;
+      gap: 1rem;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .panel {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel h2 {
+      margin-bottom: 1rem;
+      color: #667eea;
+      font-size: 1.3rem;
+    }
+
+    #editor {
+      flex: 1;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 1rem;
+      resize: none;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    #editor:focus {
+      border-color: #667eea;
+    }
+
+    #output {
+      flex: 1;
+      background: #f5f5f5;
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      overflow-y: auto;
+      min-height: 200px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    button {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      flex: 1;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: #e0e0e0;
+      color: #333;
+    }
+
+    .btn-secondary:hover {
+      background: #d0d0d0;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      color: #667eea;
+      margin-top: 1rem;
+    }
+
+    .error {
+      color: #d32f2f;
+      background: #ffebee;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+    }
+
+    footer {
+      background: rgba(0, 0, 0, 0.2);
+      color: white;
+      text-align: center;
+      padding: 1rem;
+      margin-top: auto;
+    }
+
+    footer a {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      main {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🐍 Julia the Viper Playground</h1>
+    <p class="tagline">"It's basically the same thing as an adder"</p>
+  </header>
+
+  <main>
+    <div class="panel">
+      <h2>📝 Code Editor</h2>
+      <textarea id="editor" placeholder="Write your Julia the Viper code here...
+
+Example:
+Control {
+  let x = 5
+  Data { x + 10 }
+}"></textarea>
+      <div class="controls">
+        <button class="btn-primary" id="runBtn">▶️ Run</button>
+        <button class="btn-secondary" id="clearBtn">🗑️ Clear</button>
+      </div>
+      <div id="loading" class="loading">⏳ Loading WASM module...</div>
+    </div>
+
+    <div class="panel">
+      <h2>📊 Output</h2>
+      <div id="output">Ready to execute your code...</div>
+    </div>
+  </main>
+
+  <footer>
+    <p>Made with ❤️ by <a href="https://github.com/hyperpolymath/julia-the-viper" target="_blank">hyperpolymath</a> | Licensed under PMPL-1.0-or-later</p>
+  </footer>
+
+  <script type="module">
+    // Initialize WASM module
+    let wasmModule = null;
+    const loadingEl = document.getElementById('loading');
+    const outputEl = document.getElementById('output');
+    const editorEl = document.getElementById('editor');
+    const runBtn = document.getElementById('runBtn');
+    const clearBtn = document.getElementById('clearBtn');
+
+    async function initWasm() {
+      loadingEl.style.display = 'block';
+      try {
+        // Import the WASM module
+        const module = await import('../pkg/jtv_core.js');
+        await module.default();
+        wasmModule = module;
+        loadingEl.style.display = 'none';
+        outputEl.innerHTML = '✅ WASM module loaded successfully! Ready to run code.';
+      } catch (error) {
+        loadingEl.style.display = 'none';
+        outputEl.innerHTML = `<div class="error">❌ Failed to load WASM module: ${error.message}</div>`;
+        console.error('WASM initialization error:', error);
+      }
+    }
+
+    runBtn.addEventListener('click', async () => {
+      if (!wasmModule) {
+        outputEl.innerHTML = '<div class="error">❌ WASM module not loaded yet</div>';
+        return;
+      }
+
+      const code = editorEl.value.trim();
+      if (!code) {
+        outputEl.innerHTML = '<div class="error">⚠️ Please enter some code to run</div>';
+        return;
+      }
+
+      try {
+        outputEl.innerHTML = '🔄 Executing...';
+        // TODO: Call WASM function to execute code
+        // For now, just echo the input
+        outputEl.innerHTML = `<strong>Input:</strong><br>${code.replace(/</g, '&lt;').replace(/>/g, '&gt;')}<br><br><strong>Status:</strong> WASM execution pending (implementation in progress)`;
+      } catch (error) {
+        outputEl.innerHTML = `<div class="error">❌ Execution error: ${error.message}</div>`;
+        console.error('Execution error:', error);
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      editorEl.value = '';
+      outputEl.innerHTML = 'Ready to execute your code...';
+    });
+
+    // Load WASM on page load
+    initWasm();
+  </script>
+</body>
+</html>

@@ -12,8 +12,8 @@
 
     (current-position
       ((phase . "Active Development")
-       (overall-completion . 55)
-       (working-features . ("RSR Gold compliance" "OpenSSF Scorecard improvements"))))
+       (overall-completion . 60)
+       (working-features . ("RSR Gold compliance" "WASM compilation" "ReScript PWA setup"))))
 
     (route-to-mvp
       ((milestones
@@ -27,8 +27,8 @@
        (low . ())))
 
     (critical-next-actions
-      ((immediate . ("WASM compilation" "ReScript PWA"))
-       (this-week . ("Router visualization demo"))
+      ((immediate . ("ReScript PWA scaffold" "Router visualization demo"))
+       (this-week . ("PWA manifest and service worker"))
        (this-month . ("Monaco editor integration" "Number system explorer"))))
 
     (session-history
