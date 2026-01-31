@@ -1,0 +1,26 @@
+# RFC 9116 Compliant Security Contact Information
+# https://securitytxt.org/
+
+Contact: mailto:security@julia-viper.dev
+Contact: https://github.com/hyperpolymath/julia-the-viper/security/advisories/new
+Expires: 2027-01-31T23:59:59.000Z
+Encryption: https://github.com/hyperpolymath/julia-the-viper/blob/main/.well-known/pgp-key.txt
+Preferred-Languages: en
+Canonical: https://julia-viper.dev/.well-known/security.txt
+Policy: https://github.com/hyperpolymath/julia-the-viper/blob/main/SECURITY.md
+Acknowledgments: https://github.com/hyperpolymath/julia-the-viper/blob/main/SECURITY.md#security-hall-of-fame
+
+# Security Guarantees
+# Julia the Viper provides architectural security guarantees:
+# - Code injection is grammatically impossible (Harvard Architecture)
+# - No integer overflow in Data Language (checked operations)
+# - No reentrancy attacks (atomic state updates)
+# - Guaranteed termination for pure functions (totality checking)
+#
+# For vulnerability reporting guidelines, see:
+# https://github.com/hyperpolymath/julia-the-viper/blob/main/SECURITY.md
+#
+# Response timeline:
+# - Initial response: 48 hours
+# - Critical issues patched: 7 days
+# - Public disclosure: 15 days (coordinated)

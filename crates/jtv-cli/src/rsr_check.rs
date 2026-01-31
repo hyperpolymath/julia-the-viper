@@ -186,7 +186,6 @@ impl RsrChecker {
 
         // Check for security features
         if let Ok(security) = fs::read_to_string("SECURITY.md") {
-            let mut security_score = 0;
             let checks = vec![
                 ("Reporting process", "Reporting Process"),
                 ("Response timeline", "Response Time"),
@@ -197,7 +196,6 @@ impl RsrChecker {
             for (keyword, label) in checks {
                 self.max_score += 1;
                 if security.to_lowercase().contains(keyword) {
-                    security_score += 1;
                     self.score += 1;
                     self.passed.push(format!("SECURITY.md: {}", label));
                 }
