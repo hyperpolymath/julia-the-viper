@@ -357,7 +357,7 @@ By contributing, you agree that your contributions will be licensed under the sa
 
 [source]
 ----
-SPDX-License-Identifier: MIT OR GPL-3.0-or-later OR Palimpsest-0.8
+SPDX-License-Identifier: PMPL-1.0-or-later-or-later
 ----
 
 See link:LICENSE.txt[LICENSE.txt] for details.

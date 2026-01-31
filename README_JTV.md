@@ -5,7 +5,7 @@
 Harvard Architecture language that makes code injection grammatically impossible.
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
-[![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
+image:https://img.shields.io/badge/License-PMPL--1.0-blue.svg[License: PMPL-1.0,link="https://github.com/hyperpolymath/palimpsest-license"]
 [![Rust](https://img.shields.io/badge/rust-1.70%2B-orange.svg)]()
 
 ## The Problem

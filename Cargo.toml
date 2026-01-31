@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: PMPL-1.0-or-later
 # Julia the Viper - Workspace Root
 
 [workspace]
@@ -11,7 +11,7 @@ members = [
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-authors = ["Julia the Viper Contributors"]
+authors = ["Jonathan D.A. Jewell <jonathan.jewell@open.ac.uk>"]
 license = "GPL-3.0-or-later"
 repository = "https://github.com/hyperpolymath/julia-the-viper"
 keywords = ["security", "formal-verification", "parser", "interpreter", "wasm"]

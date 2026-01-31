@@ -1,6 +1,6 @@
 # Comprehensive Bibliography for Julia the Viper Academic Documentation
 
-**SPDX-License-Identifier:** GPL-3.0-or-later
+**SPDX-License-Identifier: PMPL-1.0-or-later
 
 This bibliography provides complete references for all academic materials in the JtV documentation.
 

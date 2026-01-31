@@ -1,6 +1,6 @@
 # Julia the Viper: Academic Documentation
 
-**SPDX-License-Identifier:** GPL-3.0-or-later
+**SPDX-License-Identifier: PMPL-1.0-or-later
 
 This directory contains comprehensive academic documentation for Julia the Viper (JtV), including formal proofs, white papers, and theoretical foundations.
 

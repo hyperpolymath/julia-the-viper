@@ -47,15 +47,15 @@ We dual-license to:
 
 ```rust
 // To use under MIT:
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: PMPL-1.0-or-later
 // See LICENSE-MIT
 
 // To use under Palimpsest:
-// SPDX-License-Identifier: Palimpsest-0.8
+// SPDX-License-Identifier: PMPL-1.0-or-later
 // See LICENSE-PALIMPSEST
 
 // To explicitly dual-license your derivative:
-// SPDX-License-Identifier: MIT OR Palimpsest-0.8
+// SPDX-License-Identifier: PMPL-1.0-or-later
 ```
 
 ## Contributing
@@ -150,13 +150,13 @@ For SPDX compliance in your projects:
 
 ```
 # Using MIT only
-SPDX-License-Identifier: MIT
+SPDX-License-Identifier: PMPL-1.0-or-later-or-later
 
 # Using Palimpsest only
-SPDX-License-Identifier: Palimpsest-0.8
+SPDX-License-Identifier: PMPL-1.0-or-later-or-later
 
 # Using either (recommended)
-SPDX-License-Identifier: MIT OR Palimpsest-0.8
+SPDX-License-Identifier: PMPL-1.0-or-later-or-later
 ```
 
 ---

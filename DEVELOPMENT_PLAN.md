@@ -1,6 +1,6 @@
 # Julia the Viper: Development Roadmap & Technical Decisions
 
-**SPDX-License-Identifier:** GPL-3.0-or-later
+**SPDX-License-Identifier: PMPL-1.0-or-later
 **Version:** 1.0
 **Date:** 2025
 
