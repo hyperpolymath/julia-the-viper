@@ -194,3 +194,22 @@ stats:
 # Quick iteration: fmt + check
 quick: fmt check
     @echo "⚡ Quick checks done!"
+
+# === PWA Development ===
+
+# Serve PWA locally
+serve-pwa: build-wasm
+    @echo "🌐 Starting PWA server..."
+    cd web && deno task serve
+
+# Serve PWA with hot reload
+dev-pwa: build-wasm
+    @echo "🔥 Starting PWA dev server with hot reload..."
+    cd web && deno task dev
+
+# Build PWA for production
+build-pwa: build-wasm
+    @echo "📦 Building PWA for production..."
+    @echo "✅ WASM compiled to pkg/"
+    @echo "✅ PWA files in web/"
+    @echo "📝 Ready to deploy!"
