@@ -20,6 +20,10 @@ pub struct Interpreter {
     trace_enabled: bool,
     trace: Vec<TraceEntry>,
     last_result: Option<Value>,
+    /// Captured output from print statements (used by WASM and testing)
+    output_buffer: Vec<String>,
+    /// Whether to capture print output instead of printing to stdout
+    capture_output: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -41,6 +45,8 @@ impl Interpreter {
             trace_enabled: false,
             trace: vec![],
             last_result: None,
+            output_buffer: Vec::new(),
+            capture_output: false,
         }
     }
 
@@ -55,6 +61,40 @@ impl Interpreter {
 
     pub fn get_trace(&self) -> &[TraceEntry] {
         &self.trace
+    }
+
+    /// Enable output capture (print statements buffer instead of writing to stdout)
+    pub fn enable_output_capture(&mut self) {
+        self.capture_output = true;
+    }
+
+    /// Disable output capture (print statements go to stdout again)
+    pub fn disable_output_capture(&mut self) {
+        self.capture_output = false;
+        self.output_buffer.clear();
+    }
+
+    /// Retrieve and clear the captured output buffer
+    pub fn take_output(&mut self) -> Vec<String> {
+        std::mem::take(&mut self.output_buffer)
+    }
+
+    /// Get captured output without clearing the buffer
+    pub fn get_output(&self) -> &[String] {
+        &self.output_buffer
+    }
+
+    /// Reset interpreter state completely (variables, functions, modules, trace, output)
+    pub fn reset(&mut self) {
+        self.globals.clear();
+        self.functions.clear();
+        self.modules.clear();
+        self.imports.clear();
+        self.call_stack.clear();
+        self.iteration_count = 0;
+        self.trace.clear();
+        self.last_result = None;
+        self.output_buffer.clear();
     }
 
     pub fn get_variables(&self) -> Vec<(String, Value)> {
@@ -273,7 +313,11 @@ impl Interpreter {
                     let value = self.eval_data_expr(expr)?;
                     output.push_str(&format!("{}", value));
                 }
-                println!("{}", output);
+                if self.capture_output {
+                    self.output_buffer.push(output.clone());
+                } else {
+                    println!("{}", output);
+                }
                 self.add_trace("print", &output);
                 Ok(None)
             }

@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: MIT OR GPL-3.0-or-later OR Palimpsest-0.8
-// SPDX-FileCopyrightText: 2025 Julia the Viper Contributors
+// SPDX-License-Identifier: PMPL-1.0-or-later
+// Copyright (c) 2026 Jonathan D.A. Jewell <jonathan.jewell@open.ac.uk>
 //
 // Julia the Viper - Core Language Implementation
 // Harvard Architecture: Control (Turing-complete) + Data (Total)
@@ -31,6 +31,10 @@ pub use parser::*;
 pub use purity::*;
 pub use reversible::*;
 pub use typechecker::*;
+
+// WASM bindings are only exported on wasm32, but the analysis helpers
+// (AnalysisReport, analyze_code) are available on all targets.
+pub use wasm::{analyze_code, AnalysisReport};
 
 #[cfg(target_arch = "wasm32")]
 pub use wasm::*;
