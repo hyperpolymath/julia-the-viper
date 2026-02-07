@@ -41,7 +41,7 @@
        (wasm-backend (status partial) (completion 30))
        (lsp-server (status missing))
        (debugger (status missing))
-       (package-manager (status missing))
+       (package-manager (status complete) (implementation "viper-pkg") (language "Julia") (opsm-integrated true))
        (vscode-extension (status missing))))
     (working-features
       (parsing "Full recursive descent parser")
