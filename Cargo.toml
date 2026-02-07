@@ -6,6 +6,8 @@ resolver = "2"
 members = [
     "crates/jtv-core",
     "crates/jtv-cli",
+    "crates/jtv-lsp",
+    "crates/jtv-debug",
 ]
 
 [workspace.package]
@@ -48,6 +50,12 @@ dirs = "5.0"
 # Testing
 criterion = "0.5"
 insta = "1"
+
+# Async runtime
+tokio = "1.0"
+
+# LSP
+tower-lsp = "0.20"
 
 # Internal crates
 jtv-core = { path = "crates/jtv-core" }

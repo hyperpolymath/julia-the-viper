@@ -1,0 +1,81 @@
+{
+  "name": "julia-the-viper",
+  "displayName": "Julia the Viper",
+  "description": "Language support for Julia the Viper - reversible systems programming",
+  "version": "0.1.0",
+  "publisher": "hyperpolymath",
+  "license": "PMPL-1.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hyperpolymath/julia-the-viper"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "jtv",
+        "aliases": ["Julia the Viper", "jtv"],
+        "extensions": [".jtv"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "jtv",
+        "scopeName": "source.jtv",
+        "path": "./syntaxes/jtv.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "jtv.run",
+        "title": "JtV: Run File"
+      },
+      {
+        "command": "jtv.debug",
+        "title": "JtV: Debug File"
+      },
+      {
+        "command": "jtv.format",
+        "title": "JtV: Format File"
+      }
+    ],
+    "configuration": {
+      "title": "Julia the Viper",
+      "properties": {
+        "jtv.lsp.path": {
+          "type": "string",
+          "default": "jtv-lsp",
+          "description": "Path to jtv-lsp executable"
+        },
+        "jtv.trace.server": {
+          "type": "string",
+          "enum": ["off", "messages", "verbose"],
+          "default": "off",
+          "description": "Trace LSP communication"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.80.0",
+    "@vscode/vsce": "^2.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.0"
+  }
+}
