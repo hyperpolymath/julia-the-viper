@@ -1,0 +1,6 @@
+// Conformance test: function without a name
+// Expected: FAIL (parse error)
+
+fn (x: Int): Int {
+    return x
+}

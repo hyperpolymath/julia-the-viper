@@ -1,0 +1,265 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
+= Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+== [Unreleased]
+
+=== Added
+- RSR (Rhodium Standard Repository) compliance structure
+- .well-known/ directory with security.txt, ai.txt, humans.txt (RFC 9116)
+- Comprehensive documentation: SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, MAINTAINERS.md
+- Dual MIT + Palimpsest v0.8 licensing
+- TPCF (Tri-Perimeter Contribution Framework) governance model
+- justfile for build automation (upcoming)
+- flake.nix for reproducible builds (upcoming)
+
+=== Changed
+- Updated README.md to RSR-compliant format
+- Enhanced CLAUDE.md with RSR principles
+
+== [0.1.0] - 2025-11-22
+
+=== Added
+
+==== Infrastructure
+- Podman containerization setup (Docker alternative)
+- Rootless container documentation
+- Pod orchestration (Kubernetes-style)
+- Build scripts for all components
+
+==== Database
+- **ArangoDB**: Multi-model database demo
+  - Document model (like MongoDB)
+  - Graph model with traversals
+  - 20+ AQL query examples
+  - Complex aggregations
+  - Graph algorithms (shortest path, recommendation)
+  - 1,678 lines of queries and documentation
+
+==== Data Processing
+- **Julia Pipeline**: High-performance data processing
+  - DataFrames.jl (10-100x faster than Python/pandas)
+  - ETL operations
+  - Statistical analysis
+  - Feature engineering
+  - 377 lines of production code
+
+==== Backend APIs
+- **REST API**: Express.js demo
+  - Full CRUD operations
+  - Middleware (CORS, Helmet, Morgan)
+  - In-memory database
+  - 590 lines with comprehensive tests
+
+- **WebSocket Chat**: Real-time communication
+  - Multiple rooms
+  - Typing indicators
+  - User presence
+  - 1,112 lines
+
+==== Algorithms & Patterns
+- **Sorting Algorithms**: 9 implementations
+  - Bubble, Selection, Insertion
+  - Merge, Quick, Heap
+  - Counting, Radix, Bucket
+
+- **Searching Algorithms**: 10+ implementations
+  - Linear, Binary (iterative & recursive)
+  - Jump, Interpolation, Exponential
+  - Ternary, Fibonacci
+  - Special: first/last occurrence, peak element, rotated array
+
+- **Dynamic Programming**: 12 classic problems
+  - Fibonacci (5 approaches)
+  - Longest Common Subsequence
+  - 0/1 Knapsack
+  - Coin Change
+  - Longest Increasing Subsequence
+  - Edit Distance (Levenshtein)
+  - Matrix Chain Multiplication
+  - Maximum Subarray (Kadane's)
+  - Subset Sum
+  - Rod Cutting
+
+- **Design Patterns**: All 23 GoF patterns
+  - **Creational**: Singleton, Factory, Abstract Factory, Builder, Prototype, Object Pool
+  - **Structural**: Adapter, Bridge, Composite, Decorator, Facade, Flyweight, Proxy
+  - **Behavioral**: Strategy, Observer, Command, State, Template Method, Iterator, Chain of Responsibility, Mediator, Memento
+  - 1,745 lines with examples
+
+==== Utilities
+- **Form Validation Library**: JavaScript/TypeScript
+  - 20+ built-in validators
+  - Async validation support
+  - Cross-field validation
+  - 1,014 lines
+
+- **CLI Tool**: Python developer utilities
+  - JSON operations
+  - File operations
+  - Text encoding/decoding
+  - Hashing (MD5, SHA256, etc.)
+  - Regex search
+  - 562 lines
+
+==== Data Storage
+- **SQLite Demo**: Database with migrations
+  - Schema migrations
+  - Repository pattern
+  - Relationships (1-to-many, many-to-many)
+  - 953 lines
+
+==== Documentation
+- Comprehensive READMEs for all experiments
+- API documentation
+- Usage examples
+- Performance comparisons
+
+=== Technology Stack
+
+**Languages**:
+- Julia (replacing Python for performance)
+- JavaScript/TypeScript (transitioning to ReScript + Deno)
+- Rust (planned)
+- ReScript (planned)
+
+**Databases**:
+- ArangoDB (multi-model: document, graph, key-value)
+- SQLite (relational, embedded)
+
+**Infrastructure**:
+- Podman (rootless containers)
+- Nix (reproducible builds, planned)
+
+**Frontend** (planned):
+- Svelte (React alternative)
+- Vue 3 (progressive framework)
+- Solid.js (fine-grained reactivity)
+
+=== Statistics
+
+- **Total Files**: ~50 files
+- **Total Lines**: ~12,000+ lines of code
+- **Commits**: 15+ commits
+- **Components**: 12 major systems
+
+== Initial Commit - 2025-11-21
+
+=== Added
+- Initial repository structure
+- CLAUDE.md with project context
+- Basic README.md
+- .gitignore
+
+== Versioning Strategy
+
+=== Version Format
+
+`MAJOR.MINOR.PATCH`
+
+- **MAJOR**: Incompatible API changes, major features
+- **MINOR**: Backward-compatible functionality
+- **PATCH**: Backward-compatible bug fixes
+
+=== Release Cycle
+
+- **Major releases**: When significant milestones reached
+- **Minor releases**: Every ~1-2 months with new features
+- **Patch releases**: As needed for bug fixes
+- **Pre-releases**: Alpha, Beta, RC tags as appropriate
+
+Example: `1.0.0-alpha.1`, `1.0.0-beta.2`, `1.0.0-rc.1`, `1.0.0`
+
+== RSR Compliance Tracking
+
+=== Bronze Level Checklist
+
+- [ ] 100 lines of code per experiment (varies)
+- [ ] Zero/minimal dependencies (varies by experiment)
+- [x] Type safety where applicable
+- [ ] Offline-first architecture (partial)
+- [x] Complete documentation
+- [x] .well-known/ directory
+- [ ] Build system (justfile in progress)
+- [ ] 100% test coverage (varies)
+- [x] TPCF Perimeter 3 model
+- [x] Dual licensing
+
+**Current Status**: ~60% Bronze-level compliant
+**Target**: 100% Bronze by v1.0.0
+
+== Migration Notes
+
+=== Python → Julia
+
+All Python code is being migrated to Julia for:
+- 10-100x performance improvement
+- Better type system
+- Scientific computing ecosystem
+- JIT compilation
+
+**Status**: Data pipeline migrated, CLI tool pending
+
+=== JavaScript/TypeScript → ReScript + Deno
+
+Frontend and backend JavaScript transitioning to:
+- ReScript: Sound type system, compiles to JS
+- Deno: Modern runtime, TypeScript-first
+- WASM: Performance-critical modules
+
+**Status**: Planned for v0.2.0
+
+=== Docker → Podman
+
+All Docker configurations replaced with Podman for:
+- Rootless containers
+- Daemonless architecture
+- Better security
+- Kubernetes compatibility
+
+**Status**: Complete
+
+=== MongoDB/PostgreSQL → ArangoDB
+
+Unified database with:
+- Document storage (like MongoDB)
+- Graph relationships (like Neo4j)
+- SQL-like AQL queries
+- Multi-model flexibility
+
+**Status**: Complete
+
+== Breaking Changes
+
+_None yet - pre-1.0.0 development_
+
+== Deprecations
+
+_None yet_
+
+== Contributors
+
+See [humans.txt](.well-known/humans.txt) for full attribution.
+
+**Special Thanks**:
+- Claude AI (Anthropic) for code generation assistance
+- RSR Framework for standards guidance
+- All open-source projects we build upon
+
+== Links
+
+- **Repository**: https://github.com/Hyperpolymath/jtv-playground
+- **Issues**: https://github.com/Hyperpolymath/jtv-playground/issues
+- **Discussions**: https://github.com/Hyperpolymath/jtv-playground/discussions
+- **Security**: [SECURITY.md](SECURITY.md)
+- **Contributing**: [CONTRIBUTING.md](CONTRIBUTING.md)
+
+---
+
+**Format**: [Keep a Changelog](https://keepachangelog.com/)
+**Versioning**: [Semantic Versioning](https://semver.org/)
+**Last Updated**: 2025-11-22

@@ -1,0 +1,12 @@
+// Conformance test: while loop
+// Expected: PASS
+
+x = 0
+while x < 100 {
+    x = x + 1
+}
+
+counter = 10
+while counter > 0 {
+    counter = counter + -1
+}

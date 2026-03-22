@@ -1,0 +1,10 @@
+// Conformance test: @pure function containing print (should fail)
+// Expected: FAIL (purity violation)
+//
+// @pure functions must have no side effects. print() is IO and
+// therefore violates purity.
+
+@pure fn impure_add(a: Int, b: Int): Int {
+    print(a)
+    return a + b
+}

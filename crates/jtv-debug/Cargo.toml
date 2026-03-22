@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+[package]
+name = "jtv-debug"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+jtv-core.workspace = true
+rustyline.workspace = true
+colored.workspace = true
+serde.workspace = true
+serde_json.workspace = true

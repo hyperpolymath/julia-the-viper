@@ -1,0 +1,16 @@
+// Conformance test: @total function containing a while loop (should fail)
+// Expected: FAIL (totality violation)
+//
+// @total functions must be guaranteed to halt. Loops are unbounded
+// and therefore violate totality. Only @pure or unmarked functions
+// may contain loops.
+
+@total fn bad_total(n: Int): Int {
+    sum = 0
+    i = 0
+    while i < n {
+        sum = sum + i
+        i = i + 1
+    }
+    return sum
+}

@@ -1,0 +1,21 @@
+// Conformance test: complex number literals and arithmetic
+// Expected: PASS
+
+// Complex literal with real and imaginary parts
+z1 = 3+4i
+
+// Pure imaginary
+z2 = 7i
+
+// Float complex
+z3 = 1.5+2.5i
+
+// Addition of complex numbers (data language, addition-only)
+z4 = z1 + z2
+z5 = z3 + 3+4i
+
+// Negated complex
+z6 = -2+3i
+
+// Complex in a list
+complexes = [3+4i, 5i, 1.0+1.0i]

@@ -1,0 +1,64 @@
+// Sorting algorithms in JtV
+// Demonstrates complex algorithms using only addition
+
+// Bubble sort
+fn bubble_sort(arr: List<Int>, size: Int): List<Int> {
+    for i in 0..size {
+        for j in 0..size-i-1 {
+            if arr[j] > arr[j+1] {
+                // Swap using addition/subtraction
+                temp = arr[j]
+                arr[j] = arr[j+1]
+                arr[j+1] = temp
+            }
+        }
+    }
+    return arr
+}
+
+// Insertion sort
+fn insertion_sort(arr: List<Int>, size: Int): List<Int> {
+    for i in 1..size {
+        key = arr[i]
+        j = i - 1
+
+        while j >= 0 && arr[j] > key {
+            arr[j+1] = arr[j]
+            j = j - 1
+        }
+
+        arr[j+1] = key
+    }
+    return arr
+}
+
+// Find minimum element
+@pure fn find_min(arr: List<Int>, start: Int, end: Int): Int {
+    min_idx = start
+    for i in start+1..end {
+        if arr[i] < arr[min_idx] {
+            min_idx = i
+        }
+    }
+    return min_idx
+}
+
+// Selection sort
+fn selection_sort(arr: List<Int>, size: Int): List<Int> {
+    for i in 0..size-1 {
+        min_idx = find_min(arr, i, size)
+
+        // Swap
+        temp = arr[i]
+        arr[i] = arr[min_idx]
+        arr[min_idx] = temp
+    }
+    return arr
+}
+
+// Test data
+unsorted = [64, 34, 25, 12, 22, 11, 90]
+
+sorted = bubble_sort(unsorted, 7)
+print(sorted)
+// Output: [11, 12, 22, 25, 34, 64, 90]

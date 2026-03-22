@@ -1,0 +1,261 @@
+# GitLab CI/CD Configuration for Julia the Viper
+
+variables:
+  CARGO_HOME: "${CI_PROJECT_DIR}/.cargo"
+  RUST_BACKTRACE: "1"
+
+# Cache Rust dependencies
+cache:
+  key: "${CI_COMMIT_REF_SLUG}"
+  paths:
+    - .cargo/
+    - packages/jtv-lang/target/
+    - tools/cli/target/
+
+stages:
+  - check
+  - test
+  - build
+  - deploy
+
+# Templates
+.rust-template:
+  image: rust:latest
+  before_script:
+    - rustc --version
+    - cargo --version
+    - cargo install just || true
+
+.deno-template:
+  image: denoland/deno:latest
+  before_script:
+    - deno --version
+
+# ===== CHECK STAGE =====
+
+format-check:
+  extends: .rust-template
+  stage: check
+  script:
+    - cd packages/jtv-lang && cargo fmt -- --check
+    - cd ../../tools/cli && cargo fmt -- --check
+  allow_failure: false
+
+lint:
+  extends: .rust-template
+  stage: check
+  script:
+    - cd packages/jtv-lang && cargo clippy -- -D warnings
+    - cd ../../tools/cli && cargo clippy -- -D warnings
+  allow_failure: false
+
+security-audit:
+  extends: .rust-template
+  stage: check
+  script:
+    - cargo install cargo-audit || true
+    - cd packages/jtv-lang && cargo audit
+    - cd ../../tools/cli && cargo audit
+  allow_failure: true
+
+# ===== TEST STAGE =====
+
+test-parser:
+  extends: .rust-template
+  stage: test
+  script:
+    - cd packages/jtv-lang
+    - cargo test --lib parser
+  artifacts:
+    reports:
+      junit: packages/jtv-lang/target/junit.xml
+    expire_in: 1 week
+
+test-interpreter:
+  extends: .rust-template
+  stage: test
+  script:
+    - cd packages/jtv-lang
+    - cargo test --lib interpreter
+  artifacts:
+    reports:
+      junit: packages/jtv-lang/target/junit.xml
+    expire_in: 1 week
+
+test-all:
+  extends: .rust-template
+  stage: test
+  script:
+    - cd packages/jtv-lang && cargo test --all-features
+    - cd ../../tools/cli && cargo test
+  coverage: '/^\s*lines:\s*\d+\.\d+\%/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: packages/jtv-lang/target/coverage.xml
+    expire_in: 1 week
+
+test-analyzer:
+  extends: .deno-template
+  stage: test
+  script:
+    - cd packages/jtv-analyzer
+    - deno test --allow-read
+
+benchmark:
+  extends: .rust-template
+  stage: test
+  script:
+    - cd packages/jtv-lang
+    - cargo bench --no-run
+  only:
+    - main
+    - develop
+  allow_failure: true
+
+# ===== BUILD STAGE =====
+
+build-lang:
+  extends: .rust-template
+  stage: build
+  script:
+    - cd packages/jtv-lang
+    - cargo build --release
+  artifacts:
+    paths:
+      - packages/jtv-lang/target/release/libjtv_lang.rlib
+    expire_in: 1 week
+
+build-cli:
+  extends: .rust-template
+  stage: build
+  script:
+    - cd tools/cli
+    - cargo build --release
+  artifacts:
+    paths:
+      - tools/cli/target/release/jtv
+    expire_in: 1 week
+
+build-wasm:
+  extends: .rust-template
+  stage: build
+  before_script:
+    - curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+  script:
+    - cd packages/jtv-lang
+    - wasm-pack build --target web --out-dir ../../dist/wasm
+  artifacts:
+    paths:
+      - dist/wasm/
+    expire_in: 1 week
+  only:
+    - main
+    - tags
+
+build-docs:
+  extends: .rust-template
+  stage: build
+  script:
+    - cd packages/jtv-lang
+    - cargo doc --no-deps
+  artifacts:
+    paths:
+      - packages/jtv-lang/target/doc/
+    expire_in: 1 week
+  only:
+    - main
+
+# ===== DEPLOY STAGE =====
+
+pages:
+  stage: deploy
+  dependencies:
+    - build-docs
+  script:
+    - mkdir -p public
+    - cp -r packages/jtv-lang/target/doc/* public/
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
+
+release:
+  extends: .rust-template
+  stage: deploy
+  script:
+    - echo "Creating release artifacts"
+    - mkdir -p release
+    - cp tools/cli/target/release/jtv release/jtv-linux-x86_64
+    - cp -r dist/wasm release/
+  artifacts:
+    paths:
+      - release/
+  only:
+    - tags
+  when: manual
+
+# ===== SECURITY SCANNING =====
+
+sast:
+  stage: check
+  allow_failure: true
+  artifacts:
+    reports:
+      sast: gl-sast-report.json
+  only:
+    - main
+    - merge_requests
+
+dependency_scanning:
+  stage: check
+  allow_failure: true
+  artifacts:
+    reports:
+      dependency_scanning: gl-dependency-scanning-report.json
+  only:
+    - main
+    - merge_requests
+
+# ===== ENVIRONMENT-SPECIFIC =====
+
+.production-template:
+  only:
+    - main
+    - tags
+  environment:
+    name: production
+
+.staging-template:
+  only:
+    - develop
+  environment:
+    name: staging
+
+# ===== MANUAL JOBS =====
+
+deploy-crates-io:
+  extends: .rust-template
+  stage: deploy
+  script:
+    - cd packages/jtv-lang
+    - cargo publish --dry-run
+    # Actual publish requires manual approval and API token
+  when: manual
+  only:
+    - tags
+
+deploy-npm:
+  image: node:latest
+  stage: deploy
+  before_script:
+    - npm --version
+  script:
+    - cd dist/wasm
+    - npm publish --dry-run
+    # Actual publish requires manual approval and npm token
+  when: manual
+  only:
+    - tags

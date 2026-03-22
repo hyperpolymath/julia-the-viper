@@ -1,0 +1,4 @@
+// Conformance test: incomplete expression (trailing operator)
+// Expected: FAIL (parse error)
+
+x = 5 +

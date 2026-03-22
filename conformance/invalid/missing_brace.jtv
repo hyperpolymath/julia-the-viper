@@ -1,0 +1,7 @@
+// Conformance test: missing closing brace
+// Expected: FAIL (parse error)
+
+module Broken {
+    fn add(a: Int, b: Int): Int {
+        return a + b
+

@@ -1,0 +1,89 @@
+// V2: Reversible computing examples
+// Demonstrates quantum computing simulation capabilities
+
+// Simple reversible block
+x = 5
+
+reverse {
+    x += 10  // Forward: x = 15
+    x += 5   // Forward: x = 20
+}
+// After forward execution, x = 20
+
+// Reversing the block would execute:
+// x -= 5  (x = 15)
+// x -= 10 (x = 5)
+
+// Bennett's trick: Reversible computation with garbage cleanup
+fn bennett_multiply(a: Int, b: Int): (Int, Int) {
+    result = 0
+    garbage = 0
+
+    reverse {
+        // Forward: compute result and track garbage
+        for i in 0..b {
+            result += a
+            garbage += 1
+        }
+
+        // Copy result to output
+        output = result
+
+        // Reverse: uncompute garbage
+        for i in 0..b {
+            result -= a
+            garbage -= 1
+        }
+    }
+
+    return (output, 0)  // Result with no garbage
+}
+
+// Quantum gate simulation
+// NOT gate: flip bit (0->1, 1->0)
+reverse {
+    bit += 1  // If bit=0, becomes 1; if bit=1, becomes 2
+    if bit == 2 {
+        bit -= 2  // Becomes 0 (flipped from 1)
+    }
+}
+
+// CNOT gate: controlled-NOT
+reverse {
+    if control == 1 {
+        target += 1
+        if target == 2 {
+            target -= 2
+        }
+    }
+}
+
+// Toffoli gate (universal reversible gate)
+reverse {
+    if control1 == 1 && control2 == 1 {
+        target += 1
+        if target == 2 {
+            target -= 2
+        }
+    }
+}
+
+// Grover's algorithm building block
+// Phase flip for marked state
+reverse {
+    if state == marked_state {
+        phase += 1  // Mark with phase
+    }
+}
+
+// Quantum superposition via reversible arithmetic
+// Each operation maintains reversibility
+reverse {
+    amplitude1 += input
+    amplitude2 += input
+    // Amplitudes can be reversed to original state
+}
+
+// Landauer's principle: Reversible computation is thermodynamically efficient
+// No energy dissipation because no information is erased
+print("Reversible computing demonstration complete")

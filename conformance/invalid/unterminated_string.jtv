@@ -1,0 +1,5 @@
+// Conformance test: unterminated string literal
+// Expected: FAIL (parse error)
+
+x = "hello
+y = 42

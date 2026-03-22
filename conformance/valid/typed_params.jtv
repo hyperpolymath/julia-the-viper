@@ -1,0 +1,23 @@
+// Conformance test: function parameters with type annotations
+// Expected: PASS
+
+fn add_ints(a: Int, b: Int): Int {
+    return a + b
+}
+
+fn mix_types(x: Float, y: Int): Float {
+    return x + y
+}
+
+fn complex_sig(
+    name: String,
+    value: Rational,
+    flag: Bool
+): Complex {
+    return 3+4i
+}
+
+// Return type annotation only
+fn get_zero(): Int {
+    return 0
+}

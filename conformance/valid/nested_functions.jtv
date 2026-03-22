@@ -1,0 +1,19 @@
+// Conformance test: function calling other functions
+// Expected: PASS
+
+fn double(x: Int): Int {
+    return x + x
+}
+
+fn quadruple(x: Int): Int {
+    return double(double(x))
+}
+
+fn add_then_double(a: Int, b: Int): Int {
+    sum = a + b
+    return double(sum)
+}
+
+// Call chain in data context
+result = quadruple(5)
+combined = add_then_double(3, 7)

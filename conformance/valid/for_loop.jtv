@@ -1,0 +1,12 @@
+// Conformance test: for loop with range expressions
+// Expected: PASS
+
+sum = 0
+for i in 1..10 {
+    sum = sum + i
+}
+
+total = 0
+for j in 0..100..2 {
+    total = total + j
+}

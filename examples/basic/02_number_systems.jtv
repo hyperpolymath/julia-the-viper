@@ -1,0 +1,43 @@
+// Demonstrating all 7 number systems in JtV
+
+// 1. Integers
+int_a = 42
+int_b = 58
+int_sum = int_a + int_b
+print(int_sum)  // 100
+
+// 2. Floats
+float_a = 3.14
+float_b = 2.86
+float_sum = float_a + float_b
+print(float_sum)  // 6.0
+
+// 3. Rationals (exact fractions)
+rat_a = 1/2
+rat_b = 1/3
+rat_sum = rat_a + rat_b  // 5/6
+print(rat_sum)
+
+// 4. Complex numbers
+comp_a = 3+4i
+comp_b = 1+2i
+comp_sum = comp_a + comp_b  // 4+6i
+print(comp_sum)
+
+// 5. Hexadecimal
+hex_a = 0xFF
+hex_b = 0x01
+hex_sum = hex_a + hex_b  // 0x100
+print(hex_sum)
+
+// 6. Binary
+bin_a = 0b1010
+bin_b = 0b0101
+bin_sum = bin_a + bin_b  // 0b1111
+print(bin_sum)
+
+// 7. Symbolic (for symbolic math)
+// symbolic_a = x
+// symbolic_b = y
+// symbolic_sum = x + y
+// Symbolic math would be evaluated symbolically

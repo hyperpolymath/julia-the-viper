@@ -1,0 +1,6 @@
+// Conformance test: missing = in assignment (should fail)
+// Expected: FAIL (parse error)
+//
+// Assignment requires the = operator between identifier and value.
+
+x 42

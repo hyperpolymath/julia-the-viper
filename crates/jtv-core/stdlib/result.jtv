@@ -1,0 +1,257 @@
+// JtV Standard Library - Result Type
+// Error handling without exceptions
+
+module Result {
+    // Result is represented as tuple: (value, is_error)
+    // If is_error == 0: success, value is the result
+    // If is_error == 1: failure, value is error code
+
+    // ===== CONSTRUCTORS =====
+
+    @pure fn ok(value: Int): (Int, Int) {
+        return (value, 0)
+    }
+
+    @pure fn err(error_code: Int): (Int, Int) {
+        return (error_code, 1)
+    }
+
+    // ===== CHECKERS =====
+
+    @pure fn is_ok(result: (Int, Int)): Int {
+        if result[1] == 0 {
+            return 1
+        } else {
+            return 0
+        }
+    }
+
+    @pure fn is_err(result: (Int, Int)): Int {
+        if result[1] == 1 {
+            return 1
+        } else {
+            return 0
+        }
+    }
+
+    // ===== UNWRAPPING =====
+
+    @pure fn unwrap(result: (Int, Int)): Int {
+        // Returns value if Ok, 0 if Err
+        if is_ok(result) == 1 {
+            return result[0]
+        } else {
+            return 0  // Default value
+        }
+    }
+
+    @pure fn unwrap_or(result: (Int, Int), default: Int): Int {
+        if is_ok(result) == 1 {
+            return result[0]
+        } else {
+            return default
+        }
+    }
+
+    @pure fn unwrap_err(result: (Int, Int)): Int {
+        // Returns error code if Err, 0 if Ok
+        if is_err(result) == 1 {
+            return result[0]
+        } else {
+            return 0
+        }
+    }
+
+    // ===== TRANSFORMATIONS =====
+
+    fn map(result: (Int, Int), transform: Int): (Int, Int) {
+        // Simplified map - real version would take function
+        if is_ok(result) == 1 {
+            new_value = result[0] + transform
+            return ok(new_value)
+        } else {
+            return result  // Pass through error
+        }
+    }
+
+    fn map_err(result: (Int, Int), transform: Int): (Int, Int) {
+        if is_err(result) == 1 {
+            new_error = result[0] + transform
+            return err(new_error)
+        } else {
+            return result  // Pass through success
+        }
+    }
+
+    // ===== COMBINATORS =====
+
+    fn and_then(result1: (Int, Int), result2: (Int, Int)): (Int, Int) {
+        if is_ok(result1) == 1 {
+            return result2
+        } else {
+            return result1  // Return first error
+        }
+    }
+
+    fn or_else(result1: (Int, Int), result2: (Int, Int)): (Int, Int) {
+        if is_ok(result1) == 1 {
+            return result1  // Return first success
+        } else {
+            return result2
+        }
+    }
+
+    // ===== SAFE OPERATIONS =====
+
+    @pure fn safe_divide(a: Int, b: Int): (Int, Int) {
+        if b == 0 {
+            return err(1)  // Division by zero error
+        }
+
+        quotient = 0
+        remainder = abs(a)
+        divisor = abs(b)
+
+        while remainder >= divisor {
+            remainder = remainder - divisor
+            quotient = quotient + 1
+        }
+
+        if (a < 0 && b > 0) || (a > 0 && b < 0) {
+            return ok(-quotient)
+        }
+        return ok(quotient)
+    }
+
+    fn safe_multiply(a: Int, b: Int): (Int, Int) {
+        // Check for overflow
+        MAX_SAFE_INT = 2147483647
+
+        if a != 0 && b != 0 {
+            if abs(a) > divide(MAX_SAFE_INT, abs(b)) {
+                return err(2)  // Overflow error
+            }
+        }
+
+        result = 0
+        for i in 0..abs(b) {
+            result = result + abs(a)
+        }
+
+        if (a < 0 && b > 0) || (a > 0 && b < 0) {
+            return ok(-result)
+        }
+        return ok(result)
+    }
+
+    fn safe_sqrt(n: Int): (Int, Int) {
+        if n < 0 {
+            return err(3)  // Negative square root error
+        }
+
+        if n < 2 {
+            return ok(n)
+        }
+
+        // Babylonian method
+        x = n
+        for i in 0..20 {
+            x_new = divide(x + divide(n, x), 2)
+            if x_new >= x {
+                return ok(x)
+            }
+            x = x_new
+        }
+
+        return ok(x)
+    }
+
+    fn safe_list_get(list: List<Int>, index: Int): (Int, Int) {
+        len = length(list)
+
+        if index < 0 || index >= len {
+            return err(4)  // Index out of bounds
+        }
+
+        return ok(list[index])
+    }
+
+    // ===== ERROR CODES =====
+
+    // Standard error codes:
+    // 0: No error (Ok)
+    // 1: Division by zero
+    // 2: Integer overflow
+    // 3: Invalid argument (e.g., negative sqrt)
+    // 4: Index out of bounds
+    // 5: Not found
+    // 6: Invalid state
+    // 7: Permission denied
+    // 8: Timeout
+    // 9: Network error
+    // 10+: Custom errors
+
+    @pure fn error_message(error_code: Int): String {
+        // In real implementation, would return actual strings
+        if error_code == 1 {
+            return "Division by zero"
+        } else if error_code == 2 {
+            return "Integer overflow"
+        } else if error_code == 3 {
+            return "Invalid argument"
+        } else if error_code == 4 {
+            return "Index out of bounds"
+        } else {
+            return "Unknown error"
+        }
+    }
+
+    // ===== HELPER FUNCTIONS =====
+
+    fn multiply(a: Int, b: Int): Int {
+        result = 0
+        for i in 0..abs(b) {
+            result = result + abs(a)
+        }
+        if (a < 0 && b > 0) || (a > 0 && b < 0) {
+            return -result
+        }
+        return result
+    }
+
+    fn divide(a: Int, b: Int): Int {
+        if b == 0 {
+            return 0
+        }
+
+        quotient = 0
+        remainder = abs(a)
+        divisor = abs(b)
+
+        while remainder >= divisor {
+            remainder = remainder - divisor
+            quotient = quotient + 1
+        }
+
+        if (a < 0 && b > 0) || (a > 0 && b < 0) {
+            return -quotient
+        }
+        return quotient
+    }
+
+    @pure fn abs(x: Int): Int {
+        if x < 0 {
+            return -x
+        } else {
+            return x
+        }
+    }
+
+    @pure fn length(list: List<Int>): Int {
+        count = 0
+        for item in list {
+            count = count + 1
+        }
+        return count
+    }
+}

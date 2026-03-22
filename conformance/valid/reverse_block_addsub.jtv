@@ -1,0 +1,17 @@
+// Conformance test: reverse block with += and -= compound operators
+// Expected: PASS
+//
+// In reverse blocks, += inverts to -= and vice versa,
+// enabling reversible computation.
+
+x = 10
+y = 20
+
+reverse {
+    x += 1
+    y += 2
+    x -= 3
+}
+
+// After forward: x=8, y=22
+// After reverse: x=10, y=20 (original values restored)

@@ -1,0 +1,14 @@
+// Conformance test: list containing tuples
+// Expected: PASS
+
+// List of 2-tuples (coordinate pairs)
+points = [(0, 0), (1, 2), (3, 4)]
+
+// List of 3-tuples
+colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
+
+// Single-element list of tuple
+singleton = [(42, 99)]
+
+// Tuple containing a list
+wrapped = ([1, 2, 3], [4, 5, 6])

@@ -1,0 +1,44 @@
+// Conformance test: Harvard architecture - data + control language coexistence
+// Expected: PASS
+
+// Module with both pure (data) and impure (control) functions
+module Harvard {
+    // Data language function: total, addition-only, no side effects
+    @pure fn safe_sum(a: Int, b: Int): Int {
+        return a + b
+    }
+
+    // Control language function: may loop, may have side effects
+    fn accumulate(n: Int): Int {
+        result = 0
+        for i in 1..n {
+            result = result + i
+        }
+        return result
+    }
+
+    // Reversible computation block inside a function
+    fn swap_demo(x: Int, y: Int) {
+        reverse {
+            x += y
+            y -= x
+        }
+        print(x, y)
+    }
+}
+
+import Harvard
+
+// Data expressions in control context
+total = Harvard.safe_sum(10, 20)
+
+// Control flow using data expressions as conditions
+if total > 0 {
+    print(total)
+}
+
+// Nested: for loop (control) with addition-only body (data)
+acc = 0
+for k in 0..10 {
+    acc = acc + Harvard.safe_sum(k, 1)
+}

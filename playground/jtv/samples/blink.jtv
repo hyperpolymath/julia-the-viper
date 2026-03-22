@@ -1,0 +1,35 @@
+-- SPDX-License-Identifier: PMPL-1.0-or-later
+-- blink.jtv - LED Blink for AVR
+-- Demonstrates register access and interrupt handling
+
+module Blink
+
+-- Direct register access (Harvard architecture)
+const LED_PIN: u8 = 5
+const DDR_B: *mut u8 @io = 0x24
+const PORT_B: *mut u8 @io = 0x25
+
+-- Interrupt handler for timer overflow
+#[interrupt(TIMER0_OVF)]
+fn timer_overflow() -> ():
+    static mut tick: u16 = 0
+    tick += 1
+    if tick >= 1000:
+        tick = 0
+        toggle_led()
+
+fn toggle_led() -> ():
+    *PORT_B ^= (1 << LED_PIN)
+
+fn setup() -> ():
+    -- Set LED pin as output
+    *DDR_B |= (1 << LED_PIN)
+    -- Configure Timer0
+    TCCR0B = 0x03  -- Prescaler 64
+    TIMSK0 = 0x01  -- Enable overflow interrupt
+
+fn main() -> !:
+    setup()
+    sei()  -- Enable global interrupts
+    loop:
+        sleep()

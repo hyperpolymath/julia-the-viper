@@ -1,0 +1,8 @@
+-- SPDX-License-Identifier: PMPL-1.0-or-later
+-- invalid/missing_module.jtv - Missing module declaration (EXPECTED ERROR)
+
+-- ERROR: JTV requires a module declaration at the top level
+
+fn main() -> !:
+    loop:
+        nop()

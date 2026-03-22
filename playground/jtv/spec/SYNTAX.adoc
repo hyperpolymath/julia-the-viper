@@ -1,0 +1,160 @@
+= JTV Language Syntax Specification (Draft)
+:toc: macro
+:icons: font
+
+// SPDX-License-Identifier: PMPL-1.0-or-later
+
+*Status*: Draft (f0 milestone)
+
+toc::[]
+
+== Overview
+
+Julia-the-Viper (JTV) is a systems programming language for Harvard architecture embedded systems.
+
+== Lexical Structure
+
+=== Comments
+
+[source,jtv]
+----
+-- Single line comment
+----
+
+=== Keywords
+
+----
+module, import, fn, let, mut, const, if, else, loop, for, in,
+while, match, return, break, continue, static, true, false
+----
+
+=== Memory Space Annotations
+
+----
+@code   -- Flash/ROM (program memory)
+@data   -- RAM (data memory)
+@io     -- Memory-mapped I/O
+----
+
+== Module System
+
+=== Module Declaration
+
+Every JTV file must begin with a module declaration:
+
+[source,jtv]
+----
+module ModuleName
+----
+
+=== Imports
+
+[source,jtv]
+----
+import AVR.UART (init, print)
+import Core.Memory (pgm_read)
+----
+
+== Types
+
+=== Primitive Types
+
+----
+u8, u16, u32, u64   -- Unsigned integers
+i8, i16, i32, i64   -- Signed integers
+bool                -- Boolean
+----
+
+=== Composite Types
+
+[source,jtv]
+----
+[T; N]      -- Fixed-size array
+&T          -- Reference
+*T          -- Raw pointer
+*mut T      -- Mutable raw pointer
+----
+
+== Functions
+
+=== Declaration
+
+[source,jtv]
+----
+fn function_name(param: Type) -> ReturnType:
+    body
+
+-- Never-returning function
+fn main() -> !:
+    loop:
+        ...
+----
+
+=== Attributes
+
+[source,jtv]
+----
+#[interrupt(VECTOR)]   -- Interrupt handler
+#[max_stack(N)]        -- Stack usage limit
+#[no_heap]             -- No dynamic allocation
+#[inline]              -- Inline hint
+----
+
+== Memory Spaces
+
+=== Code Space (Flash)
+
+[source,jtv]
+----
+const TABLE: [u8; 16] @code = [...]
+
+fn read_code(idx: u8) -> u8:
+    pgm_read(TABLE[idx])
+----
+
+=== Data Space (RAM)
+
+[source,jtv]
+----
+let mut buffer: [u8; 64] @data
+----
+
+=== I/O Space
+
+[source,jtv]
+----
+const PORT_B: *mut u8 @io = 0x25
+----
+
+== Control Flow
+
+=== Conditionals
+
+[source,jtv]
+----
+if condition:
+    ...
+else:
+    ...
+----
+
+=== Loops
+
+[source,jtv]
+----
+loop:
+    ...
+
+for i in 0..10:
+    ...
+
+while condition:
+    ...
+----
+
+== Future Work
+
+- Pattern matching
+- Generics
+- Traits/interfaces
+- Async/await for cooperative multitasking

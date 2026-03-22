@@ -1,0 +1,23 @@
+// Conformance test: reverse blocks (quantum/reversible computing)
+// Expected: PASS
+
+// Simple reverse block
+reverse {
+    x += 10
+    y += 5
+}
+
+// Multiple operations
+reverse {
+    counter += 1
+    accumulator += counter
+    offset -= 3
+}
+
+// Reverse block with conditional
+reverse {
+    x += 1
+    if x > 0 {
+        y = 1
+    }
+}

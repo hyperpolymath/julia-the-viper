@@ -1,0 +1,5 @@
+// Conformance test: unclosed block comment
+// Expected: FAIL (parse error)
+
+/* This comment never closes
+x = 42

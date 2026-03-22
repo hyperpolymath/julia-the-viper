@@ -1,0 +1,464 @@
+= Julia the Viper (JtV)
+
+image:https://img.shields.io/badge/License-PMPL--1.0-blue.svg[License: PMPL-1.0,link="https://github.com/hyperpolymath/palimpsest-license"]
+image:https://img.shields.io/badge/Philosophy-Palimpsest-indigo.svg[Palimpsest,link="https://github.com/hyperpolymath/palimpsest-license"]
+
+
+:toc: left
+:toclevels: 3
+:icons: font
+:source-highlighter: rouge
+:experimental:
+
+[.lead]
+*Harvard Architecture Language for Security-Critical Applications*
+
+image:https://img.shields.io/badge/version-0.1.0-blue.svg[Version]
+image:https://img.shields.io/badge/RSR-Gold-yellow.svg[RSR Compliance]
+
+[quote]
+____
+"It's basically the same thing as an adder" -- Where a humble calculator becomes a quantum-ready security language
+____
+
+== Overview
+
+*Julia the Viper* is a Harvard Architecture programming language designed to make code injection *grammatically impossible*. Named after mathematician Julia Robinson (Hilbert's 10th problem) with a playful nod to "adder" (snake + addition), JtV separates computation into two grammatically distinct channels:
+
+* **Control Language**: Turing-complete, imperative (loops, conditionals, I/O)
+* **Data Language**: Total/provably halting, addition-only expressions
+
+This architectural separation ensures that user-supplied data can never contain control flow -- not through runtime validation, but through fundamental grammar design.
+
+=== Why Addition-Only?
+
+Addition is the *universal operation* across all number systems. Combined with Control loops, it achieves Turing-completeness while maintaining a provable termination guarantee when loops are absent.
+
+Version 2 extends this to *reversible computing*, enabling quantum algorithm simulation where addition inverts to subtraction in `reverse` blocks.
+
+== Quick Start
+
+=== Installation
+
+[source,bash]
+----
+# Using Nix (recommended)
+nix run github:Hyperpolymath/julia-the-viper
+
+# Or build from source
+git clone https://github.com/Hyperpolymath/julia-the-viper.git
+cd julia-the-viper
+just build
+just install
+----
+
+=== Your First Program
+
+Create `hello.jtv`:
+
+[source,julia-the-viper]
+----
+# Control Language: Turing-complete
+Control {
+    # Data Language: Total (guaranteed halting)
+    let x = Data { 2 + 3 };
+
+    print("Result: " + str(x));
+
+    # Loops are Control-only
+    for i in range(5) {
+        let doubled = Data { i + i };
+        print(doubled);
+    }
+}
+----
+
+Run it:
+
+[source,bash]
+----
+jtv run hello.jtv
+----
+
+=== Harvard Architecture in Action
+
+The killer feature is what you *cannot* write:
+
+[source,julia-the-viper]
+----
+# ❌ GRAMMATICALLY IMPOSSIBLE
+Data {
+    if (user_input) {  # ERROR: Control flow in Data context
+        malicious_code();
+    }
+}
+----
+
+Code injection isn't prevented by careful programming -- it's prevented by making it *grammatically impossible to express*.
+
+== Key Features
+
+=== 1. Grammatical Security
+
+[cols="1,2", options="header"]
+|===
+| Traditional Approach | Julia the Viper
+
+| Runtime validation
+| Compile-time grammar enforcement
+
+| "Don't put user input in eval()"
+| "User input grammatically cannot contain control flow"
+
+| Security through discipline
+| Security through architecture
+|===
+
+=== 2. Seven Number Systems
+
+Full support for diverse numeric types:
+
+* `Int`: `42`, `-17`
+* `Float`: `3.14`, `2.718`
+* `Rational`: `1/3`, `22/7`
+* `Complex`: `3+4i`, `1.5-2.3i`
+* `Hex`: `0xFF`, `0xDEADBEEF`
+* `Binary`: `0b1010`, `0b11110000`
+* `Symbolic`: `pi`, `e`, `golden_ratio`
+
+All unified under addition operations with automatic type coercion.
+
+=== 3. Pure Function Guarantee
+
+[source,julia-the-viper]
+----
+# Only Pure Data Functions callable in Data context
+pure fn square(x: Int) -> Int {
+    Data { x + x }  # No loops/IO allowed
+}
+
+fn impure_calc(x: Int) -> Int {
+    Control {
+        print("Calculating...");  # Side effects
+        Data { x + x }
+    }
+}
+
+Control {
+    let a = Data { square(5) };        # ✅ OK: Pure function
+    let b = Data { impure_calc(5) };   # ❌ ERROR: Impure function
+}
+----
+
+=== 4. Reversible Computing (v2)
+
+Quantum algorithm simulation through operation inversion:
+
+[source,julia-the-viper]
+----
+Control {
+    let x = Data { 5 + 3 };  # x = 8
+
+    reverse {
+        x = Data { 5 + 3 };  # Inverted: x = 8 - 3 - 5 = 0
+    }
+
+    # x is now back to 0 (identity transformation)
+}
+----
+
+Enables Bennett's trick, Grover's algorithm, and thermodynamically efficient computation per Landauer's principle.
+
+=== 5. Smart Contract Security
+
+Example ERC-20 token with provable properties:
+
+[source,julia-the-viper]
+----
+Control {
+    # Balance conservation: Total supply is constant
+    invariant total_supply == sum(all_balances);
+
+    # No reentrancy: Pure Data functions only
+    # No overflow: Checked arithmetic in Data context
+    # Guaranteed termination: Totality guarantee
+
+    fn transfer(to: Address, amount: Int) {
+        require(Data { balances[msg.sender] >= amount });
+
+        # Atomic state transition
+        balances[msg.sender] = Data {
+            balances[msg.sender] + negate(amount)
+        };
+        balances[to] = Data { balances[to] + amount };
+
+        emit Transfer(msg.sender, to, amount);
+    }
+}
+----
+
+== Use Cases
+
+[horizontal]
+Smart Contracts:: Provable security properties (no reentrancy, overflow, or injection)
+Legacy System Retrofitting:: Extract pure computation from Python/PHP/JS codebases
+Quantum Algorithm Development:: Simulate reversible quantum operations
+Educational Tool:: Teach Harvard Architecture and formal security models
+Safety-Critical Systems:: Formal guarantees for aerospace, medical, financial systems
+
+== Architecture
+
+=== v1 (Alpha) - Foundation
+
+[cols="1,3"]
+|===
+| Component | Description
+
+| Parser
+| Pest combinator parser enforcing Harvard Architecture
+
+| Interpreter
+| 7 number systems with MAX_ITERATIONS protection
+
+| Standard Library
+| 105+ pure functions across 4 modules
+
+| Examples
+| 17 programs (basic, advanced, smart contracts)
+
+| Tooling
+| CLI, VS Code extension, TypeScript analyzer
+
+| Documentation
+| 20,000+ words (guides, specifications, vision docs)
+|===
+
+Status: *80% Complete* ✅
+
+=== v2 (Beta) - Quantum Leap
+
+[cols="1,3"]
+|===
+| Feature | Description
+
+| Reversible Computing
+| `reverse` blocks invert operations (+ becomes -)
+
+| Quantum Simulation
+| Unitary transformations, superposition, entanglement
+
+| Purity Enforcement
+| Compiler rejects impure functions in Data context
+
+| Advanced Types
+| Type inference, generic functions, algebraic types
+
+| Module System
+| Import resolution, dependency management
+|===
+
+Status: *Specification Complete, Implementation Pending*
+
+IMPORTANT: Master v1 before approaching v2. See link:docs/GRAMMAR_EVOLUTION.md[GRAMMAR_EVOLUTION.md] for rationale.
+
+== Licensing
+
+Julia the Viper offers *tri-licensing* to maximize freedom:
+
+[source]
+----
+SPDX-License-Identifier: PMPL-1.0-or-later-or-later
+----
+
+You may choose any of:
+
+* **Palimpsest-MPL-1.0 License**: Maximum permissiveness, simple attribution
+* **GPL-3.0+**: Copyleft, share-alike requirements
+* **Palimpsest 0.8** _(philosophically encouraged)_: Ethical, politically autonomous licensing
+
+See link:LICENSING.md[LICENSING.md] for guidance on choosing the right license for your use case.
+
+== Community & Governance
+
+=== Tri-Perimeter Contribution Framework (TPCF)
+
+Julia the Viper implements graduated trust perimeters:
+
+* **Perimeter 1 (Core)**: Maintainer-only, highest security
+* **Perimeter 2 (Trusted Contributors)**: Vetted contributors, moderate security
+* **Perimeter 3 (Community Sandbox)**: Public, open contribution _(current state)_
+
+We are actively seeking founding maintainers and trusted contributors. See link:TPCF.md[TPCF.md] for details.
+
+=== Code of Conduct
+
+We follow the Contributor Covenant 2.1 with emotional safety addendum. See link:CODE_OF_CONDUCT.adoc[CODE_OF_CONDUCT.adoc].
+
+=== Security Policy
+
+Found a vulnerability? See link:.well-known/security.txt[.well-known/security.txt] and link:SECURITY.md[SECURITY.md] for responsible disclosure.
+
+== Documentation
+
+[horizontal]
+link:QUICK_START.md[Quick Start Guide]:: Installation, first programs, examples
+link:ROADMAP.md[Development Roadmap]:: Phases, milestones, success metrics
+link:docs/GRAMMAR_EVOLUTION.md[Grammar Evolution]:: v1 vs v2 architectural decisions
+link:docs/QUANTUM_VISION.md[Quantum Vision]:: Reversible computing and quantum algorithms
+link:CLAUDE.md[AI Assistant Handover]:: Project context for Claude/GPT agents
+link:CONTRIBUTING.adoc[Contributing Guide]:: How to get involved
+link:SECURITY.md[Security Policy]:: Vulnerability reporting and guarantees
+link:CHANGELOG.md[Changelog]:: Version history and migration guides
+
+== Build & Development
+
+=== Build System
+
+Julia the Viper uses link:https://github.com/casey/just[Just] (not Make):
+
+[source,bash]
+----
+just --list              # Show all commands
+just build               # Build all packages
+just test                # Run tests
+just build-wasm          # Compile to WebAssembly
+just validate            # Check RSR compliance
+just fmt                 # Format code
+just lint                # Run Clippy lints
+----
+
+=== Reproducible Builds
+
+Full Nix flake support:
+
+[source,bash]
+----
+nix develop              # Enter development shell
+nix build                # Build packages
+nix run .#jtv-cli        # Run CLI directly
+----
+
+=== Project Structure
+
+[source]
+----
+julia-the-viper/
+├── packages/
+│   ├── jtv-lang/              # Core Rust implementation
+│   │   ├── src/
+│   │   │   ├── parser.rs      # Pest grammar parser
+│   │   │   ├── interpreter.rs # Execution engine
+│   │   │   ├── number.rs      # 7 number systems
+│   │   │   └── ast.rs         # Abstract syntax tree
+│   │   ├── stdlib/            # 105+ pure functions
+│   │   └── tests/             # 40+ test cases
+│   └── jtv-analyzer/          # TypeScript/Deno code analyzer
+├── tools/
+│   ├── cli/                   # Command-line interface
+│   └── vscode-extension/      # VS Code support
+├── examples/
+│   ├── basic/                 # Hello world, tutorials
+│   ├── advanced/              # Fibonacci, matrix ops
+│   └── contracts/             # Smart contracts (ERC-20, NFT, DAO)
+├── docs/                      # Comprehensive documentation
+└── .well-known/               # RFC 9116 security.txt, etc.
+----
+
+== RSR Compliance
+
+Julia the Viper achieves *Gold* level (93%) in the link:https://rhodium-standard.org[Rhodium Standard Repository] framework:
+
+[source,bash]
+----
+jtv rsr-check
+# Score: 42/45 (93%)
+# Grade: 🥈 Gold
+----
+
+✅ Complete documentation suite +
+✅ RFC 9116 compliant security.txt +
+✅ TPCF governance model +
+✅ Dual licensing (MIT + Palimpsest) +
+✅ Nix reproducible builds +
+✅ GitLab CI/CD pipeline (check, test, build, deploy) +
+✅ No unsafe Rust code in core +
+✅ Offline-first (no network dependencies)
+
+== Roadmap
+
+[horizontal]
+Q1 2025:: v1.0 stable release, WASM playground, LSP server
+Q2 2025:: v2.0 beta (reversible computing), formal verification tooling
+Q3 2025:: Smart contract auditing framework, IDE plugins
+Q4 2025:: Quantum algorithm library, performance optimizations
+
+See link:ROADMAP.md[ROADMAP.md] for detailed milestones and success metrics.
+
+== Why "Julia the Viper"?
+
+The name honors *Julia Robinson* (1919-1985), mathematician who contributed to solving Hilbert's tenth problem. "Viper" playfully references:
+
+* **Adder**: A snake, also a calculator
+* **Addition-only**: The core Data Language operation
+* **Security**: Venomous to code injection attacks
+
+The tagline "It's basically the same thing as an adder" embraces the humble pseudocode origins while acknowledging the sophisticated security model.
+
+== Etymology & Humor
+
+JtV embraces wordplay:
+
+[quote]
+____
+Q: Why addition-only? +
+A: It's *universal* with Control loops, yet *provably halts* without them.
+
+Q: Isn't that limiting? +
+A: You can implement multiplication, division, exponentiation... all through addition + loops.
+
+Q: Why not just use Rust/Haskell/Coq? +
+A: Legacy systems need retrofitting, not rewrites.
+____
+
+Maintain this lighthearted spirit while ensuring rigorous implementation.
+
+== Contact & Support
+
+[horizontal]
+GitHub:: https://github.com/Hyperpolymath/julia-the-viper
+Documentation:: https://docs.julia-viper.dev
+Email:: hello@julia-viper.dev
+Security:: security@julia-viper.dev
+Governance:: governance@julia-viper.dev
+
+== Acknowledgments
+
+Julia the Viper builds on decades of research:
+
+* **Julia Robinson**: Hilbert's tenth problem (namesake)
+* **Charles Bennett**: Reversible computing, Bennett's trick
+* **Rolf Landauer**: Landauer's principle (thermodynamics of computation)
+* **Harvard Mark I**: Harvard Architecture (1944)
+* **Lov Grover & Peter Shor**: Quantum algorithms
+
+See link:.well-known/humans.txt[.well-known/humans.txt] for complete credits.
+
+== License
+
+Copyright (c) 2025 Julia the Viper Contributors
+
+This project is tri-licensed. You may use it under the terms of any of the following licenses:
+
+* Palimpsest-MPL-1.0 License (link:LICENSE-MIT[LICENSE-MIT])
+* GNU General Public License v3.0 or later (link:LICENSE[LICENSE])
+* Palimpsest License v0.8 (link:LICENSE-PALIMPSEST[LICENSE-PALIMPSEST])
+
+The Palimpsest license is philosophically encouraged for its ethical and politically autonomous approach.
+
+'''
+
+[.text-center]
+🐍 *Remember: Code injection isn't prevented by careful programming -- it's prevented by making it grammatically impossible to express.* 🐍
+
+[.text-center]
+_Built with Harvard Architecture • Powered by Addition • Secured by Grammar_

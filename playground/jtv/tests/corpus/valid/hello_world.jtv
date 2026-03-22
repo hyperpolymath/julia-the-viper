@@ -1,0 +1,8 @@
+-- SPDX-License-Identifier: PMPL-1.0-or-later
+-- valid/hello_world.jtv - Basic valid JTV program
+
+module HelloWorld
+
+fn main() -> !:
+    loop:
+        nop()

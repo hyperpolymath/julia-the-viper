@@ -1,0 +1,7 @@
+// Conformance test: multiplication in data language (should fail)
+// Expected: FAIL (parse error)
+//
+// The data language only supports addition. Multiplication would
+// require the control language (loops implementing repeated addition).
+
+x = 5 * 3

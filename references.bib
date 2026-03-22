@@ -1,0 +1,116 @@
+% SPDX-License-Identifier: PMPL-1.0-or-later
+% Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+% References for Julia-the-Viper: Harvard-architecture language separating
+% data (total, addition-only) from control (Turing-complete)
+
+@article{aiken1937design,
+  author    = {Howard Aiken},
+  title     = {Proposed Automatic Calculating Machine},
+  journal   = {IEEE Spectrum (reprinted)},
+  year      = {1937},
+  note      = {Original Harvard architecture concept; separation of instruction and data stores inspires Julia-the-Viper dual-plane design}
+}
+
+@inproceedings{coquand1986calculus,
+  author    = {Thierry Coquand and G\'{e}rard Huet},
+  title     = {The Calculus of Constructions},
+  booktitle = {Information and Computation},
+  volume    = {76},
+  number    = {2--3},
+  pages     = {95--120},
+  year      = {1988},
+  note      = {Total dependently-typed calculus; theoretical basis for Julia-the-Viper data plane totality}
+}
+
+@article{turner2004total,
+  author    = {D. A. Turner},
+  title     = {Total Functional Programming},
+  journal   = {Journal of Universal Computer Science},
+  volume    = {10},
+  number    = {7},
+  pages     = {751--768},
+  year      = {2004},
+  note      = {Total programming manifesto; direct influence on Julia-the-Viper addition-only data plane}
+}
+
+@book{pierce2002types,
+  author    = {Benjamin C. Pierce},
+  title     = {Types and Programming Languages},
+  publisher = {MIT Press},
+  year      = {2002},
+  note      = {Type theory foundations; reference for both data and control plane type systems}
+}
+
+@inproceedings{ford2004parsing,
+  author    = {Bryan Ford},
+  title     = {Parsing Expression Grammars: A Recognition-Based Syntactic Foundation},
+  booktitle = {Proceedings of the 31st ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages},
+  pages     = {111--122},
+  year      = {2004},
+  note      = {PEG parsing formalism; basis for Julia-the-Viper pest-based parser}
+}
+
+@techreport{haas2017webassembly,
+  author    = {Andreas Haas and Andreas Rossberg and Derek L. Schuff and Ben L. Titzer and Michael Holman and Dan Gohman and Luke Wagner and Alon Zakai and JF Bastien},
+  title     = {Bringing the Web up to Speed with {WebAssembly}},
+  booktitle = {Proceedings of the 38th ACM SIGPLAN Conference on Programming Language Design and Implementation},
+  pages     = {185--200},
+  year      = {2017},
+  note      = {WebAssembly specification and design; Julia-the-Viper compilation target}
+}
+
+@article{turing1937computable,
+  author    = {Alan M. Turing},
+  title     = {On Computable Numbers, with an Application to the {Entscheidungsproblem}},
+  journal   = {Proceedings of the London Mathematical Society},
+  volume    = {s2-42},
+  number    = {1},
+  pages     = {230--265},
+  year      = {1937},
+  note      = {Turing completeness; defines the computational power of Julia-the-Viper control plane}
+}
+
+@article{bove2009brief,
+  author    = {Ana Bove and Peter Dybjer},
+  title     = {Dependent Types at Work},
+  booktitle = {Language Engineering and Rigorous Software Development},
+  series    = {LNCS},
+  volume    = {5520},
+  pages     = {57--99},
+  year      = {2009},
+  note      = {Practical dependent types and totality checking; relevant to data plane guarantees}
+}
+
+@inproceedings{abel2010miniagda,
+  author    = {Andreas Abel},
+  title     = {{MiniAgda}: Integrating Sized and Dependent Types},
+  booktitle = {Workshop on Partiality and Recursion in Interactive Theorem Provers},
+  year      = {2010},
+  note      = {Sized types for termination checking; technique applicable to data plane totality enforcement}
+}
+
+@article{neumann1945first,
+  author    = {John von Neumann},
+  title     = {First Draft of a Report on the {EDVAC}},
+  year      = {1945},
+  note      = {Von Neumann architecture (unified memory); contrasts with Harvard separation that Julia-the-Viper adopts at the language level}
+}
+
+@inproceedings{rossberg2023wasm,
+  author    = {Andreas Rossberg},
+  title     = {The {WebAssembly} Type System},
+  booktitle = {WebAssembly Community Group},
+  year      = {2023},
+  note      = {WASM type system evolution; relevant to typed compilation target for Julia-the-Viper}
+}
+
+@article{church1936unsolvable,
+  author    = {Alonzo Church},
+  title     = {An Unsolvable Problem of Elementary Number Theory},
+  journal   = {American Journal of Mathematics},
+  volume    = {58},
+  number    = {2},
+  pages     = {345--363},
+  year      = {1936},
+  note      = {Lambda calculus and undecidability; theoretical boundary between total data plane and Turing-complete control plane}
+}

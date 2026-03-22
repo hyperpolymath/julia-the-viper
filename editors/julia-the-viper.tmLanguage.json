@@ -1,0 +1,265 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Julia the Viper",
+  "scopeName": "source.jtv",
+  "fileTypes": [
+    "jtv"
+  ],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#purity-markers"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#functions"
+    },
+    {
+      "include": "#types"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#operators"
+    },
+    {
+      "include": "#punctuation"
+    },
+    {
+      "include": "#identifiers"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.jtv",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.jtv",
+          "begin": "/\\*",
+          "end": "\\*/",
+          "captures": {
+            "0": {
+              "name": "punctuation.definition.comment.jtv"
+            }
+          }
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.flow.jtv",
+          "match": "\\b(if|else|while|for|in|return)\\b"
+        },
+        {
+          "name": "keyword.control.jtv",
+          "match": "\\b(print|reverse)\\b"
+        },
+        {
+          "name": "keyword.declaration.jtv",
+          "match": "\\b(module|import|as|fn)\\b"
+        },
+        {
+          "name": "constant.language.boolean.jtv",
+          "match": "\\b(true|false)\\b"
+        }
+      ]
+    },
+    "purity-markers": {
+      "patterns": [
+        {
+          "name": "storage.modifier.purity.jtv",
+          "match": "@(pure|total)\\b",
+          "comment": "Harvard architecture purity annotations"
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "comment": "Function declaration name",
+          "match": "\\b(fn)\\s+([a-zA-Z_][a-zA-Z0-9_]*)",
+          "captures": {
+            "1": {
+              "name": "keyword.declaration.jtv"
+            },
+            "2": {
+              "name": "entity.name.function.jtv"
+            }
+          }
+        },
+        {
+          "comment": "Qualified function call: Module.func()",
+          "match": "\\b([A-Z][a-zA-Z0-9_]*)(\\.([a-zA-Z_][a-zA-Z0-9_]*))+\\s*(?=\\()",
+          "captures": {
+            "0": {
+              "name": "entity.name.function.qualified.jtv"
+            }
+          }
+        },
+        {
+          "comment": "Simple function call: func()",
+          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+          "captures": {
+            "1": {
+              "name": "entity.name.function.jtv"
+            }
+          }
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "storage.type.builtin.jtv",
+          "match": "\\b(Int|Float|Rational|Complex|Hex|Binary|Symbolic|Bool|String)\\b"
+        },
+        {
+          "name": "storage.type.container.jtv",
+          "match": "\\b(List|Fn)\\b"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.hex.jtv",
+          "match": "\\b0x[0-9a-fA-F]+\\b"
+        },
+        {
+          "name": "constant.numeric.binary.jtv",
+          "match": "\\b0b[01]+\\b"
+        },
+        {
+          "name": "constant.numeric.rational.jtv",
+          "match": "-?\\b\\d+/[1-9]\\d*\\b"
+        },
+        {
+          "name": "constant.numeric.complex.jtv",
+          "match": "-?\\d+(\\.\\d+)?([+\\-]\\d+(\\.\\d+)?)?i\\b"
+        },
+        {
+          "name": "constant.numeric.float.jtv",
+          "match": "-?\\b\\d+\\.\\d+([eE][+\\-]?\\d+)?\\b"
+        },
+        {
+          "name": "constant.numeric.integer.jtv",
+          "match": "-?\\b\\d+\\b"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.jtv",
+          "begin": "\"",
+          "end": "\"",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.begin.jtv"
+            }
+          },
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.string.end.jtv"
+            }
+          },
+          "patterns": [
+            {
+              "name": "constant.character.escape.jtv",
+              "match": "\\\\[ntr\"\\\\]"
+            }
+          ]
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.comparison.jtv",
+          "match": "(==|!=|<=|>=|<|>)"
+        },
+        {
+          "name": "keyword.operator.logical.jtv",
+          "match": "(&&|\\|\\||!)"
+        },
+        {
+          "name": "keyword.operator.assignment.compound.jtv",
+          "match": "(\\+=|\\-=)"
+        },
+        {
+          "name": "keyword.operator.assignment.jtv",
+          "match": "="
+        },
+        {
+          "name": "keyword.operator.arithmetic.jtv",
+          "match": "\\+"
+        },
+        {
+          "name": "keyword.operator.range.jtv",
+          "match": "\\.\\."
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        {
+          "name": "punctuation.section.block.begin.jtv",
+          "match": "\\{"
+        },
+        {
+          "name": "punctuation.section.block.end.jtv",
+          "match": "\\}"
+        },
+        {
+          "name": "punctuation.section.parens.begin.jtv",
+          "match": "\\("
+        },
+        {
+          "name": "punctuation.section.parens.end.jtv",
+          "match": "\\)"
+        },
+        {
+          "name": "punctuation.section.brackets.begin.jtv",
+          "match": "\\["
+        },
+        {
+          "name": "punctuation.section.brackets.end.jtv",
+          "match": "\\]"
+        },
+        {
+          "name": "punctuation.separator.comma.jtv",
+          "match": ","
+        },
+        {
+          "name": "punctuation.separator.colon.jtv",
+          "match": ":"
+        },
+        {
+          "name": "punctuation.accessor.dot.jtv",
+          "match": "\\."
+        }
+      ]
+    },
+    "identifiers": {
+      "patterns": [
+        {
+          "name": "variable.other.jtv",
+          "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+        }
+      ]
+    }
+  },
+  "_taxonomy": "editors/textmate-grammar"
+}

@@ -1,0 +1,35 @@
+// Conformance test: all supported number systems
+// Expected: PASS
+
+// Integer
+a = 0
+b = 42
+c = -100
+d = 999999
+
+// Float
+e = 3.14
+f = -2.718
+g = 1.0e10
+h = 6.022E23
+i = 1.5e-3
+
+// Rational
+j = 1/2
+k = 3/4
+l = -7/3
+
+// Hex
+m = 0xFF
+n = 0xDEADBEEF
+o = 0x0
+
+// Binary
+p = 0b0
+q = 0b1010
+r = 0b11111111
+
+// Complex
+s = 3+4i
+t = 5i
+u = 1.5+2.5i

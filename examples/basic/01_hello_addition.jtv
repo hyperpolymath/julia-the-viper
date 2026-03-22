@@ -1,0 +1,24 @@
+// Hello World - Julia the Viper style
+// Demonstrates basic addition in the Data Language
+
+// Simple addition
+x = 5
+y = 3
+result = x + y
+
+print(result)  // Output: 8
+
+// Multiple additions
+a = 10
+b = 20
+c = 30
+total = a + b + c
+
+print(total)  // Output: 60
+
+// Negative numbers
+neg = -5
+pos = 10
+sum = neg + pos
+
+print(sum)  // Output: 5

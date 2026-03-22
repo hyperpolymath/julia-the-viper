@@ -1,0 +1,18 @@
+// Conformance test: symbolic identifiers in data context
+// Expected: PASS
+
+// Symbolic values used as data expressions
+x = alpha
+y = beta
+
+// Addition of symbolic identifiers
+z = alpha + beta
+
+// Symbolic in list
+symbols = [alpha, beta, gamma]
+
+// Symbolic in tuple
+pair = (delta, epsilon)
+
+// Symbolic combined with numeric addition
+w = alpha + 42

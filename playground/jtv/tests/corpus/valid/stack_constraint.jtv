@@ -1,0 +1,25 @@
+-- SPDX-License-Identifier: PMPL-1.0-or-later
+-- valid/stack_constraint.jtv - Compile-time stack analysis
+
+module StackDemo
+
+-- Compile-time stack usage verification
+#[max_stack(32)]
+fn small_function(x: u8) -> u8:
+    let y: u8 = x * 2
+    y + 1
+
+#[max_stack(64)]
+fn process_data(data: &[u8; 16]) -> u16:
+    let mut sum: u16 = 0
+    for i in 0..16:
+        sum += data[i] as u16
+    sum
+
+-- Static allocation only (no heap)
+#[no_heap]
+fn main() -> !:
+    let input: [u8; 16] @data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    loop:
+        let result = process_data(&input)
+        delay_ms(100)

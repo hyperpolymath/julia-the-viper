@@ -1,0 +1,107 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
+= Julia-Zig-FFI
+:toc:
+:toclevels: 3
+
+Julia bindings for calling Zig libraries via FFI.
+
+== Overview
+
+This library provides a type-safe way to call Zig code from Julia.
+Zig exports C-compatible functions that Julia can call through
+its `ccall` mechanism.
+
+== Architecture
+
+----
+Julia → ccall → Zig (C ABI)
+----
+
+Julia's built-in `ccall` function can directly call C-compatible
+functions exported by Zig shared libraries.
+
+== Installation
+
+[source,julia]
+----
+using Pkg
+Pkg.add(url="https://github.com/hyperpolymath/julia-zig-ffi")
+----
+
+== Usage
+
+=== Loading a Zig Library
+
+[source,julia]
+----
+using ZigFFI
+
+# Load a Zig shared library
+lib = ZigFFI.load("./libmyzig.so")
+
+# Call functions
+result = ZigFFI.call(lib, :add, Cint, (Cint, Cint), 2, 3)
+# result == 5
+----
+
+=== Type-Safe Wrappers
+
+[source,julia]
+----
+using ZigFFI
+
+# Define typed wrapper
+@zig_function add(a::Int32, b::Int32)::Int32 from "libmyzig"
+
+# Use like normal Julia function
+result = add(Int32(2), Int32(3))
+----
+
+== Building Zig Libraries for Julia
+
+Your Zig code must export C-compatible functions:
+
+[source,zig]
+----
+// mylib.zig
+export fn add(a: i32, b: i32) callconv(.C) i32 {
+    return a + b;
+}
+----
+
+Build as shared library:
+
+[source,bash]
+----
+zig build-lib -dynamic -O ReleaseFast mylib.zig
+----
+
+== Type Mappings
+
+|===
+| Julia Type | Zig Type | Notes
+
+| `Cint` / `Int32` | `i32` | 32-bit signed
+| `Clong` / `Int64` | `i64` | 64-bit signed
+| `Cuint` / `UInt32` | `u32` | 32-bit unsigned
+| `Cfloat` / `Float32` | `f32` | 32-bit float
+| `Cdouble` / `Float64` | `f64` | 64-bit float
+| `Cstring` | `[*:0]const u8` | Null-terminated
+| `Ptr{T}` | `*T` | Pointer
+|===
+
+== Examples
+
+See the `examples/` directory for complete working examples.
+
+== RSR Compliance
+
+This library follows the Rhodium Standard Repository guidelines:
+
+* Julia for batch scripts and data processing
+* Zig for performance-critical FFI
+* No C wrapper code required
+
+== License
+
+PMPL-1.0-or-later

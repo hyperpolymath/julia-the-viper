@@ -1,0 +1,8 @@
+// Conformance test: division operator in data expression (should fail)
+// Expected: FAIL (parse error)
+//
+// Division is not a valid data language operator. Note that rational
+// literals like 1/3 are number literals, not division operations.
+// But using / as an infix operator on variables is forbidden.
+
+x = 10 / 2

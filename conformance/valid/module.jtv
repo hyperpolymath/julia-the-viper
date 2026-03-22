@@ -1,0 +1,12 @@
+// Conformance test: module declaration
+// Expected: PASS
+
+module Geometry {
+    @pure fn area_triangle(base: Int, height: Int): Int {
+        return base + height
+    }
+
+    fn perimeter(a: Int, b: Int, c: Int): Int {
+        return a + b + c
+    }
+}

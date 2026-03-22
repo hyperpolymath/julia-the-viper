@@ -1,0 +1,14 @@
+// Conformance test: return statements
+// Expected: PASS
+
+fn early_return(x: Int): Int {
+    if x > 100 {
+        return x
+    }
+    return x + 1
+}
+
+fn void_return() {
+    print(42)
+    return
+}

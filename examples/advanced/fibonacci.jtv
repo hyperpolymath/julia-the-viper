@@ -1,0 +1,61 @@
+// Fibonacci sequence - classic recursive problem solved iteratively
+// Demonstrates Totality guarantee: no recursion in Data Language
+
+// Iterative Fibonacci (guaranteed to terminate)
+fn fibonacci(n: Int): Int {
+    if n <= 1 {
+        return n
+    }
+
+    prev = 0
+    curr = 1
+
+    for i in 2..n+1 {
+        next = prev + curr
+        prev = curr
+        curr = next
+    }
+
+    return curr
+}
+
+// Calculate first 10 Fibonacci numbers
+for i in 0..10 {
+    fib = fibonacci(i)
+    print(fib)
+}
+
+// Output: 0, 1, 1, 2, 3, 5, 8, 13, 21, 34
+
+// Matrix-based Fibonacci (using matrix exponentiation concept)
+// [[F(n+1), F(n)], [F(n), F(n-1)]] = [[1,1],[1,0]]^n
+
+fn fibonacci_fast(n: Int): Int {
+    if n <= 1 {
+        return n
+    }
+
+    // Matrix power using repeated addition
+    a = 1  // Top-left
+    b = 1  // Top-right
+    c = 1  // Bottom-left
+    d = 0  // Bottom-right
+
+    for i in 2..n {
+        // Matrix multiplication [[a,b],[c,d]] * [[1,1],[1,0]]
+        new_a = a + b
+        new_b = a
+        new_c = c + d
+        new_d = c
+
+        a = new_a
+        b = new_b
+        c = new_c
+        d = new_d
+    }
+
+    return a
+}
+
+fib_20 = fibonacci_fast(20)
+print(fib_20)  // 6765

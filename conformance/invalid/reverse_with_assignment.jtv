@@ -1,0 +1,9 @@
+// Conformance test: plain assignment inside reverse block (should fail)
+// Expected: FAIL (parse error)
+//
+// Reverse blocks only allow reversible operations (+= and -=) and
+// conditionals. Plain assignment (=) is not reversible.
+
+reverse {
+    x = 10
+}

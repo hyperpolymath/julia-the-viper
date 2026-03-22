@@ -1,0 +1,36 @@
+= jtv-playground - Citation Guide
+:toc:
+
+== BibTeX
+
+[source,bibtex]
+----
+@software{jtv-playground_2025,
+  author = {Polymath, Hyper},
+  title = {jtv-playground},
+  year = {2025},
+  url = {https://github.com/hyperpolymath/jtv-playground},
+  license = {PMPL-1.0-or-later}
+}
+----
+
+== Harvard Style
+
+Polymath, H. (2025) _jtv-playground_ [Computer software]. Available at: https://github.com/hyperpolymath/jtv-playground
+
+== OSCOLA
+
+Hyper Polymath, 'jtv-playground' (2025) <https://github.com/hyperpolymath/jtv-playground>
+
+== MLA
+
+Polymath, Hyper. "jtv-playground." 2025, github.com/hyperpolymath/jtv-playground.
+
+== APA 7
+
+Polymath, H. (2025). _jtv-playground_ [Computer software]. GitHub. https://github.com/hyperpolymath/jtv-playground
+
+== See Also
+
+* link:../CITATION.cff[CITATION.cff]
+* link:../codemeta.json[codemeta.json]

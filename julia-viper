@@ -1,0 +1,10 @@
+print (give me the first number, x)
+primt (give me the second number, y)
+do you want to (a)dd the first to the second or (v)ice versa?
+if a then print (x+y = )
+if v then print (y+x = )
+print (do you want to (v)erify if the result is the same by doing that the other way around?)
+if v then print
+  if x+y=y+x then print (Yes, I checked and I gave me the same value.)
+  else print (weird, it gave a different value.)
+if n then print (Okay, I did not check that. Please be careful using the calculated value in production environments.)

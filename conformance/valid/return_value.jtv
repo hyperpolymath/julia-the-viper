@@ -1,0 +1,18 @@
+// Conformance test: function returning a computed value
+// Expected: PASS
+
+fn compute(a: Int, b: Int): Int {
+    result = a + b + 10
+    return result
+}
+
+fn early_return(x: Int): Int {
+    if x > 100 {
+        return x
+    }
+    return x + 1
+}
+
+// Use returned value in data context
+output = compute(3, 7)
+final = output + early_return(50)

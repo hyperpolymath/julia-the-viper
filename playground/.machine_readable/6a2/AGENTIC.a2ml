@@ -1,0 +1,21 @@
+;; SPDX-License-Identifier: PMPL-1.0-or-later
+;; AGENTIC.scm - AI agent interaction patterns
+
+(define agentic-config
+  `((version . "1.0.0")
+    (project . "jtv-playground")
+    (claude-code
+      ((model . "claude-opus-4-5-20251101")
+       (tools . ("read" "edit" "bash" "grep" "glob"))
+       (permissions . "read-all")))
+    (patterns
+      ((code-review . "thorough")
+       (refactoring . "liberal")
+       (testing . "comprehensive")
+       (experimentation . "encouraged")))
+    (constraints
+      ((languages . ("rescript" "rust" "gleam" "scheme"))
+       (banned . ("typescript" "go" "python" "makefile"))))
+    (project-specific
+      ((experiments . "document-learnings")
+       (multi-tech . "compare-approaches")))))

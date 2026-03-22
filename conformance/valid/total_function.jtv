@@ -1,0 +1,29 @@
+// Conformance test: @total annotated function (no loops, no IO)
+// Expected: PASS
+//
+// @total functions are guaranteed to halt: no loops, no IO,
+// only pure data expressions and conditionals with bounded depth.
+
+@total fn abs_val(x: Int): Int {
+    if x < 0 {
+        return -x
+    } else {
+        return x
+    }
+}
+
+@total fn max_of_three(a: Int, b: Int, c: Int): Int {
+    if a > b {
+        if a > c {
+            return a
+        } else {
+            return c
+        }
+    } else {
+        if b > c {
+            return b
+        } else {
+            return c
+        }
+    }
+}

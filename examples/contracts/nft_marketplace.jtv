@@ -1,0 +1,113 @@
+// NFT Marketplace Smart Contract in JtV
+// Demonstrates provable termination and security guarantees
+
+module NFTMarketplace {
+    // State
+    owner = 0x0
+    nft_count = 0
+    listing_count = 0
+
+    // NFT struct (represented as tuple)
+    // (token_id, owner_address, metadata_hash, price)
+
+    // Initialize marketplace
+    fn init(owner_address: Int) {
+        owner = owner_address
+        nft_count = 0
+        listing_count = 0
+    }
+
+    // Mint NFT - Pure function for ID generation
+    @pure fn generate_token_id(count: Int, timestamp: Int): Int {
+        return count + timestamp  // Deterministic ID generation
+    }
+
+    // Mint new NFT
+    fn mint(to_address: Int, metadata_hash: Int): Int {
+        token_id = generate_token_id(nft_count, 1000)
+        nft_count = nft_count + 1
+
+        // Store NFT (token_id, owner, metadata, not_listed)
+        // In real implementation, would use storage mapping
+
+        return token_id
+    }
+
+    // List NFT for sale
+    fn list(token_id: Int, price: Int, seller: Int) {
+        // Verify ownership (simplified)
+        if price > 0 {
+            listing_count = listing_count + 1
+            // Store listing (token_id, seller, price, active)
+        }
+    }
+
+    // Buy NFT - Guaranteed termination, no reentrancy possible
+    fn buy(token_id: Int, buyer: Int, payment: Int) {
+        // Get listing (simplified)
+        price = 100  // Would fetch from storage
+        seller = 0x1
+
+        // Price check - grammatically impossible to bypass
+        if payment >= price {
+            // Transfer token
+            // In JtV, this operation is atomic and reversible
+
+            // Transfer payment
+            seller_balance = seller_balance + price
+            buyer_balance = buyer_balance - price
+
+            // Update ownership
+            listing_count = listing_count - 1
+
+            // Events
+            print(token_id)  // TokenSold event
+        }
+    }
+
+    // Batch operations with guaranteed bounds
+    fn batch_list(tokens: List<Int>, prices: List<Int>, count: Int) {
+        // Bounded loop - guaranteed to terminate
+        for i in 0..count {
+            if i < 100 {  // Hard limit prevents DOS
+                list(tokens[i], prices[i], owner)
+            }
+        }
+    }
+
+    // Calculate royalty - Pure function, provably correct
+    @pure fn calculate_royalty(price: Int, royalty_percent: Int): Int {
+        // Using repeated addition for percentage
+        royalty = 0
+        for i in 0..royalty_percent {
+            royalty = royalty + price
+        }
+
+        // Divide by 100 using subtraction
+        result = 0
+        temp = royalty
+        for i in 0..temp {
+            if temp >= 100 {
+                temp = temp - 100
+                result = result + 1
+            }
+        }
+
+        return result
+    }
+
+    // Security: Code injection impossible
+    // The Data Language ensures that price calculations
+    // cannot be manipulated to execute arbitrary code
+
+    // Totality: All functions guaranteed to terminate
+    // No unbounded loops, all ranges explicit
+}
+
+// Usage example
+marketplace = NFTMarketplace
+
+marketplace.init(0x123)
+token = marketplace.mint(0x456, 0xABC)
+marketplace.list(token, 100, 0x456)
+marketplace.buy(token, 0x789, 150)

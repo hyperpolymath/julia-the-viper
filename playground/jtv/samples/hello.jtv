@@ -1,0 +1,14 @@
+-- SPDX-License-Identifier: PMPL-1.0-or-later
+-- hello.jtv - Hello World for JTV
+-- Demonstrates basic JTV syntax for embedded systems
+
+module Main
+
+import AVR.UART (init, print)
+
+-- Main entry point (never returns)
+fn main() -> !:
+    init(9600)
+    loop:
+        print("Hello from JTV!")
+        delay_ms(1000)

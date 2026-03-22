@@ -1,0 +1,51 @@
+// Matrix operations using addition-only arithmetic
+// Demonstrates how complex operations can be built from simple addition
+
+// Matrix represented as list of lists
+// [[1, 2], [3, 4]]
+
+// Matrix addition
+@pure fn matrix_add_2x2(a: List<List<Int>>, b: List<List<Int>>): List<List<Int>> {
+    // For simplicity, assumes 2x2 matrices
+    // Real implementation would be more generic
+    row1 = [a[0][0] + b[0][0], a[0][1] + b[0][1]]
+    row2 = [a[1][0] + b[1][0], a[1][1] + b[1][1]]
+    return [row1, row2]
+}
+
+// Vector dot product (uses repeated addition for multiplication)
+fn dot_product(v1: List<Int>, v2: List<Int>): Int {
+    result = 0
+
+    // Multiply v1[0] * v2[0] via addition
+    for i in 0..v2[0] {
+        result = result + v1[0]
+    }
+
+    // Multiply v1[1] * v2[1] via addition
+    for i in 0..v2[1] {
+        result = result + v1[1]
+    }
+
+    return result
+}
+
+// Matrix-vector multiplication
+fn matrix_vector_mul(matrix: List<List<Int>>, vector: List<Int>): List<Int> {
+    row1_result = dot_product(matrix[0], vector)
+    row2_result = dot_product(matrix[1], vector)
+    return [row1_result, row2_result]
+}
+
+// Demonstrate usage
+matrix1 = [[1, 2], [3, 4]]
+matrix2 = [[5, 6], [7, 8]]
+
+result_matrix = matrix_add_2x2(matrix1, matrix2)
+// Result: [[6, 8], [10, 12]]
+
+vector = [1, 2]
+result_vector = matrix_vector_mul(matrix1, vector)
+// Result: [5, 11] (1*1 + 2*2, 3*1 + 4*2)
+
+print(result_vector)

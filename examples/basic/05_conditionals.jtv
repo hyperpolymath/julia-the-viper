@@ -1,0 +1,76 @@
+// Conditionals and comparisons
+
+// Simple if-else
+x = 10
+y = 5
+
+if x > y {
+    print(1)  // This branch executes
+} else {
+    print(0)
+}
+
+// Comparison operators
+a = 15
+b = 15
+
+if a == b {
+    print(1)  // Equal
+}
+
+if a != b {
+    print(0)
+} else {
+    print(1)  // Not executed
+}
+
+// Logical operators
+age = 25
+has_license = 1
+
+if age >= 18 && has_license == 1 {
+    print(1)  // Can drive
+} else {
+    print(0)
+}
+
+// Nested conditionals
+score = 85
+
+if score >= 90 {
+    print(4)  // A
+} else {
+    if score >= 80 {
+        print(3)  // B - This executes
+    } else {
+        if score >= 70 {
+            print(2)  // C
+        } else {
+            print(1)  // F
+        }
+    }
+}
+
+// Using conditionals with pure functions
+@pure fn max(a: Int, b: Int): Int {
+    if a > b {
+        return a
+    } else {
+        return b
+    }
+}
+
+maximum = max(10, 20)
+print(maximum)  // 20
+
+// Absolute value using conditionals
+@pure fn abs(x: Int): Int {
+    if x < 0 {
+        return -x  // Negation of negative = positive
+    } else {
+        return x
+    }
+}
+
+absolute = abs(-15)
+print(absolute)  // 15

@@ -1,0 +1,13 @@
+// Conformance test: subtraction in data language (should fail)
+// Expected: FAIL (parse error)
+//
+// The data language is addition-only. Subtraction is NOT a valid
+// binary operator in data expressions. This is the core security
+// guarantee of the Harvard architecture: code injection is
+// grammatically impossible because the data language is total.
+//
+// Note: unary negation (-x) IS allowed, but binary subtraction
+// (x - y) is NOT. Subtraction only exists inside reverse blocks
+// as the -= compound operator.
+
+x = 10 - 3

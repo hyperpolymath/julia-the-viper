@@ -1,0 +1,7 @@
+// Conformance test: unclosed list bracket (should fail)
+// Expected: FAIL (parse error)
+//
+// Missing closing ] on list literal.
+
+x = [1, 2, 3
+y = 42

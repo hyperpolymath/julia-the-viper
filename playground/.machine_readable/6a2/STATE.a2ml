@@ -1,0 +1,41 @@
+;; SPDX-License-Identifier: PMPL-1.0-or-later
+;; STATE.scm - Current project state
+
+(state
+  (version . "1.0.0")
+  (phase . "active")
+  (updated . "2025-12-30T18:00:00Z")
+
+  (project
+    (name . "jtv-playground")
+    (tier . "satellite")
+    (license . "AGPL-3.0-or-later")
+    (language . "multi"))
+
+  (compliance
+    (rsr . #t)
+    (security-hardened . #t)
+    (ci-cd . #t)
+    (guix-primary . #t)
+    (nix-fallback . #f))
+
+  (current-position
+    ((overall-completion . 25)
+     (components
+       ((project-structure . 100)
+        (api-demos . 20)
+        (frontend-demos . 10)
+        (database-demos . 10)
+        (testing . 20)))
+     (working-features
+       ("Organized experiments directory"
+        "Justfile recipes"
+        "Guix packaging"))))
+
+  (milestones
+    (v0.1.0
+      (status . "planned")
+      (features
+        "REST API demo"
+        "React frontend demo"
+        "SQLite experiments"))))

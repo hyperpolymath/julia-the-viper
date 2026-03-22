@@ -1,0 +1,45 @@
+// Pure functions in JtV
+
+// Simple pure function
+@pure fn add_two(x: Int): Int {
+    return x + 2
+}
+
+result1 = add_two(5)
+print(result1)  // 7
+
+// Function with multiple parameters
+@pure fn add_three(a: Int, b: Int, c: Int): Int {
+    return a + b + c
+}
+
+result2 = add_three(1, 2, 3)
+print(result2)  // 6
+
+// Nested function calls
+@pure fn double(x: Int): Int {
+    return x + x
+}
+
+@pure fn quadruple(x: Int): Int {
+    return double(x) + double(x)
+}
+
+result3 = quadruple(5)
+print(result3)  // 20
+
+// Working with different number types
+@pure fn add_floats(x: Float, y: Float): Float {
+    return x + y
+}
+
+float_result = add_floats(3.14, 2.86)
+print(float_result)  // 6.0
+
+// Rational arithmetic
+@pure fn add_fractions(a: Rational, b: Rational): Rational {
+    return a + b
+}
+
+frac_result = add_fractions(1/2, 1/4)
+print(frac_result)  // 3/4

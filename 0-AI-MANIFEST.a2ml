@@ -1,0 +1,133 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# Julia the Viper - AI Manifest (Gateway File)
+#
+# THIS FILE MUST BE READ FIRST BY ALL AI AGENTS.
+#
+# Julia the Viper is a Harvard Architecture programming language that
+# grammatically separates Control Language (Turing-complete) from
+# Data Language (Total/provably halting, addition-only). This makes
+# code injection structurally impossible at the grammar level.
+#
+# Named after mathematician Julia Robinson; "Viper" because it is
+# "basically the same thing as an adder" (snake + addition pun).
+
+## CANONICAL LOCATIONS
+
+### Source Code (Rust)
+
+- `crates/jtv-core/src/grammar.pest`  - PEG grammar (149 rules)
+- `crates/jtv-core/src/parser.rs`     - Pest parser implementation
+- `crates/jtv-core/src/ast.rs`        - Abstract syntax tree types
+- `crates/jtv-core/src/pretty.rs`     - Pretty-printer (AST -> source)
+- `crates/jtv-core/src/recovery.rs`   - Error-recovering parser
+- `crates/jtv-core/src/formatter.rs`  - Code formatter (source -> source)
+- `crates/jtv-core/src/interpreter.rs`- Tree-walking interpreter
+- `crates/jtv-core/src/typechecker.rs`- Type checker
+- `crates/jtv-core/src/purity.rs`     - Purity checker (@pure/@total)
+- `crates/jtv-core/src/reversible.rs` - Reversible block semantics
+- `crates/jtv-core/src/number.rs`     - 7 number systems
+- `crates/jtv-core/src/wasm.rs`       - WASM bindings
+- `crates/jtv-core/src/error.rs`      - Error types
+- `crates/jtv-core/src/lib.rs`        - Module root
+
+### Workspace Crates
+
+- `crates/jtv-core/`  - Core language library
+- `crates/jtv-cli/`   - CLI interpreter/compiler
+- `crates/jtv-lsp/`   - Language Server Protocol
+- `crates/jtv-debug/`  - Debug Adapter Protocol
+
+### Grammar Specifications
+
+- `crates/jtv-core/src/grammar.pest` - Authoritative (Pest PEG)
+- `shared/grammar/jtv.ebnf`         - Reference (EBNF, informational)
+
+### Testing
+
+- `crates/jtv-core/tests/parser_tests.rs`     - Parser integration tests
+- `crates/jtv-core/tests/pest_rule_tests.rs`   - Individual PEG rule tests
+- `crates/jtv-core/tests/conformance_tests.rs` - Conformance suite runner
+- `crates/jtv-core/benches/parser_bench.rs`     - Parser benchmarks (LOC/sec)
+- `crates/jtv-core/benches/interpreter_bench.rs`- Interpreter benchmarks
+
+### Fuzzing
+
+- `fuzz/fuzz_targets/fuzz_parser.rs` - libfuzzer target for pest parser
+- `fuzz/fuzz_targets/fuzz_main.rs`   - Generic fuzzer
+
+### Conformance Suite
+
+- `conformance/valid/*.jtv`   - Programs that MUST parse successfully
+- `conformance/invalid/*.jtv` - Programs that MUST be rejected
+
+### Editor Support
+
+- `editors/julia-the-viper.tmLanguage.json`    - TextMate grammar (standalone)
+- `editors/vscode/syntaxes/jtv.tmLanguage.json` - VS Code extension grammar
+- `editors/vscode/snippets/jtv.json`            - VS Code snippets
+- `editors/vscode/package.json`                 - VS Code extension manifest
+
+### Machine-Readable Metadata
+
+- `.machine_readable/STATE.scm`     - Project state
+- `.machine_readable/META.scm`      - Architecture decisions
+- `.machine_readable/ECOSYSTEM.scm` - Ecosystem position
+- `.machine_readable/AGENTIC.scm`   - AI agent patterns
+- `.machine_readable/NEUROSYM.scm`  - Neurosymbolic config
+- `.machine_readable/PLAYBOOK.scm`  - Operational runbook
+
+### Documentation
+
+- `CLAUDE.md`           - Project overview and handover
+- `README.adoc`         - Main README
+- `SECURITY.md`         - Security policy
+- `CONTRIBUTING.adoc`   - Contribution guidelines
+- `REVERSIBILITY.md`    - Reversible computing design
+- `DEVELOPMENT_PLAN.md` - Roadmap
+
+## CRITICAL INVARIANTS
+
+1. **Harvard separation** - Data expressions CANNOT contain control flow.
+   The grammar enforces this structurally. Never weaken this boundary.
+
+2. **Addition-only data language** - The only binary operator in data_expr
+   is `+`. No subtraction, multiplication, or division as binary operators.
+   Unary negation (`-x`) is permitted; binary subtraction is NOT.
+
+3. **SCM files in .machine_readable/ ONLY** - Never create STATE.scm,
+   META.scm, etc. in the repository root.
+
+4. **License: PMPL-1.0-or-later** - All hyperpolymath original code.
+
+5. **Author: Jonathan D.A. Jewell** - Single space between "A." and
+   "Jewell". Email: j.d.a.jewell@open.ac.uk (packages), noreply (git).
+
+## SESSION STARTUP CHECKLIST
+
+1. Read THIS file first
+2. Read `.machine_readable/STATE.scm` for current progress
+3. Read `CLAUDE.md` for full project context
+4. Understand: Data (total, addition-only) vs Control (Turing-complete)
+5. Do NOT conflate v1 and v2 features
+
+## META
+
+- Format Version: 2.0.0
+- Created: 2026-02-07
+- Updated: 2026-03-14
+- Maintained By: Jonathan D.A. Jewell (hyperpolymath)
+- License: PMPL-1.0-or-later
+- Protocol: https://github.com/hyperpolymath/0-ai-gatekeeper-protocol
+
+## Taxonomy Index
+
+- `spec/grammar.ebnf` — @taxonomy: spec/grammar
+- `spec/README.adoc` — @taxonomy: spec/index
+- `verification/README.adoc` — @taxonomy: verification/index
+- `crates/jtv-core/src/parser.rs` — @taxonomy: compiler/parser
+- `editors/julia-the-viper.tmLanguage.json` — @taxonomy: editors/textmate-grammar
+
+### New RSR Standard Directories
+
+- `spec/` — Canonical specification files
+- `verification/` — Unified verification gateway (symlinks to proofs, tests, conformance, benchmarks, fuzzing)

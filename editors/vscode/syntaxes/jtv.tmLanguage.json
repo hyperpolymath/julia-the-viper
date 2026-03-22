@@ -1,0 +1,115 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Julia the Viper",
+  "scopeName": "source.jtv",
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#functions"
+    },
+    {
+      "include": "#purity-markers"
+    },
+    {
+      "include": "#numbers"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#operators"
+    },
+    {
+      "include": "#types"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.jtv",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.jtv",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [{
+        "name": "keyword.control.jtv",
+        "match": "\\b(if|else|while|for|in|return|print|reverse|module|import|as|fn)\\b"
+      }]
+    },
+    "purity-markers": {
+      "patterns": [{
+        "name": "storage.modifier.jtv",
+        "match": "@(pure|total)"
+      }]
+    },
+    "functions": {
+      "patterns": [{
+        "name": "entity.name.function.jtv",
+        "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()"
+      }]
+    },
+    "types": {
+      "patterns": [{
+        "name": "storage.type.jtv",
+        "match": "\\b(Int|Float|Rational|Complex|Hex|Binary|Symbolic|Bool|String|List|Fn)\\b"
+      }]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.hex.jtv",
+          "match": "\\b0x[0-9a-fA-F]+\\b"
+        },
+        {
+          "name": "constant.numeric.binary.jtv",
+          "match": "\\b0b[01]+\\b"
+        },
+        {
+          "name": "constant.numeric.rational.jtv",
+          "match": "\\b\\d+/\\d+\\b"
+        },
+        {
+          "name": "constant.numeric.complex.jtv",
+          "match": "\\b\\d+(\\.\\d+)?[+\\-]\\d+(\\.\\d+)?i\\b"
+        },
+        {
+          "name": "constant.numeric.float.jtv",
+          "match": "\\b\\d+\\.\\d+([eE][+\\-]?\\d+)?\\b"
+        },
+        {
+          "name": "constant.numeric.integer.jtv",
+          "match": "\\b\\d+\\b"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [{
+        "name": "string.quoted.double.jtv",
+        "begin": "\"",
+        "end": "\"",
+        "patterns": [{
+          "name": "constant.character.escape.jtv",
+          "match": "\\\\(n|t|r|\"|\\\\)"
+        }]
+      }]
+    },
+    "operators": {
+      "patterns": [{
+        "name": "keyword.operator.jtv",
+        "match": "(\\+|\\-|==|!=|<=|>=|<|>|&&|\\|\\||!|=|\\+=|\\-=)"
+      }]
+    }
+  }
+}

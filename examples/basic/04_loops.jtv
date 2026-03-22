@@ -1,0 +1,54 @@
+// Control flow with loops
+// Demonstrates how addition-only Data Language + Control loops = Turing-complete
+
+// Simple for loop (bounded, guaranteed to terminate)
+sum = 0
+for i in 1..11 {
+    sum = sum + i
+}
+print(sum)  // 55 (sum of 1-10)
+
+// Loop with step
+even_sum = 0
+for i in 0..2..21 {
+    even_sum = even_sum + i
+}
+print(even_sum)  // Sum of even numbers 0-20
+
+// Nested loops (multiplication via repeated addition)
+fn multiply(a: Int, b: Int): Int {
+    result = 0
+    for i in 0..b {
+        result = result + a
+    }
+    return result
+}
+
+product = multiply(7, 8)
+print(product)  // 56
+
+// While loop (Control language allows this)
+counter = 0
+accumulated = 0
+while counter < 10 {
+    accumulated = accumulated + counter
+    counter = counter + 1
+}
+print(accumulated)  // 45
+
+// Factorial via repeated addition
+fn factorial(n: Int): Int {
+    result = 1
+    for i in 2..n+1 {
+        // Multiply result by i using repeated addition
+        temp = 0
+        for j in 0..i {
+            temp = temp + result
+        }
+        result = temp
+    }
+    return result
+}
+
+fact5 = factorial(5)
+print(fact5)  // 120

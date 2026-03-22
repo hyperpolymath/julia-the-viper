@@ -1,0 +1,244 @@
+// JtV Standard Library - Prelude
+// Automatically imported in all JtV programs
+
+module Prelude {
+    // ===== BASIC ARITHMETIC =====
+
+    @pure fn abs(x: Int): Int {
+        if x < 0 {
+            return -x
+        } else {
+            return x
+        }
+    }
+
+    @pure fn max(a: Int, b: Int): Int {
+        if a > b {
+            return a
+        } else {
+            return b
+        }
+    }
+
+    @pure fn min(a: Int, b: Int): Int {
+        if a < b {
+            return a
+        } else {
+            return b
+        }
+    }
+
+    @pure fn sign(x: Int): Int {
+        if x > 0 {
+            return 1
+        } else if x < 0 {
+            return -1
+        } else {
+            return 0
+        }
+    }
+
+    // ===== LIST OPERATIONS =====
+
+    @pure fn length(list: List<Int>): Int {
+        count = 0
+        for item in list {
+            count = count + 1
+        }
+        return count
+    }
+
+    @pure fn sum(list: List<Int>): Int {
+        total = 0
+        for item in list {
+            total = total + item
+        }
+        return total
+    }
+
+    @pure fn product(list: List<Int>): Int {
+        if length(list) == 0 {
+            return 0
+        }
+
+        result = 1
+        for item in list {
+            result = multiply(result, item)
+        }
+        return result
+    }
+
+    @pure fn head(list: List<Int>): Int {
+        return list[0]
+    }
+
+    @pure fn last(list: List<Int>): Int {
+        len = length(list)
+        return list[len - 1]
+    }
+
+    // ===== HELPER FUNCTIONS =====
+
+    fn multiply(a: Int, b: Int): Int {
+        if b < 0 {
+            return -multiply(a, -b)
+        }
+
+        result = 0
+        for i in 0..b {
+            result = result + a
+        }
+        return result
+    }
+
+    fn divide(a: Int, b: Int): Int {
+        if b == 0 {
+            return 0  // Safe default
+        }
+
+        if a < 0 && b < 0 {
+            return divide(-a, -b)
+        }
+        if a < 0 {
+            return -divide(-a, b)
+        }
+        if b < 0 {
+            return -divide(a, -b)
+        }
+
+        quotient = 0
+        remainder = a
+
+        while remainder >= b {
+            remainder = remainder - b
+            quotient = quotient + 1
+        }
+
+        return quotient
+    }
+
+    fn mod(a: Int, b: Int): Int {
+        quotient = divide(a, b)
+        product = multiply(quotient, b)
+        return a - product
+    }
+
+    // ===== COMPARISON =====
+
+    @pure fn is_even(x: Int): Int {
+        remainder = mod(x, 2)
+        if remainder == 0 {
+            return 1
+        } else {
+            return 0
+        }
+    }
+
+    @pure fn is_odd(x: Int): Int {
+        if is_even(x) == 1 {
+            return 0
+        } else {
+            return 1
+        }
+    }
+
+    @pure fn is_positive(x: Int): Int {
+        if x > 0 {
+            return 1
+        } else {
+            return 0
+        }
+    }
+
+    @pure fn is_negative(x: Int): Int {
+        if x < 0 {
+            return 1
+        } else {
+            return 0
+        }
+    }
+
+    @pure fn is_zero(x: Int): Int {
+        if x == 0 {
+            return 1
+        } else {
+            return 0
+        }
+    }
+
+    // ===== RANGE OPERATIONS =====
+
+    fn range(start: Int, end: Int): List<Int> {
+        result = []
+        for i in start..end {
+            result = result + [i]
+        }
+        return result
+    }
+
+    fn range_step(start: Int, step: Int, end: Int): List<Int> {
+        result = []
+        for i in start..step..end {
+            result = result + [i]
+        }
+        return result
+    }
+
+    // ===== BOOLEAN OPERATIONS =====
+
+    @pure fn and(a: Int, b: Int): Int {
+        if a == 1 && b == 1 {
+            return 1
+        } else {
+            return 0
+        }
+    }
+
+    @pure fn or(a: Int, b: Int): Int {
+        if a == 1 || b == 1 {
+            return 1
+        } else {
+            return 0
+        }
+    }
+
+    @pure fn not(a: Int): Int {
+        if a == 1 {
+            return 0
+        } else {
+            return 1
+        }
+    }
+
+    @pure fn xor(a: Int, b: Int): Int {
+        if a == b {
+            return 0
+        } else {
+            return 1
+        }
+    }
+
+    // ===== UTILITIES =====
+
+    fn swap(a: Int, b: Int): (Int, Int) {
+        return (b, a)
+    }
+
+    @pure fn clamp(x: Int, min_val: Int, max_val: Int): Int {
+        if x < min_val {
+            return min_val
+        } else if x > max_val {
+            return max_val
+        } else {
+            return x
+        }
+    }
+
+    @pure fn in_range(x: Int, min_val: Int, max_val: Int): Int {
+        if x >= min_val && x <= max_val {
+            return 1
+        } else {
+            return 0
+        }
+    }
+}

@@ -1,0 +1,21 @@
+// Conformance test: rational number literals and addition
+// Expected: PASS
+
+// Simple rationals
+a = 1/3
+b = 2/3
+
+// Rational addition
+c = 1/3 + 2/3
+
+// Mixed rational and integer addition
+d = 1/4 + 3
+
+// Negative rational
+e = -5/7
+
+// Rational in tuple
+pair = (1/2, 3/4)
+
+// Deeply nested rational addition
+f = 1/6 + 1/6 + 1/6 + 1/6 + 1/6 + 1/6

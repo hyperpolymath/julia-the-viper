@@ -1,0 +1,98 @@
+{
+  "Pure Function": {
+    "prefix": "fn",
+    "body": [
+      "@pure fn ${1:name}(${2:params}): ${3:Int} {",
+      "    ${4:return $2}",
+      "}"
+    ],
+    "description": "Pure function declaration"
+  },
+  "Function": {
+    "prefix": "func",
+    "body": [
+      "fn ${1:name}(${2:params}): ${3:Int} {",
+      "    ${4:// function body}",
+      "}"
+    ],
+    "description": "Function declaration"
+  },
+  "For Loop": {
+    "prefix": "for",
+    "body": [
+      "for ${1:i} in ${2:start}..${3:end} {",
+      "    ${4:// loop body}",
+      "}"
+    ],
+    "description": "For loop"
+  },
+  "While Loop": {
+    "prefix": "while",
+    "body": [
+      "while ${1:condition} {",
+      "    ${2:// loop body}",
+      "}"
+    ],
+    "description": "While loop"
+  },
+  "If Statement": {
+    "prefix": "if",
+    "body": [
+      "if ${1:condition} {",
+      "    ${2:// then branch}",
+      "} else {",
+      "    ${3:// else branch}",
+      "}"
+    ],
+    "description": "If-else statement"
+  },
+  "Module": {
+    "prefix": "mod",
+    "body": [
+      "module ${1:ModuleName} {",
+      "    ${2:// module contents}",
+      "}"
+    ],
+    "description": "Module declaration"
+  },
+  "Reversible Block": {
+    "prefix": "rev",
+    "body": [
+      "reverse {",
+      "    ${1:// reversible operations}",
+      "}"
+    ],
+    "description": "Reversible computing block (v2)"
+  },
+  "Result Ok": {
+    "prefix": "ok",
+    "body": [
+      "ok(${1:value})"
+    ],
+    "description": "Result type - Ok variant"
+  },
+  "Result Err": {
+    "prefix": "err",
+    "body": [
+      "err(${1:error_code})"
+    ],
+    "description": "Result type - Err variant"
+  },
+  "Smart Contract Transfer": {
+    "prefix": "transfer",
+    "body": [
+      "fn transfer(from: Int, to: Int, amount: Int) {",
+      "    from_balance = ${1:get_balance}(from)",
+      "    to_balance = ${1:get_balance}(to)",
+      "    ",
+      "    if from_balance >= amount {",
+      "        from_balance = from_balance - amount",
+      "        to_balance = to_balance + amount",
+      "        ",
+      "        ${2:// store balances}",
+      "    }",
+      "}"
+    ],
+    "description": "Token transfer function"
+  }
+}

@@ -1,0 +1,27 @@
+// Conformance test: nested if/else/if chains
+// Expected: PASS
+
+x = 42
+
+if x > 100 {
+    category = "large"
+} else {
+    if x > 10 {
+        category = "medium"
+    } else {
+        if x > 0 {
+            category = "small"
+        } else {
+            category = "non-positive"
+        }
+    }
+}
+
+// Nested with data expressions in conditions
+a = 5
+b = 10
+if a + b > 20 {
+    result = a + b
+} else {
+    result = a
+}

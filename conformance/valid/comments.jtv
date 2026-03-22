@@ -1,0 +1,13 @@
+// Conformance test: comments
+// Expected: PASS
+
+// Line comment
+x = 42 // Trailing comment
+
+/* Block comment */
+y = 10
+
+/* Multi-line
+   block
+   comment */
+z = x + y

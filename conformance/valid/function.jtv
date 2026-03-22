@@ -1,0 +1,22 @@
+// Conformance test: function declarations (impure, pure, total)
+// Expected: PASS
+
+fn greet(name) {
+    print(name)
+}
+
+@pure fn double(x: Int): Int {
+    return x + x
+}
+
+@total fn identity(x: Int): Int {
+    return x
+}
+
+fn add_three(a: Int, b: Int, c: Int): Int {
+    return a + b + c
+}
+
+fn no_params(): Int {
+    return 42
+}

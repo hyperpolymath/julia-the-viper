@@ -1,0 +1,23 @@
+// Conformance test: @pure annotated function with loops but no IO
+// Expected: PASS
+//
+// @pure functions may contain loops (they are control-language constructs)
+// but must not perform IO (no print, no side effects).
+
+@pure fn sum_to(n: Int): Int {
+    total = 0
+    i = 0
+    while i < n {
+        total = total + 1
+        i = i + 1
+    }
+    return total
+}
+
+@pure fn list_sum(xs: List<Int>): Int {
+    acc = 0
+    for x in xs {
+        acc = acc + x
+    }
+    return acc
+}

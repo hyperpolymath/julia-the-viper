@@ -1,0 +1,11 @@
+// Conformance test: function with empty body
+// Expected: PASS
+
+fn noop() {
+}
+
+fn placeholder(x: Int) {
+}
+
+@pure fn pure_noop() {
+}

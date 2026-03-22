@@ -1,0 +1,25 @@
+-- SPDX-License-Identifier: PMPL-1.0-or-later
+-- valid/memory_spaces.jtv - Harvard architecture memory annotations
+
+module MemoryDemo
+
+-- Code space (flash/ROM)
+const LOOKUP_TABLE: [u8; 16] @code = [
+    0x00, 0x01, 0x02, 0x03,
+    0x04, 0x05, 0x06, 0x07,
+    0x08, 0x09, 0x0A, 0x0B,
+    0x0C, 0x0D, 0x0E, 0x0F
+]
+
+-- Data space (RAM)
+let mut buffer: [u8; 8] @data
+
+-- Access code space explicitly
+fn read_table(idx: u8) -> u8:
+    pgm_read(LOOKUP_TABLE[idx])
+
+fn main() -> !:
+    let i: u8 = 0
+    loop:
+        buffer[i % 8] = read_table(i % 16)
+        i += 1

@@ -1,0 +1,31 @@
+;; SPDX-License-Identifier: PMPL-1.0-or-later
+;; ECOSYSTEM.scm - Ecosystem positioning
+
+(ecosystem
+  (version . "1.0.0")
+  (name . "jtv-playground")
+  (type . "language-playground")
+  (purpose . "Comprehensive development experimentation sandbox")
+
+  (position-in-ecosystem
+    ((parent . "language-playgrounds")
+     (grandparent . "nextgen-languages")
+     (category . "general-experimentation")))
+
+  (related-projects
+    ((julia-the-viper
+       ((relationship . "origin")
+        (description . "Harvard Architecture systems programming")))
+     (all-playgrounds
+       ((relationship . "sibling")
+        (description . "Part of language-playgrounds family")))))
+
+  (what-this-is
+    ("Multi-technology playground"
+     "API and frontend demos"
+     "Testing and infrastructure experiments"))
+
+  (what-this-is-not
+    ("Production codebase"
+     "Single-technology focus"
+     "Stable API")))

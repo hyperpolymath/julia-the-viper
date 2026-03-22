@@ -1,0 +1,18 @@
+// Conformance test: while loop with accumulator pattern
+// Expected: PASS
+
+// Sum first N natural numbers using addition only
+n = 10
+sum = 0
+i = 1
+
+while i <= n {
+    sum = sum + i
+    i = i + 1
+}
+
+// Countdown using unary negation (no binary subtraction)
+countdown = 5
+while countdown > 0 {
+    countdown = countdown + -1
+}

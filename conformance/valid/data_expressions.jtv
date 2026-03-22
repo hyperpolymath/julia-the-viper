@@ -1,0 +1,36 @@
+// Conformance test: data language expressions (addition-only, total)
+// Expected: PASS
+
+// Simple addition (the ONLY arithmetic operator in data language)
+x = 1 + 2
+y = 3 + 4 + 5
+
+// All 6 number systems
+a = 42
+b = 3.14
+c = 1/3
+d = 0xFF
+e = 0b1010
+
+// Negation (unary operator)
+f = -5
+g = -3.14
+
+// Parenthesised grouping
+h = (1 + 2) + (3 + 4)
+
+// Lists
+nums = [1, 2, 3, 4, 5]
+empty = []
+
+// Tuples
+point = (10, 20)
+triple = (1, 2, 3)
+
+// Function calls in data context
+result = add(1, 2)
+qualified = Math.add(3, 4)
+chained = add(1, 2) + add(3, 4)
+
+// Mixed number systems in expressions
+mixed = 42 + 3.14 + 0xFF

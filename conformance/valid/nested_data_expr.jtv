@@ -1,0 +1,17 @@
+// Conformance test: deeply nested addition expressions
+// Expected: PASS
+
+// Nested parenthesised addition
+a = ((1 + 2) + (3 + 4)) + 5
+
+// Deeply nested
+b = (((1 + 2) + (3 + 4)) + ((5 + 6) + (7 + 8)))
+
+// Nested with function calls
+c = add(1, 2) + (add(3, 4) + add(5, 6))
+
+// Nested with mixed number systems
+d = (42 + 3.14) + (0xFF + 0b1010)
+
+// Single deep chain
+e = (((((1 + 2) + 3) + 4) + 5) + 6)

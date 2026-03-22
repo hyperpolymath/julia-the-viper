@@ -1,0 +1,32 @@
+// Conformance test: type annotations
+// Expected: PASS
+
+fn basic_types(
+    a: Int,
+    b: Float,
+    c: Rational,
+    d: Complex,
+    e: Hex,
+    f: Binary,
+    g: Symbolic,
+    h: Bool,
+    i: String
+) {
+    return
+}
+
+fn list_type(xs: List<Int>): List<Int> {
+    return xs
+}
+
+fn tuple_type(p: (Int, Float)): (Int, Float) {
+    return p
+}
+
+fn function_type(f: Fn(Int, Int) -> Int): Int {
+    return f(1, 2)
+}
+
+fn nested_list(xss: List<List<Int>>): List<List<Int>> {
+    return xss
+}

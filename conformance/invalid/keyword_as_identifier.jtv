@@ -1,0 +1,6 @@
+// Conformance test: keyword used as identifier
+// Expected: FAIL (parse error)
+
+fn = 42
+module = 10
+return = 5

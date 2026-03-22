@@ -1,0 +1,154 @@
+= JTV Playground
+
+image:https://img.shields.io/badge/License-PMPL--1.0-blue.svg[License: PMPL-1.0,link="https://github.com/hyperpolymath/palimpsest-license"]
+image:https://img.shields.io/badge/Philosophy-Palimpsest-indigo.svg[Palimpsest,link="https://github.com/hyperpolymath/palimpsest-license"]
+
+
+:toc: macro
+:icons: font
+
+// SPDX-License-Identifier: PMPL-1.0-or-later
+
+*Controlled experimentation workbench for Julia-the-Viper (JTV) language development*
+
+image:https://img.shields.io/badge/Language-JTV-red[JTV]
+image:https://img.shields.io/badge/Milestone-f0-green[f0]
+
+toc::[]
+
+== Overview
+
+This repository is a **controlled playground** for JTV (Julia-the-Viper) language development. Per the ANCHOR scope policy, all activities are scoped exclusively to JTV language, tooling, and UX experiments.
+
+=== What is JTV?
+
+Julia-the-Viper is a systems programming language designed for Harvard architecture embedded systems where code and data live in separate memory spaces.
+
+Key features:
+
+* **Harvard Architecture Native**: Separate code/data address spaces
+* **Flash-Optimized**: Efficient code storage in flash memory
+* **RAM Conservation**: Minimize RAM usage for data
+* **Embedded Focus**: AVR, PIC, ARM Cortex-M
+* **Zero Runtime**: No hidden allocations
+
+== Quick Start
+
+All operations are routed through `just`:
+
+[source,bash]
+----
+just --list    # Show available commands
+just test      # Run test corpus (offline)
+just demo      # Run JTV demonstration (offline)
+----
+
+== Repository Structure
+
+[source]
+----
+jtv-playground/
+├── jtv/                    # JTV Workbench (active development)
+│   ├── parser/             # Lexer and parser experiments
+│   ├── samples/            # JTV code samples
+│   ├── spec/               # Language specification
+│   ├── tests/corpus/       # Test corpus (valid/invalid)
+│   ├── repl/               # REPL prototype
+│   └── tools/              # Development tools
+├── experiments/_attic/     # Legacy experiments (frozen)
+├── .machine_read/          # Control plane files
+├── justfile                # Command interface
+└── Mustfile                # Mandatory checks
+----
+
+== Scope Policy
+
+Per `.machine_read/ANCHOR.scope-arrest.2026-01-01.scm`:
+
+=== Allowed
+
+* JTV language experiments
+* Parser/AST/type experiments supporting JTV
+* REPL / playground UI
+* Conformance harnesses and corpora
+* Benchmark harnesses relevant to JTV
+
+=== Legacy (Frozen)
+
+* All non-JTV experiments are in `experiments/_attic/`
+* No new features or expansion permitted
+
+=== Forbidden
+
+* General polyglot experiments
+* New frameworks not required for JTV
+* Network-required execution paths for demos/tests
+
+== Golden Path
+
+The f0 milestone success criteria:
+
+[source,bash]
+----
+just --list   # Shows available recipes
+just test     # Runs offline, validates >=5 samples (3 valid, 2 invalid)
+just demo     # Runs offline, demonstrates JTV feature
+----
+
+== Language Policy
+
+[cols="1,1,2"]
+|===
+| Category | Languages | Notes
+
+| Primary
+| Julia, ReScript, Scheme, Shell, Just, Nickel
+| For all new code
+
+| Allowed
+| Rust
+| For tooling/WASM only
+
+| Quarantined
+| Python, Node/npm
+| Legacy only, no expansion
+
+| Forbidden
+| TypeScript (source), Makefiles
+| Use alternatives
+|===
+
+== Command Routing
+
+All operations must go through:
+
+* `just <recipe>` - User-visible operations
+* `must` - Deployment/physical-state transitions (Mustfile)
+
+Do not run ad-hoc commands. If a recipe doesn't exist, add it to the justfile first.
+
+== Contributing
+
+This is a controlled workbench. Before contributing:
+
+1. Read `.machine_read/ANCHOR.scope-arrest.2026-01-01.scm`
+2. Ensure your contribution relates to JTV language/tooling
+3. All new code goes in `jtv/` directory
+4. Route all operations through `just` recipes
+
+See link:CONTRIBUTING.md[CONTRIBUTING.md] for guidelines.
+
+== License
+
+SPDX-License-Identifier: PMPL-1.0-or-later-or-later
+
+== See Also
+
+* link:jtv/README.adoc[JTV Workbench Documentation]
+* link:jtv/spec/SYNTAX.adoc[JTV Language Syntax (Draft)]
+* link:.machine_read/ANCHOR.scope-arrest.2026-01-01.scm[ANCHOR Scope Policy]
+
+---
+
+*Milestone*: f0 (scope control)
+*Last Updated*: 2026-01-01

@@ -1,0 +1,309 @@
+// JtV Standard Library - Safe Math
+// Mathematical operations with overflow protection and bounds checking
+
+module SafeMath {
+    // Maximum safe integer (2^31 - 1 for 32-bit systems)
+    MAX_SAFE_INT = 2147483647
+    MIN_SAFE_INT = -2147483648
+
+    // ===== CHECKED ARITHMETIC =====
+
+    @pure fn checked_add(a: Int, b: Int): (Int, Int) {
+        // Returns (result, overflow_flag)
+        if b > 0 && a > MAX_SAFE_INT - b {
+            return (0, 1)  // Overflow
+        }
+        if b < 0 && a < MIN_SAFE_INT - b {
+            return (0, 1)  // Underflow
+        }
+        return (a + b, 0)  // Success
+    }
+
+    fn checked_multiply(a: Int, b: Int): (Int, Int) {
+        if a == 0 || b == 0 {
+            return (0, 0)
+        }
+
+        // Check for overflow using division
+        if a > 0 && b > 0 {
+            if a > divide(MAX_SAFE_INT, b) {
+                return (0, 1)  // Overflow
+            }
+        }
+
+        result = 0
+        for i in 0..abs(b) {
+            result_check = checked_add(result, a)
+            if result_check[1] == 1 {
+                return (0, 1)  // Overflow during loop
+            }
+            result = result_check[0]
+        }
+
+        if b < 0 {
+            return (-result, 0)
+        }
+        return (result, 0)
+    }
+
+    // ===== POWER FUNCTIONS =====
+
+    fn pow(base: Int, exponent: Int): Int {
+        if exponent == 0 {
+            return 1
+        }
+        if exponent == 1 {
+            return base
+        }
+
+        result = base
+        for i in 1..exponent {
+            result = multiply(result, base)
+        }
+        return result
+    }
+
+    fn pow_checked(base: Int, exponent: Int): (Int, Int) {
+        if exponent == 0 {
+            return (1, 0)
+        }
+
+        result = base
+        for i in 1..exponent {
+            mult_result = checked_multiply(result, base)
+            if mult_result[1] == 1 {
+                return (0, 1)  // Overflow
+            }
+            result = mult_result[0]
+        }
+        return (result, 0)
+    }
+
+    // ===== SQUARE ROOT =====
+
+    @pure fn sqrt(n: Int): Int {
+        if n < 2 {
+            return n
+        }
+
+        // Babylonian method
+        x = n
+        for i in 0..20 {
+            x_new = divide(x + divide(n, x), 2)
+            if x_new >= x {
+                return x
+            }
+            x = x_new
+        }
+        return x
+    }
+
+    @pure fn is_perfect_square(n: Int): Int {
+        root = sqrt(n)
+        if multiply(root, root) == n {
+            return 1
+        } else {
+            return 0
+        }
+    }
+
+    // ===== GCD AND LCM =====
+
+    fn gcd(a: Int, b: Int): Int {
+        // Euclidean algorithm
+        a = abs(a)
+        b = abs(b)
+
+        while b != 0 {
+            temp = b
+            b = mod(a, b)
+            a = temp
+        }
+
+        return a
+    }
+
+    fn lcm(a: Int, b: Int): Int {
+        if a == 0 || b == 0 {
+            return 0
+        }
+
+        product = multiply(abs(a), abs(b))
+        gcd_val = gcd(a, b)
+        return divide(product, gcd_val)
+    }
+
+    // ===== FACTORIAL =====
+
+    fn factorial(n: Int): Int {
+        if n < 0 {
+            return 0  // Undefined for negative
+        }
+        if n == 0 || n == 1 {
+            return 1
+        }
+
+        result = 1
+        for i in 2..n+1 {
+            result = multiply(result, i)
+        }
+        return result
+    }
+
+    fn factorial_checked(n: Int): (Int, Int) {
+        if n < 0 {
+            return (0, 1)  // Error
+        }
+        if n == 0 || n == 1 {
+            return (1, 0)
+        }
+
+        result = 1
+        for i in 2..n+1 {
+            mult_result = checked_multiply(result, i)
+            if mult_result[1] == 1 {
+                return (0, 1)  // Overflow
+            }
+            result = mult_result[0]
+        }
+        return (result, 0)
+    }
+
+    // ===== FIBONACCI =====
+
+    fn fibonacci(n: Int): Int {
+        if n <= 1 {
+            return n
+        }
+
+        prev = 0
+        curr = 1
+
+        for i in 2..n+1 {
+            next = prev + curr
+            prev = curr
+            curr = next
+        }
+
+        return curr
+    }
+
+    // ===== PRIME NUMBERS =====
+
+    fn is_prime(n: Int): Int {
+        if n <= 1 {
+            return 0
+        }
+        if n == 2 {
+            return 1
+        }
+        if is_even(n) == 1 {
+            return 0
+        }
+
+        // Check divisibility up to sqrt(n)
+        limit = sqrt(n)
+        for i in 3..2..limit+1 {
+            if mod(n, i) == 0 {
+                return 0  // Not prime
+            }
+        }
+
+        return 1  // Prime
+    }
+
+    fn next_prime(n: Int): Int {
+        candidate = n + 1
+        while is_prime(candidate) == 0 {
+            candidate = candidate + 1
+        }
+        return candidate
+    }
+
+    // ===== MODULAR ARITHMETIC =====
+
+    fn mod_add(a: Int, b: Int, m: Int): Int {
+        return mod(a + b, m)
+    }
+
+    fn mod_multiply(a: Int, b: Int, m: Int): Int {
+        result = 0
+        a = mod(a, m)
+
+        for i in 0..b {
+            result = mod_add(result, a, m)
+        }
+
+        return result
+    }
+
+    fn mod_pow(base: Int, exponent: Int, modulus: Int): Int {
+        if modulus == 1 {
+            return 0
+        }
+
+        result = 1
+        base = mod(base, modulus)
+
+        for i in 0..exponent {
+            result = mod_multiply(result, base, modulus)
+        }
+
+        return result
+    }
+
+    // ===== HELPER FUNCTIONS =====
+
+    fn multiply(a: Int, b: Int): Int {
+        result = 0
+        for i in 0..abs(b) {
+            result = result + abs(a)
+        }
+        if (a < 0 && b > 0) || (a > 0 && b < 0) {
+            return -result
+        }
+        return result
+    }
+
+    fn divide(a: Int, b: Int): Int {
+        if b == 0 {
+            return 0
+        }
+
+        quotient = 0
+        remainder = abs(a)
+        divisor = abs(b)
+
+        while remainder >= divisor {
+            remainder = remainder - divisor
+            quotient = quotient + 1
+        }
+
+        if (a < 0 && b > 0) || (a > 0 && b < 0) {
+            return -quotient
+        }
+        return quotient
+    }
+
+    fn mod(a: Int, b: Int): Int {
+        quotient = divide(a, b)
+        product = multiply(quotient, b)
+        return a - product
+    }
+
+    @pure fn abs(x: Int): Int {
+        if x < 0 {
+            return -x
+        } else {
+            return x
+        }
+    }
+
+    @pure fn is_even(x: Int): Int {
+        if mod(x, 2) == 0 {
+            return 1
+        } else {
+            return 0
+        }
+    }
+}

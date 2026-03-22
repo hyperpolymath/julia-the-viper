@@ -1,0 +1,184 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# justfile - JTV Playground Build Automation
+# https://github.com/casey/just
+#
+# This is the SINGLE command interface for all operations.
+# Per ANCHOR scope policy: all user-visible operations must be `just` recipes.
+
+# Default recipe: show available commands
+default:
+    @just --list
+
+# ==============================================================================
+# GOLDEN PATH (f0 milestone)
+# ==============================================================================
+
+# Run JTV test corpus (offline, >=5 samples: 3 valid, 2 invalid)
+test:
+    @echo "Running JTV test corpus..."
+    @./jtv/tools/validate.sh
+
+# Run JTV language demonstration (offline)
+demo:
+    @./jtv/tools/demo.sh
+
+# Show help and available recipes
+help:
+    @echo "JTV Playground - Julia-the-Viper Workbench"
+    @echo "==========================================="
+    @echo ""
+    @echo "Golden Path (f0):"
+    @echo "  just test     Run offline test suite (>=5 samples)"
+    @echo "  just demo     Run offline JTV demonstration"
+    @echo ""
+    @echo "All recipes:"
+    @just --list
+
+# ==============================================================================
+# CODE QUALITY
+# ==============================================================================
+
+# Lint all code
+lint:
+    @echo "Linting JTV code..."
+    @echo "(f0: basic syntax validation)"
+    @./jtv/tools/validate.sh
+
+# Format code
+fmt:
+    @echo "Formatting code..."
+    @echo "(f0: no auto-formatter yet)"
+
+# Run standard checks
+check: fmt lint test
+    @echo "✓ All checks passed"
+
+# ==============================================================================
+# JTV WORKBENCH
+# ==============================================================================
+
+# Validate JTV sample corpus
+jtv-validate:
+    @./jtv/tools/validate.sh
+
+# Show JTV samples
+jtv-samples:
+    @echo "JTV Sample Files:"
+    @echo ""
+    @find jtv/samples -name "*.jtv" -exec echo "  {}" \;
+
+# Count JTV test corpus
+jtv-corpus-stats:
+    @echo "JTV Test Corpus Statistics:"
+    @echo ""
+    @echo "Valid samples:   $(find jtv/tests/corpus/valid -name '*.jtv' | wc -l)"
+    @echo "Invalid samples: $(find jtv/tests/corpus/invalid -name '*.jtv' | wc -l)"
+    @echo "Edge cases:      $(find jtv/tests/corpus/edge-cases -name '*.jtv' 2>/dev/null | wc -l)"
+
+# ==============================================================================
+# BUILD (f1+ milestone)
+# ==============================================================================
+
+# Build JTV tools (future)
+build:
+    @echo "Build not yet implemented (f1 milestone)"
+    @echo "Current status: f0 (scope control pass)"
+
+# Clean build artifacts
+clean:
+    @echo "Cleaning build artifacts..."
+    @find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+    @find . -type d -name "node_modules" -exec rm -rf {} + 2>/dev/null || true
+    @find . -type f -name "*.pyc" -delete 2>/dev/null || true
+    @echo "Clean complete"
+
+# ==============================================================================
+# LEGACY (QUARANTINED - per ANCHOR scope policy)
+# ==============================================================================
+
+# Run legacy algorithm demos (frozen, no expansion)
+_legacy-algorithms:
+    @echo "WARNING: Legacy code (frozen per ANCHOR scope policy)"
+    @echo ""
+    @cd experiments/_attic/algorithms && python3 sorting.py 2>/dev/null || echo "(algorithms not available)"
+
+# List legacy experiments (frozen)
+_legacy-list:
+    @echo "Legacy Experiments (frozen in _attic/):"
+    @echo ""
+    @find experiments/_attic -maxdepth 2 -name "README.md" -exec dirname {} \; 2>/dev/null || echo "  (none)"
+
+# ==============================================================================
+# REPOSITORY MANAGEMENT
+# ==============================================================================
+
+# Show project status
+status:
+    @echo "JTV Playground Status"
+    @echo "====================="
+    @echo ""
+    @echo "Milestone: f0 (scope control)"
+    @echo "Branch:    $(git branch --show-current)"
+    @echo "Modified:  $(git status --porcelain | wc -l) file(s)"
+    @echo ""
+    @just jtv-corpus-stats
+
+# Verify golden path (smoke test)
+verify:
+    @echo "Verifying golden path..."
+    @echo ""
+    @echo "1. just --list"
+    @just --list >/dev/null && echo "   PASS" || echo "   FAIL"
+    @echo ""
+    @echo "2. just test"
+    @just test >/dev/null 2>&1 && echo "   PASS" || echo "   FAIL"
+    @echo ""
+    @echo "3. just demo"
+    @just demo >/dev/null 2>&1 && echo "   PASS" || echo "   FAIL"
+    @echo ""
+    @echo "Golden path verification complete"
+
+# Show ANCHOR scope policy
+scope:
+    @echo "ANCHOR Scope Policy"
+    @echo "==================="
+    @echo ""
+    @echo "CORE ALLOWED:"
+    @echo "  - JTV language experiments"
+    @echo "  - Parser/AST/type experiments for JTV"
+    @echo "  - REPL / playground UI"
+    @echo "  - Conformance tests and corpora"
+    @echo ""
+    @echo "LEGACY QUARANTINE:"
+    @echo "  - All non-JTV experiments in experiments/_attic/"
+    @echo "  - No expansion allowed"
+    @echo ""
+    @echo "FORBIDDEN:"
+    @echo "  - General polyglot experiments"
+    @echo "  - New frameworks not required for JTV"
+    @echo "  - Network-required execution paths"
+    @echo ""
+    @echo "See: .machine_read/ANCHOR.scope-arrest.2026-01-01.scm"
+
+# Show version information
+version:
+    @echo "JTV Playground v0.1.0-f0"
+    @echo ""
+    @echo "Milestone: f0 (scope control)"
+    @echo "Focus:     Julia-the-Viper language workbench"
+
+# ==============================================================================
+# CI/CD INTEGRATION
+# ==============================================================================
+
+# Run CI pipeline (for automation)
+ci:
+    @echo "Running CI pipeline..."
+    @just test
+    @just lint
+    @echo "CI pipeline complete"
+
+# Pre-commit hook target
+pre-commit:
+    @just test
+    @just lint

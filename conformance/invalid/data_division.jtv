@@ -1,0 +1,7 @@
+// Conformance test: division in data language (should fail)
+// Expected: FAIL (parse error)
+//
+// Division is not a valid data expression operator.
+// Rational number literals (1/3) are literals, not division.
+
+x = 10 / 2

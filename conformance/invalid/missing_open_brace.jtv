@@ -1,0 +1,6 @@
+// Conformance test: missing opening brace
+// Expected: FAIL (parse error)
+
+fn broken(x: Int): Int
+    return x + 1
+}

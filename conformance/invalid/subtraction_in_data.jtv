@@ -1,0 +1,8 @@
+// Conformance test: binary subtraction in data expression (should fail)
+// Expected: FAIL (parse error)
+//
+// Binary subtraction (x - y) is forbidden in the data language.
+// Only addition is permitted. Unary negation (-x) is allowed,
+// but the binary operator minus is not.
+
+x = 1 - 2

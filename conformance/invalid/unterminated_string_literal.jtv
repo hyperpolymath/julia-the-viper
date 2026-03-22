@@ -1,0 +1,7 @@
+// Conformance test: unterminated string literal (should fail)
+// Expected: FAIL (parse error)
+//
+// String literals must be closed with a matching quote character.
+
+x = "hello
+y = 42

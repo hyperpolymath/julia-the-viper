@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+
+name = "ZigFFI"
+uuid = "12345678-1234-5678-1234-567812345678"
+authors = ["Hyperpolymath <hyperpolymath@users.noreply.github.com>"]
+version = "0.1.0"
+
+[deps]
+
+[compat]
+julia = "1.9"

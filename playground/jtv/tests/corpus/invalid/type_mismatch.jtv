@@ -1,0 +1,13 @@
+-- SPDX-License-Identifier: PMPL-1.0-or-later
+-- invalid/type_mismatch.jtv - Type mismatch error (EXPECTED ERROR)
+
+module TypeMismatch
+
+fn add_numbers(a: u8, b: u8) -> u8:
+    a + b
+
+fn main() -> !:
+    -- ERROR: Cannot assign u8 to u16 without explicit cast
+    let x: u16 = add_numbers(10, 20)
+    loop:
+        nop()

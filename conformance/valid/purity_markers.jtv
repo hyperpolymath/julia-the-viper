@@ -1,0 +1,19 @@
+// Conformance test: @pure and @total purity markers
+// Expected: PASS
+
+@pure fn safe_add(a: Int, b: Int): Int {
+    return a + b
+}
+
+@total fn constant(): Int {
+    return 0
+}
+
+@pure fn triple(x: Int): Int {
+    return x + x + x
+}
+
+// Impure function (no marker) - default
+fn side_effect(x: Int) {
+    print(x)
+}

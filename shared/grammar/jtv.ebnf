@@ -1,0 +1,182 @@
+(* Julia the Viper - Complete EBNF Grammar *)
+(* Harvard Architecture: Control (Turing-complete) + Data (Total/provably halting) *)
+
+(* ===== PROGRAM STRUCTURE ===== *)
+program = { module_decl | import_stmt | function_decl | control_stmt | comment } ;
+
+module_decl = "module" identifier "{" { function_decl | control_stmt } "}" ;
+
+import_stmt = "import" module_path [ "as" identifier ] ;
+module_path = identifier { "." identifier } ;
+
+(* ===== CONTROL LANGUAGE (Turing-complete, imperative) ===== *)
+control_stmt = assignment
+             | if_stmt
+             | while_stmt
+             | for_stmt
+             | return_stmt
+             | print_stmt
+             | reverse_block
+             | block ;
+
+assignment = identifier "=" ( data_expr | control_expr ) ;
+
+if_stmt = "if" data_expr "{" { control_stmt } "}"
+          [ "else" "{" { control_stmt } "}" ] ;
+
+while_stmt = "while" data_expr "{" { control_stmt } "}" ;
+
+for_stmt = "for" identifier "in" range_expr "{" { control_stmt } "}" ;
+
+return_stmt = "return" [ data_expr ] ;
+
+print_stmt = "print" "(" data_expr { "," data_expr } ")" ;
+
+block = "{" { control_stmt } "}" ;
+
+(* V2: Reversible computing blocks *)
+reverse_block = "reverse" "{" { reversible_stmt } "}" ;
+reversible_stmt = reversible_assignment | if_stmt ;
+reversible_assignment = identifier "+" "=" data_expr  (* Addition-only for reversibility *)
+                      | identifier "-" "=" data_expr  (* Auto-generated in reverse execution *)
+                      ;
+
+(* ===== DATA LANGUAGE (Total, guaranteed halting, addition-only) ===== *)
+data_expr = additive_expr ;
+
+additive_expr = term { "+" term } ;
+
+term = factor ;
+
+factor = number
+       | identifier
+       | function_call
+       | "(" data_expr ")"
+       | list_literal
+       | tuple_literal
+       | unary_op factor ;
+
+unary_op = "-" | "!" ;
+
+(* CRITICAL: Data expressions CANNOT contain loops or control flow *)
+(* This is what makes code injection grammatically impossible *)
+
+(* ===== CONTROL EXPRESSIONS (Can have side effects) ===== *)
+control_expr = data_expr
+             | comparison_expr
+             | logical_expr
+             | function_call  (* May have side effects *)
+             ;
+
+comparison_expr = data_expr comparator data_expr ;
+comparator = "==" | "!=" | "<" | "<=" | ">" | ">=" ;
+
+logical_expr = control_expr logical_op control_expr
+             | "!" control_expr ;
+logical_op = "&&" | "||" ;
+
+(* ===== FUNCTIONS ===== *)
+function_decl = "fn" identifier "(" [ param_list ] ")" [ ":" return_type ]
+                [ purity_marker ]
+                "{" { control_stmt } "}" ;
+
+purity_marker = "@pure"  (* V2: Marks Pure Data Functions - no loops, no IO *)
+              | "@total" (* Guaranteed to terminate *)
+              ;
+
+param_list = param { "," param } ;
+param = identifier [ ":" type_annotation ] ;
+
+function_call = identifier "(" [ arg_list ] ")" ;
+arg_list = data_expr { "," data_expr } ;
+
+(* V2: Only Pure Data Functions can be called from Data context *)
+(* Compiler MUST enforce: @pure functions cannot contain loops or IO *)
+
+(* ===== TYPE SYSTEM ===== *)
+type_annotation = basic_type
+                | list_type
+                | tuple_type
+                | function_type ;
+
+basic_type = "Int" | "Float" | "Rational" | "Complex"
+           | "Hex" | "Binary" | "Symbolic" | "Bool" | "String" ;
+
+list_type = "List" "<" type_annotation ">" ;
+tuple_type = "(" type_annotation { "," type_annotation } ")" ;
+function_type = "Fn" "(" [ type_annotation { "," type_annotation } ] ")" "->" type_annotation ;
+
+return_type = type_annotation ;
+
+(* ===== LITERALS ===== *)
+number = integer | float | rational | complex | hex | binary ;
+
+integer = [ "-" ] digit { digit } ;
+float = [ "-" ] digit { digit } "." digit { digit } [ exponent ] ;
+exponent = ("e" | "E") [ "+" | "-" ] digit { digit } ;
+rational = integer "/" integer ;
+complex = number "+" number "i" | number "i" ;
+hex = "0x" hex_digit { hex_digit } ;
+binary = "0b" ("0" | "1") { "0" | "1" } ;
+
+list_literal = "[" [ data_expr { "," data_expr } ] "]" ;
+tuple_literal = "(" data_expr "," data_expr { "," data_expr } ")" ;
+
+range_expr = data_expr ".." data_expr [ ".." data_expr ] ;  (* start..end or start..step..end *)
+
+string = '"' { string_char } '"' ;
+string_char = ? any character except '"' or '\' ? | escape_sequence ;
+escape_sequence = "\\" ( "n" | "t" | "r" | '"' | "\\" ) ;
+
+(* ===== IDENTIFIERS & KEYWORDS ===== *)
+identifier = letter { letter | digit | "_" } ;
+
+letter = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m"
+       | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
+       | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M"
+       | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" ;
+
+digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+hex_digit = digit | "a" | "b" | "c" | "d" | "e" | "f" | "A" | "B" | "C" | "D" | "E" | "F" ;
+
+(* ===== COMMENTS ===== *)
+comment = line_comment | block_comment ;
+line_comment = "//" { ? any character except newline ? } newline ;
+block_comment = "/*" { ? any character ? } "*/" ;
+
+(* ===== WHITESPACE ===== *)
+whitespace = " " | "\t" | "\n" | "\r" ;
+
+(* ===== SECURITY GUARANTEE ===== *)
+(* The grammar enforces that data_expr CANNOT contain:
+   - Loops (while, for)
+   - Conditionals (if)
+   - Function calls to impure functions (in V2)
+   - Assignments
+
+   This makes code injection GRAMMATICALLY IMPOSSIBLE, not just a runtime check.
+   An attacker cannot craft input that becomes executable control flow because
+   the parser will reject any control constructs in data context.
+*)
+
+(* ===== TOTALITY GUARANTEE ===== *)
+(* data_expr is provably Total (guaranteed to halt) because:
+   1. Addition-only (no multiplication/division that could overflow loops)
+   2. No recursion allowed in data context
+   3. No loops allowed in data context
+   4. Function calls must be to @pure functions (V2)
+
+   This enables:
+   - Aggressive optimization (no side effects to worry about)
+   - Formal verification (can prove termination)
+   - Parallel execution (no data dependencies)
+*)
+
+(* ===== V2 REVERSIBILITY ===== *)
+(* reverse blocks enable quantum computing simulation:
+   - Forward execution: x += 5 means x = x + 5
+   - Reverse execution: x += 5 becomes x -= 5 (automatic)
+   - Enables Bennett's trick (reversible computation)
+   - Simulates unitary transformations (quantum gates)
+   - Thermodynamically efficient (Landauer's principle)
+*)

@@ -1,0 +1,7 @@
+// Conformance test: invalid hex digits (should fail)
+// Expected: FAIL (parse error)
+//
+// Hex literals (0x prefix) only accept digits 0-9 and letters A-F/a-f.
+// G is not a valid hex digit.
+
+x = 0xGG
