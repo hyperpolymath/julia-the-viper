@@ -213,3 +213,7 @@ build-pwa: build-wasm
     @echo "✅ WASM compiled to pkg/"
     @echo "✅ PWA files in web/"
     @echo "📝 Ready to deploy!"
+
+# Run panic-attacker pre-commit scan
+assail:
+    @command -v panic-attack >/dev/null 2>&1 && panic-attack assail . || echo "panic-attack not found — install from https://github.com/hyperpolymath/panic-attacker"
