@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: PMPL-1.0-or-later
 = Julia the Viper — EXPLAINME
 
-== "Harvard Architecture Language for Security-Critical Applications"
+== Harvard Architecture Language for Security-Critical Applications
 
 [quote, README]
 ____
