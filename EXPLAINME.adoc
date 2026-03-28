@@ -1,27 +1,38 @@
-= Julia The Viper — EXPLAINME
-:toc: preamble
+// SPDX-License-Identifier: PMPL-1.0-or-later
+= Julia the Viper — EXPLAINME
 
-This document backs up the claims made in README with evidence and rationale.
+== "Harvard Architecture Language for Security-Critical Applications"
 
-== What Is This?
+[quote, README]
+____
+Julia the Viper is a Harvard Architecture programming language designed to make code injection grammatically impossible. Named after mathematician Julia Robinson (Hilbert's 10th problem) with a playful nod to "adder" (snake + addition), JtV separates computation into two grammatically distinct channels: Control Language (Turing-complete, imperative) and Data Language (Total/provably halting, addition-only).
+____
 
-Julia The Viper is a hyperpolymath project. See README.adoc for usage.
+The core idea is that user-supplied data can never contain control flow because the grammar physically forbids it — not through runtime validation but through separate parse grammars for Control and Data contexts. See link:docs/GRAMMAR_EVOLUTION.md[GRAMMAR_EVOLUTION.md] for the v1/v2 separation rationale and link:docs/QUANTUM_VISION.md[QUANTUM_VISION.md] for the reversible computing extension.
 
-== Why These Choices?
+**Caveat:** v1 alpha is partially implemented (parser and interpreter stubs exist); the full Rust `jtv-lang` crate referenced in the README is not yet present. v2 (reversible computing) is specification-only.
 
-=== Language
+=== Evidence
 
-The language(s) used in this project were chosen per the hyperpolymath
-language policy (see CLAUDE.md for the full list of allowed/banned languages).
+[cols="1,2", options="header"]
+|===
+| Path | Proves
 
-=== Architecture
+| `examples/basic/`, `examples/advanced/`, `examples/contracts/`
+| 17+ example programs demonstrating Control/Data separation exist
 
-Architecture decisions are documented in `.machine_readable/` checkpoint files.
+| `packages/jtv-analyzer/`
+| Code analyzer component is present (Deno-based)
 
-== Alternatives Considered
+| `fuzz/fuzz_targets/fuzz_parser.rs`
+| Parser fuzzing exists, confirming grammar-level enforcement approach
 
-(To be filled in as the project matures.)
+| `docs/GRAMMAR_EVOLUTION.md`
+| v1 vs v2 grammar separation is formally documented
 
-== Proof of Claims
+| `docs/QUANTUM_VISION.md`
+| Reversible computing / quantum simulation design is documented
 
-(Link formal verification results from the `proven` repo where applicable.)
+| `packages/jtv-analyzer/abi/`
+| ABI definitions exist for the analyzer layer
+|===
