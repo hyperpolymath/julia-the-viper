@@ -126,7 +126,7 @@ Visit: http://localhost:8000/
 
 ### Repository Location
 - **Canonical:** `~/Documents/hyperpolymath-repos/julia-the-viper/`
-- **Physical:** `/var/mnt/eclipse/repos/julia-the-viper/` (Eclipse drive)
+- **Physical:** `/var$REPOS_DIR/julia-the-viper/` (Eclipse drive)
 - **Note:** Always use the symlink path for operations
 
 ## Key Files Modified
