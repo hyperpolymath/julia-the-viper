@@ -437,7 +437,24 @@ impl TypeChecker {
                     .get_func(&qualified)
                     .or_else(|| self.env.get_func(&call.name));
 
-                if let Some((param_types, ret_ty, _)) = func_info {
+                if let Some((param_types, ret_ty, purity)) = func_info {
+                    // Harvard Architecture enforcement: Data expressions
+                    // may ONLY call Pure or Total functions. Impure functions
+                    // could loop or perform IO, breaking the Totality guarantee
+                    // that makes code injection grammatically impossible.
+                    let purity = purity.clone();
+                    let ret_ty = ret_ty.clone();
+                    let param_types = param_types.clone();
+
+                    if purity == Purity::Impure {
+                        return Err(JtvError::PurityViolation(format!(
+                            "Data expression calls impure function '{}'. \
+                             Only @pure or @total functions may be called \
+                             from data expressions (Harvard Architecture rule)",
+                            call.qualified_name()
+                        )));
+                    }
+
                     // Check argument count
                     if call.args.len() != param_types.len() {
                         return Err(JtvError::ArityMismatch {
@@ -457,7 +474,7 @@ impl TypeChecker {
                         }
                     }
 
-                    Ok(ret_ty.clone())
+                    Ok(ret_ty)
                 } else {
                     Err(JtvError::UndefinedFunction(qualified))
                 }
