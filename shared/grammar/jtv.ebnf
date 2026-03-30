@@ -109,7 +109,7 @@ function_type = "Fn" "(" [ type_annotation { "," type_annotation } ] ")" "->" ty
 return_type = type_annotation ;
 
 (* ===== LITERALS ===== *)
-number = integer | float | rational | complex | hex | binary ;
+number = integer | float | rational | complex | hex | binary | symbolic ;
 
 integer = [ "-" ] digit { digit } ;
 float = [ "-" ] digit { digit } "." digit { digit } [ exponent ] ;
@@ -118,6 +118,7 @@ rational = integer "/" integer ;
 complex = number "+" number "i" | number "i" ;
 hex = "0x" hex_digit { hex_digit } ;
 binary = "0b" ("0" | "1") { "0" | "1" } ;
+symbolic = "#" letter { letter | digit | "_" } ;  (* Symbolic math names, e.g. #x, #pi, #alpha *)
 
 list_literal = "[" [ data_expr { "," data_expr } ] "]" ;
 tuple_literal = "(" data_expr "," data_expr { "," data_expr } ")" ;

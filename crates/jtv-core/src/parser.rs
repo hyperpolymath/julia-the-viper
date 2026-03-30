@@ -422,6 +422,11 @@ fn parse_number(pair: pest::iterators::Pair<Rule>) -> Result<Number> {
         }
         Rule::hex => Ok(Number::Hex(pair.as_str().to_string())),
         Rule::binary => Ok(Number::Binary(pair.as_str().to_string())),
+        Rule::symbolic => {
+            // Strip the '#' prefix to get the symbolic name
+            let name = pair.as_str().trim_start_matches('#').to_string();
+            Ok(Number::Symbolic(name))
+        }
         _ => Err(JtvError::ParseError(format!(
             "Unknown number type: {:?}",
             pair.as_rule()
@@ -601,5 +606,31 @@ mod tests {
         "#;
         let result = parse_program(code);
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_parse_symbolic_literal() {
+        let code = "x = #pi + #e";
+        let result = parse_program(code);
+        assert!(result.is_ok(), "Failed to parse symbolic literals: {:?}", result.err());
+        let program = result.unwrap();
+        // Verify the AST contains symbolic numbers
+        if let TopLevel::Control(ControlStmt::Assignment(ref assign)) = program.statements[0] {
+            if let Expr::Data(DataExpr::Add(ref left, ref right)) = assign.value {
+                assert_eq!(**left, DataExpr::Number(Number::Symbolic("pi".to_string())));
+                assert_eq!(**right, DataExpr::Number(Number::Symbolic("e".to_string())));
+            } else {
+                panic!("Expected Add expression");
+            }
+        } else {
+            panic!("Expected assignment");
+        }
+    }
+
+    #[test]
+    fn test_parse_symbolic_with_underscore() {
+        let code = "y = #my_var";
+        let result = parse_program(code);
+        assert!(result.is_ok(), "Failed to parse symbolic with underscore: {:?}", result.err());
     }
 }

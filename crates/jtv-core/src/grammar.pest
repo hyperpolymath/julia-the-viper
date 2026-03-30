@@ -118,9 +118,12 @@ number = {
     | rational
     | hex
     | binary
+    | symbolic
     | float
     | integer
 }
+
+symbolic = @{ "#" ~ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 
 integer = @{ "-"? ~ ASCII_DIGIT+ }
 float = @{ "-"? ~ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ ~ (("e" | "E") ~ ("+" | "-")? ~ ASCII_DIGIT+)? }

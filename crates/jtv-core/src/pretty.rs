@@ -417,7 +417,7 @@ impl PrettyPrinter {
             }
             Number::Hex(s) => s.clone(),
             Number::Binary(s) => s.clone(),
-            Number::Symbolic(s) => s.clone(),
+            Number::Symbolic(s) => format!("#{}", s),
         }
     }
 

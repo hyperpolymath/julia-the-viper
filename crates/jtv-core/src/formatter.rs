@@ -487,7 +487,8 @@ impl Formatter {
                 self.output.push_str(s);
             }
             Number::Symbolic(s) => {
-                self.output.push_str(s);
+                // Symbolic literals use '#' prefix (e.g., #x, #pi)
+                self.output.push_str(&format!("#{}", s));
             }
         }
     }
