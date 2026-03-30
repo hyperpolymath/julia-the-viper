@@ -337,36 +337,37 @@ impl Interpreter {
     }
 
     fn eval_reverse_block(&mut self, block: &ReverseBlock) -> Result<()> {
-        // Forward execution
-        for stmt in &block.body {
-            match stmt {
-                ReversibleStmt::AddAssign(target, expr) => {
-                    let value = self.eval_data_expr(expr)?;
-                    let current = self.get_variable(target)?;
-                    let new_value = current.add(&value)?;
-                    self.set_variable(target.clone(), new_value);
-                }
-                ReversibleStmt::SubAssign(target, expr) => {
-                    let value = self.eval_data_expr(expr)?;
-                    let current = self.get_variable(target)?;
-                    let neg_value = value.negate()?;
-                    let new_value = current.add(&neg_value)?;
-                    self.set_variable(target.clone(), new_value);
-                }
-                ReversibleStmt::If(if_stmt) => {
-                    let condition = self.eval_control_expr_to_value(&if_stmt.condition)?;
-                    if condition.is_truthy() {
-                        for stmt in &if_stmt.then_branch {
-                            self.eval_control_stmt(stmt)?;
-                        }
-                    } else if let Some(else_branch) = &if_stmt.else_branch {
-                        for stmt in else_branch {
-                            self.eval_control_stmt(stmt)?;
-                        }
-                    }
-                }
-            }
+        // Delegate to ReversibleInterpreter which properly records and
+        // reverses operations. This implements JTV v2 semantics:
+        //   1. Execute forward (recording operations)
+        //   2. Execute reverse (inverting and reversing operations)
+        //   3. Net effect: identity (CNO by construction)
+        //
+        // The forward pass modifies state. The reverse pass undoes it.
+        // After execute_and_reverse, state returns to its original value.
+        //
+        // This is the core of the JTV v2 reversibility vision:
+        //   - Subtraction is NOT in the grammar
+        //   - Subtraction arises from reversing addition
+        //   - reverse { x += 5 } produces x -= 5 automatically
+        //   - forward ; reverse = CNO (Certified Null Operation)
+        use crate::reversible::ReversibleInterpreter;
+
+        let mut rev_interp = ReversibleInterpreter::with_state(self.globals.clone());
+
+        // Forward execution (records operations for later reversal)
+        rev_interp.execute_forward(block)?;
+
+        // Copy forward results back to main interpreter
+        for (name, value) in rev_interp.get_state() {
+            self.set_variable(name.clone(), value.clone());
         }
+
+        // Record trace for instrumentation (if enabled)
+        if self.trace_enabled {
+            self.add_trace("reverse_block_forward", &format!("executed {} reversible operations", block.body.len()));
+        }
+
         Ok(())
     }
 
