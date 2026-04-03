@@ -33,6 +33,9 @@ module Vscode = {
   @module("vscode")
   external getConfiguration: string => {..} = "workspace.getConfiguration"
 
+  /** Type-safe accessor for workspace configuration values by key */
+  @send external get: ({..}, string) => option<string> = "get"
+
   @module("vscode")
   external createFileSystemWatcher: string => fileSystemWatcher =
     "workspace.createFileSystemWatcher"
@@ -112,8 +115,8 @@ let activate = (context: Vscode.extensionContext): unit => {
   Js.log("Julia the Viper extension activated")
 
   let config = Vscode.getConfiguration("jtv")
-  let lspPath = switch Js.Dict.get(Obj.magic(config), "lsp.path") {
-  | Some(p) => (p: string)
+  let lspPath = switch Vscode.get(config, "lsp.path") {
+  | Some(p) => p
   | None => "jtv-lsp"
   }
 
