@@ -32,3 +32,4 @@ Thumbs.db
 # Temporary
 *.tmp
 *.log
+mutants.out/
