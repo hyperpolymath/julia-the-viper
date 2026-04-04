@@ -142,7 +142,7 @@ pub fn parse_recovering(input: &str) -> RecoveryResult {
 
         // Try parsing individual lines within the segment.
         let mut any_line_ok = false;
-        for (_line_idx, line) in trimmed.lines().enumerate() {
+        for line in trimmed.lines() {
             let line_trimmed = line.trim();
             if line_trimmed.is_empty() || line_trimmed.starts_with("//") {
                 continue;

@@ -1,0 +1,27 @@
+--- crates/jtv-core/src/parser.rs
++++ delete match arm Rule::print_stmt in parse_control_stmt
+@@ -209,23 +209,17 @@
+         Rule::return_stmt => {
+             let value = inner
+                 .into_inner()
+                 .next()
+                 .map(|p| parse_data_expr(p))
+                 .transpose()?;
+             Ok(ControlStmt::Return(value))
+         }
+-        Rule::print_stmt => {
+-            let mut exprs = Vec::new();
+-            for expr_pair in inner.into_inner() {
+-                exprs.push(parse_data_expr(expr_pair)?);
+-            }
+-            Ok(ControlStmt::Print(exprs))
+-        }
++         /* ~ changed by cargo-mutants ~ */
+         Rule::reverse_block => {
+             let mut body = Vec::new();
+             for stmt_pair in inner.into_inner() {
+                 body.push(parse_reversible_stmt(stmt_pair)?);
+             }
+             Ok(ControlStmt::ReverseBlock(ReverseBlock { body }))
+         }
+         Rule::block => {

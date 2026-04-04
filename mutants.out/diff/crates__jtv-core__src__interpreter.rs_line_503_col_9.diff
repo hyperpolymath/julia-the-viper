@@ -1,0 +1,31 @@
+--- crates/jtv-core/src/interpreter.rs
++++ replace Interpreter::get_variable -> Result<Value> with Ok(Default::default())
+@@ -495,27 +495,17 @@
+         // Pop scope
+         self.call_stack.pop();
+ 
+         Ok(result)
+     }
+ 
+     pub fn get_variable(&self, name: &str) -> Result<Value> {
+         // Check call stack (local variables)
+-        for scope in self.call_stack.iter().rev() {
+-            if let Some(value) = scope.get(name) {
+-                return Ok(value.clone());
+-            }
+-        }
+-
+-        // Check globals
+-        self.globals
+-            .get(name)
+-            .cloned()
+-            .ok_or_else(|| JtvError::UndefinedVariable(name.to_string()))
++        Ok(Default::default()) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     fn set_variable(&mut self, name: String, value: Value) {
+         if let Some(scope) = self.call_stack.last_mut() {
+             scope.insert(name, value);
+         } else {
+             self.globals.insert(name, value);
+         }

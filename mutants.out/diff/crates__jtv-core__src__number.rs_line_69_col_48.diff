@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/number.rs
++++ delete - in Value::negate
+@@ -61,17 +61,17 @@
+ 
+     // Negation operation (safe: handles i64::MIN overflow)
+     pub fn negate(&self) -> Result<Value> {
+         match self {
+             Value::Int(n) => n
+                 .checked_neg()
+                 .map(Value::Int)
+                 .ok_or(JtvError::IntegerOverflow),
+-            Value::Float(n) => Ok(Value::Float(-n)),
++            Value::Float(n) => Ok(Value::Float( /* ~ changed by cargo-mutants ~ */n)),
+             Value::Rational(n) => Ok(Value::Rational(-n)),
+             Value::Complex(n) => Ok(Value::Complex(-n)),
+             Value::Hex(n) => n
+                 .checked_neg()
+                 .map(Value::Hex)
+                 .ok_or(JtvError::IntegerOverflow),
+             Value::Binary(n) => n
+                 .checked_neg()

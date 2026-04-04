@@ -4,9 +4,10 @@
 // Julia the Viper - Conformance Suite Runner
 // Loads .jtv files from conformance/valid/ and conformance/invalid/
 // and asserts that valid files parse successfully and invalid files
-// produce parse errors.
+// produce errors (either parse errors OR semantic errors like purity violations).
 
 use jtv_core::parse_program;
+use jtv_core::purity::PurityChecker;
 use std::path::PathBuf;
 
 /// Find the conformance directory relative to the workspace root.
@@ -87,20 +88,29 @@ fn conformance_invalid_files_reject() {
 
     for file in &files {
         let source = std::fs::read_to_string(file).expect("Failed to read conformance file");
-        match parse_program(&source) {
-            Ok(_) => {
-                failures.push(format!(
-                    "  FAIL: {} -- parsed successfully but should have been rejected",
-                    file.file_name().unwrap().to_str().unwrap()
-                ));
+
+        // An invalid file should fail either at parse or semantic check
+        let rejected = match parse_program(&source) {
+            Err(_) => true, // Parse error — correctly rejected
+            Ok(program) => {
+                // Parsed successfully — check if it fails semantic analysis
+                // (purity/totality violations, etc.)
+                let mut checker = PurityChecker::new();
+                checker.check_program(&program).is_err()
             }
-            Err(_) => {} // Expected: invalid files should fail to parse
+        };
+
+        if !rejected {
+            failures.push(format!(
+                "  FAIL: {} -- passed both parsing and semantic checks but should have been rejected",
+                file.file_name().unwrap().to_str().unwrap()
+            ));
         }
     }
 
     if !failures.is_empty() {
         panic!(
-            "Invalid conformance files that incorrectly parsed:\n{}",
+            "Invalid conformance files that incorrectly passed:\n{}",
             failures.join("\n")
         );
     }

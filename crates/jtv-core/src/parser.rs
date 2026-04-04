@@ -179,7 +179,21 @@ fn parse_control_stmt(pair: pest::iterators::Pair<Rule>) -> Result<ControlStmt> 
         Rule::for_stmt => {
             let mut parts = inner.into_inner();
             let variable = parts.next().unwrap().as_str().to_string();
-            let range = parse_range_expr(parts.next().unwrap())?;
+            let iterable = parts.next().unwrap();
+
+            // Support both range expressions (0..10) and data expressions (xs)
+            let range = if iterable.as_rule() == Rule::range_expr {
+                parse_range_expr(iterable)?
+            } else {
+                // Data expression used as iterable — wrap as a range with
+                // the expression as start and a sentinel Unit end
+                let expr = parse_data_expr(iterable)?;
+                RangeExpr {
+                    start: Box::new(expr),
+                    end: Box::new(DataExpr::Number(Number::Int(0))),
+                    step: None,
+                }
+            };
 
             let mut body = Vec::new();
             for stmt in parts.next().unwrap().into_inner() {
@@ -306,6 +320,11 @@ fn parse_factor(pair: pest::iterators::Pair<Rule>) -> Result<DataExpr> {
         Rule::number => {
             let num = parse_number(pair.into_inner().next().unwrap())?;
             Ok(DataExpr::Number(num))
+        }
+        Rule::string => {
+            // String literal: extract the inner content (without quotes)
+            let inner = pair.into_inner().next().unwrap();
+            Ok(DataExpr::StringLit(inner.as_str().to_string()))
         }
         Rule::identifier => Ok(DataExpr::Identifier(pair.as_str().to_string())),
         Rule::function_call => {

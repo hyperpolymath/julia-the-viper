@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/parser.rs
++++ delete match arm Rule::control_stmt in parse_module
+@@ -36,17 +36,17 @@
+ fn parse_module(pair: pest::iterators::Pair<Rule>) -> Result<TopLevel> {
+     let mut inner = pair.into_inner();
+     let name = inner.next().unwrap().as_str().to_string();
+ 
+     let mut body = Vec::new();
+     for pair in inner {
+         match pair.as_rule() {
+             Rule::function_decl => body.push(parse_function(pair)?),
+-            Rule::control_stmt => body.push(TopLevel::Control(parse_control_stmt(pair)?)),
++             /* ~ changed by cargo-mutants ~ */
+             _ => {}
+         }
+     }
+ 
+     Ok(TopLevel::Module(ModuleDecl { name, body }))
+ }
+ 
+ fn parse_import(pair: pest::iterators::Pair<Rule>) -> Result<TopLevel> {

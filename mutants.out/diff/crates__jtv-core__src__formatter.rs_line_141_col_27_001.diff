@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/formatter.rs
++++ replace += with *= in Formatter::format_function
+@@ -133,17 +133,17 @@
+ 
+         // Return type
+         if let Some(ret_type) = &func.return_type {
+             self.output.push_str(": ");
+             self.format_type_annotation(ret_type);
+         }
+ 
+         self.output.push_str(" {\n");
+-        self.indent_level += 1;
++        self.indent_level *= /* ~ changed by cargo-mutants ~ */ 1;
+ 
+         // Function body
+         for stmt in &func.body {
+             self.format_control_stmt(stmt);
+             self.output.push('\n');
+         }
+ 
+         self.indent_level -= 1;

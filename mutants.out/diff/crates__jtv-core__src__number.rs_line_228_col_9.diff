@@ -1,0 +1,58 @@
+--- crates/jtv-core/src/number.rs
++++ replace <impl fmt::Display for Value>::fmt -> fmt::Result with Ok(Default::default())
+@@ -220,54 +220,17 @@
+             Value::Unit => false,
+             _ => true,
+         }
+     }
+ }
+ 
+ impl fmt::Display for Value {
+     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+-        match self {
+-            Value::Int(n) => write!(f, "{}", n),
+-            Value::Float(n) => write!(f, "{}", n),
+-            Value::Rational(r) => write!(f, "{}/{}", r.numer(), r.denom()),
+-            Value::Complex(c) => {
+-                if c.im >= 0.0 {
+-                    write!(f, "{}+{}i", c.re, c.im)
+-                } else {
+-                    write!(f, "{}{}i", c.re, c.im)
+-                }
+-            }
+-            Value::Hex(n) => write!(f, "0x{:x}", n),
+-            Value::Binary(n) => write!(f, "0b{:b}", n),
+-            Value::Symbolic(s) => write!(f, "{}", s),
+-            Value::Bool(b) => write!(f, "{}", b),
+-            Value::String(s) => write!(f, "\"{}\"", s),
+-            Value::List(l) => {
+-                write!(f, "[")?;
+-                for (i, v) in l.iter().enumerate() {
+-                    if i > 0 {
+-                        write!(f, ", ")?;
+-                    }
+-                    write!(f, "{}", v)?;
+-                }
+-                write!(f, "]")
+-            }
+-            Value::Tuple(t) => {
+-                write!(f, "(")?;
+-                for (i, v) in t.iter().enumerate() {
+-                    if i > 0 {
+-                        write!(f, ", ")?;
+-                    }
+-                    write!(f, "{}", v)?;
+-                }
+-                write!(f, ")")
+-            }
+-            Value::Unit => write!(f, "()"),
+-        }
++        Ok(Default::default()) /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ #[cfg(test)]
+ mod tests {
+     use super::*;
+ 
+     #[test]

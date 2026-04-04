@@ -1,0 +1,28 @@
+--- crates/jtv-core/src/formatter.rs
++++ replace Formatter::format_import with ()
+@@ -87,24 +87,17 @@
+         }
+ 
+         self.indent_level -= 1;
+         self.write_indent();
+         self.output.push_str("}\n");
+     }
+ 
+     fn format_import(&mut self, import: &ImportStmt) {
+-        self.write_indent();
+-        self.output.push_str("import ");
+-        self.output.push_str(&import.path.join("/"));
+-        if let Some(alias) = &import.alias {
+-            self.output.push_str(" as ");
+-            self.output.push_str(alias);
+-        }
+-        self.output.push('\n');
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     fn format_function(&mut self, func: &FunctionDecl) {
+         self.write_indent();
+ 
+         // Purity annotation
+         match &func.purity {
+             Purity::Total => self.output.push_str("@total "),

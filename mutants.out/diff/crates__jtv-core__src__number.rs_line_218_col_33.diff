@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/number.rs
++++ delete ! in Value::is_truthy
+@@ -210,17 +210,17 @@
+ 
+     // Check if value is truthy (for conditionals)
+     pub fn is_truthy(&self) -> bool {
+         match self {
+             Value::Bool(b) => *b,
+             Value::Int(n) => *n != 0,
+             Value::Float(f) => *f != 0.0,
+             Value::Rational(r) => !r.is_zero(),
+-            Value::String(s) => !s.is_empty(),
++            Value::String(s) =>  /* ~ changed by cargo-mutants ~ */s.is_empty(),
+             Value::List(l) => !l.is_empty(),
+             Value::Unit => false,
+             _ => true,
+         }
+     }
+ }
+ 
+ impl fmt::Display for Value {

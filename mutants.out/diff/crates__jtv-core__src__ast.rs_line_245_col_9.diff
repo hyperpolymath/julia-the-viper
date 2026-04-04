@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/ast.rs
++++ replace DataExpr::negate -> Self with Default::default()
+@@ -237,17 +237,17 @@
+ 
+ // Helper functions for AST construction
+ impl DataExpr {
+     pub fn add(left: DataExpr, right: DataExpr) -> Self {
+         DataExpr::Add(Box::new(left), Box::new(right))
+     }
+ 
+     pub fn negate(expr: DataExpr) -> Self {
+-        DataExpr::Negate(Box::new(expr))
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     pub fn number(n: Number) -> Self {
+         DataExpr::Number(n)
+     }
+ 
+     pub fn identifier(name: impl Into<String>) -> Self {
+         DataExpr::Identifier(name.into())

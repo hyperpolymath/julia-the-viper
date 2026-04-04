@@ -1,0 +1,23 @@
+--- crates/jtv-core/src/number.rs
++++ delete match arm (Value::Symbolic(a), Value::Symbolic(b)) in Value::add
+@@ -36,19 +36,17 @@
+             (Value::Hex(a), Value::Hex(b)) => a
+                 .checked_add(*b)
+                 .map(Value::Hex)
+                 .ok_or(JtvError::IntegerOverflow),
+             (Value::Binary(a), Value::Binary(b)) => a
+                 .checked_add(*b)
+                 .map(Value::Binary)
+                 .ok_or(JtvError::IntegerOverflow),
+-            (Value::Symbolic(a), Value::Symbolic(b)) => {
+-                Ok(Value::Symbolic(format!("{} + {}", a, b)))
+-            }
++             /* ~ changed by cargo-mutants ~ */
+             (Value::String(a), Value::String(b)) => Ok(Value::String(format!("{}{}", a, b))),
+             // Type coercion
+             (Value::Int(a), Value::Float(b)) => Ok(Value::Float(*a as f64 + b)),
+             (Value::Float(a), Value::Int(b)) => Ok(Value::Float(a + *b as f64)),
+             (Value::Int(a), Value::Rational(b)) => Ok(Value::Rational(Ratio::from_integer(*a) + b)),
+             (Value::Rational(a), Value::Int(b)) => Ok(Value::Rational(a + Ratio::from_integer(*b))),
+             (Value::Float(a), Value::Complex(b)) => Ok(Value::Complex(Complex64::new(*a, 0.0) + b)),
+             (Value::Complex(a), Value::Float(b)) => Ok(Value::Complex(a + Complex64::new(*b, 0.0))),

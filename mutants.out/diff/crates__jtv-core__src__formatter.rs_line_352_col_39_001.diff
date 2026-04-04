@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/formatter.rs
++++ replace -= with /= in Formatter::format_reversible_stmt
+@@ -344,17 +344,17 @@
+ 
+                 if let Some(else_branch) = &if_stmt.else_branch {
+                     self.output.push_str(" else {\n");
+                     self.indent_level += 1;
+                     for s in else_branch {
+                         self.format_control_stmt(s);
+                         self.output.push('\n');
+                     }
+-                    self.indent_level -= 1;
++                    self.indent_level /= /* ~ changed by cargo-mutants ~ */ 1;
+                     self.write_indent();
+                     self.output.push('}');
+                 }
+             }
+         }
+     }
+ 
+     fn format_expr(&mut self, expr: &Expr) {

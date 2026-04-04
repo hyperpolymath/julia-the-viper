@@ -1,0 +1,27 @@
+--- crates/jtv-core/src/parser.rs
++++ delete match arm Rule::list_literal in parse_factor
+@@ -350,23 +350,17 @@
+             if let Some(arg_list) = parts.next() {
+                 for arg in arg_list.into_inner() {
+                     args.push(parse_data_expr(arg)?);
+                 }
+             }
+ 
+             Ok(DataExpr::FunctionCall(FunctionCall { module, name, args }))
+         }
+-        Rule::list_literal => {
+-            let mut elements = Vec::new();
+-            for elem in pair.into_inner() {
+-                elements.push(parse_data_expr(elem)?);
+-            }
+-            Ok(DataExpr::List(elements))
+-        }
++         /* ~ changed by cargo-mutants ~ */
+         Rule::tuple_literal => {
+             let mut elements = Vec::new();
+             for elem in pair.into_inner() {
+                 elements.push(parse_data_expr(elem)?);
+             }
+             Ok(DataExpr::Tuple(elements))
+         }
+         Rule::factor => {

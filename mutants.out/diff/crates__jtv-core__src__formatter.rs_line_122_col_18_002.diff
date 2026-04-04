@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/formatter.rs
++++ replace > with >= in Formatter::format_function
+@@ -114,17 +114,17 @@
+ 
+         // Function signature
+         self.output.push_str("fn ");
+         self.output.push_str(&func.name);
+         self.output.push('(');
+ 
+         // Parameters
+         for (i, param) in func.params.iter().enumerate() {
+-            if i > 0 {
++            if i >= /* ~ changed by cargo-mutants ~ */ 0 {
+                 self.output.push_str(", ");
+             }
+             self.output.push_str(&param.name);
+             if let Some(ty) = &param.type_annotation {
+                 self.output.push_str(": ");
+                 self.format_type_annotation(ty);
+             }
+         }

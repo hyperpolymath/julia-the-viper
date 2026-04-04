@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/interpreter.rs
++++ replace > with == in Interpreter::eval_control_stmt
+@@ -274,17 +274,17 @@
+                             return Err(JtvError::TypeError("Step must be an integer".to_string()))
+                         }
+                     }
+                 } else {
+                     1
+                 };
+ 
+                 let mut i = start_int;
+-                while (step > 0 && i < end_int) || (step < 0 && i > end_int) {
++                while (step > 0 && i < end_int) || (step < 0 && i == /* ~ changed by cargo-mutants ~ */ end_int) {
+                     self.iteration_count += 1;
+                     self.check_iteration_limit()?;
+ 
+                     self.set_variable(for_stmt.variable.clone(), Value::Int(i));
+ 
+                     for stmt in &for_stmt.body {
+                         if let Some(val) = self.eval_control_stmt(stmt)? {
+                             return Ok(Some(val));

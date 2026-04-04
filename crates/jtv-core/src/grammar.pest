@@ -32,7 +32,7 @@ if_stmt = { "if" ~ control_expr ~ block ~ ("else" ~ block)? }
 
 while_stmt = { "while" ~ control_expr ~ block }
 
-for_stmt = { "for" ~ identifier ~ "in" ~ range_expr ~ block }
+for_stmt = { "for" ~ identifier ~ "in" ~ (range_expr | data_expr) ~ block }
 
 return_stmt = { "return" ~ data_expr? }
 
@@ -54,6 +54,7 @@ term = { factor }
 
 factor = {
     number
+    | string
     | function_call
     | identifier
     | list_literal

@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/formatter.rs
++++ replace && with || in Formatter::format_program
+@@ -50,17 +50,17 @@
+     }
+ 
+     /// Format a complete program
+     pub fn format_program(&mut self, program: &Program) -> String {
+         self.output.clear();
+         self.indent_level = 0;
+ 
+         for (i, stmt) in program.statements.iter().enumerate() {
+-            if i > 0 && self.config.blank_lines_between_items {
++            if i > 0 || /* ~ changed by cargo-mutants ~ */ self.config.blank_lines_between_items {
+                 self.output.push('\n');
+             }
+             self.format_top_level(stmt);
+         }
+ 
+         self.output.trim_end().to_string() + "\n"
+     }
+ 

@@ -1,0 +1,94 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+#
+# proof-regression.yml — Verify that formal proofs still compile after code changes.
+# Covers: Lean 4 mechanized proofs (jtv_proofs/) and Idris2 ABI types (src/abi/).
+# Taxonomy category: Proof Regression (PRF)
+name: Proof Regression
+
+on:
+  pull_request:
+    branches: ['**']
+    paths:
+      - 'jtv_proofs/**'
+      - 'src/abi/**'
+      - 'crates/jtv-core/src/ast.rs'
+      - 'crates/jtv-core/src/number.rs'
+      - 'crates/jtv-core/src/reversible.rs'
+      - 'crates/jtv-core/src/grammar.pest'
+  push:
+    branches: [main]
+    paths:
+      - 'jtv_proofs/**'
+      - 'src/abi/**'
+      - 'crates/jtv-core/src/ast.rs'
+      - 'crates/jtv-core/src/number.rs'
+      - 'crates/jtv-core/src/reversible.rs'
+      - 'crates/jtv-core/src/grammar.pest'
+  # Also run weekly to catch upstream Lean/Idris2 breakage
+  schedule:
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  lean4-proofs:
+    name: Lean 4 proof verification
+    runs-on: ubuntu-latest
+    if: hashFiles('jtv_proofs/lakefile.lean') != ''
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Install elan (Lean toolchain manager)
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Cache Lean build
+        uses: actions/cache@v4
+        with:
+          path: |
+            jtv_proofs/.lake
+            jtv_proofs/build
+          key: lean4-${{ hashFiles('jtv_proofs/lakefile.lean', 'jtv_proofs/lean-toolchain') }}
+          restore-keys: lean4-
+
+      - name: Build Lean proofs
+        working-directory: jtv_proofs
+        run: |
+          lake build
+          echo "## Lean 4 Proof Verification" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "All proofs compiled successfully." >> "$GITHUB_STEP_SUMMARY"
+
+  idris2-abi:
+    name: Idris2 ABI type verification
+    runs-on: ubuntu-latest
+    if: hashFiles('src/abi/Types.idr') != ''
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Install Idris2
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y idris2 || {
+            # Fallback: install from pack
+            curl -sSf https://raw.githubusercontent.com/stefan-hoeck/idris2-pack/main/install.bash | bash
+            echo "$HOME/.pack/bin" >> "$GITHUB_PATH"
+          }
+
+      - name: Check Idris2 ABI types
+        run: |
+          cd src/abi
+          idris2 --check Types.idr || {
+            echo "::error::Idris2 ABI type definitions failed to compile"
+            exit 1
+          }
+          echo "## Idris2 ABI Verification" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "ABI type definitions verified successfully." >> "$GITHUB_STEP_SUMMARY"

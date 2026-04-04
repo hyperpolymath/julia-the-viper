@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/formatter.rs
++++ replace -= with += in Formatter::format_function
+@@ -141,17 +141,17 @@
+         self.indent_level += 1;
+ 
+         // Function body
+         for stmt in &func.body {
+             self.format_control_stmt(stmt);
+             self.output.push('\n');
+         }
+ 
+-        self.indent_level -= 1;
++        self.indent_level += /* ~ changed by cargo-mutants ~ */ 1;
+         self.write_indent();
+         self.output.push_str("}\n");
+     }
+ 
+     fn format_type_annotation(&mut self, ty: &TypeAnnotation) {
+         match ty {
+             TypeAnnotation::Basic(basic) => {
+                 self.output.push_str(match basic {

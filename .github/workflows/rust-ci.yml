@@ -2,6 +2,7 @@
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
 # rust-ci.yml — Cargo build, test, clippy, and fmt for Rust projects.
+# Cross-platform matrix: Linux, macOS, Windows.
 # Only runs if Cargo.toml exists in the repo root.
 name: Rust CI
 
@@ -16,9 +17,13 @@ permissions:
 
 jobs:
   check:
-    name: Cargo check + clippy + fmt
-    runs-on: ubuntu-latest
+    name: Check (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     if: hashFiles('Cargo.toml') != ''
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
       - name: Checkout repository
@@ -42,10 +47,14 @@ jobs:
         run: cargo clippy --all-targets -- -D warnings
 
   test:
-    name: Cargo test
-    runs-on: ubuntu-latest
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     needs: check
     if: hashFiles('Cargo.toml') != ''
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
       - name: Checkout repository
@@ -63,7 +72,7 @@ jobs:
       - name: Write summary
         if: always()
         run: |
-          echo "## Rust CI Results" >> "$GITHUB_STEP_SUMMARY"
+          echo "## Rust CI Results (${{ matrix.os }})" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "- **cargo check**: passed" >> "$GITHUB_STEP_SUMMARY"
           echo "- **cargo test**: completed" >> "$GITHUB_STEP_SUMMARY"

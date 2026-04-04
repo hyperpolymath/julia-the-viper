@@ -1,0 +1,66 @@
+--- crates/jtv-core/src/formatter.rs
++++ replace Formatter::format_reversible_stmt with ()
+@@ -304,62 +304,17 @@
+                 self.indent_level -= 1;
+                 self.write_indent();
+                 self.output.push('}');
+             }
+         }
+     }
+ 
+     fn format_reversible_stmt(&mut self, stmt: &ReversibleStmt) {
+-        self.write_indent();
+-        match stmt {
+-            ReversibleStmt::AddAssign(target, expr) => {
+-                self.output.push_str(target);
+-                if self.config.spaces_around_operators {
+-                    self.output.push_str(" += ");
+-                } else {
+-                    self.output.push_str("+=");
+-                }
+-                self.format_data_expr(expr);
+-            }
+-            ReversibleStmt::SubAssign(target, expr) => {
+-                self.output.push_str(target);
+-                if self.config.spaces_around_operators {
+-                    self.output.push_str(" -= ");
+-                } else {
+-                    self.output.push_str("-=");
+-                }
+-                self.format_data_expr(expr);
+-            }
+-            ReversibleStmt::If(if_stmt) => {
+-                self.output.push_str("if ");
+-                self.format_control_expr(&if_stmt.condition);
+-                self.output.push_str(" {\n");
+-                self.indent_level += 1;
+-                for s in &if_stmt.then_branch {
+-                    self.format_control_stmt(s);
+-                    self.output.push('\n');
+-                }
+-                self.indent_level -= 1;
+-                self.write_indent();
+-                self.output.push('}');
+-
+-                if let Some(else_branch) = &if_stmt.else_branch {
+-                    self.output.push_str(" else {\n");
+-                    self.indent_level += 1;
+-                    for s in else_branch {
+-                        self.format_control_stmt(s);
+-                        self.output.push('\n');
+-                    }
+-                    self.indent_level -= 1;
+-                    self.write_indent();
+-                    self.output.push('}');
+-                }
+-            }
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     fn format_expr(&mut self, expr: &Expr) {
+         match expr {
+             Expr::Data(data) => self.format_data_expr(data),
+             Expr::Control(ctrl) => self.format_control_expr(ctrl),
+         }
+     }

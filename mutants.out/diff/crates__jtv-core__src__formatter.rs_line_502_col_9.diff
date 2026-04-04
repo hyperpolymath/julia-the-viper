@@ -1,0 +1,25 @@
+--- crates/jtv-core/src/formatter.rs
++++ replace Formatter::write_indent with ()
+@@ -494,21 +494,17 @@
+             Number::Symbolic(s) => {
+                 // Symbolic literals use '#' prefix (e.g., #x, #pi)
+                 self.output.push_str(&format!("#{}", s));
+             }
+         }
+     }
+ 
+     fn write_indent(&mut self) {
+-        for _ in 0..self.indent_level {
+-            for _ in 0..self.config.indent_size {
+-                self.output.push(' ');
+-            }
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ }
+ 
+ impl Default for Formatter {
+     fn default() -> Self {
+         Self::new()
+     }
+ }

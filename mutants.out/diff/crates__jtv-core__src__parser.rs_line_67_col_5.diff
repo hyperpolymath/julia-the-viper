@@ -1,0 +1,67 @@
+--- crates/jtv-core/src/parser.rs
++++ replace parse_function -> Result<TopLevel> with Ok(Default::default())
+@@ -59,63 +59,17 @@
+         .collect();
+ 
+     let alias = inner.next().map(|p| p.as_str().to_string());
+ 
+     Ok(TopLevel::Import(ImportStmt { path, alias }))
+ }
+ 
+ fn parse_function(pair: pest::iterators::Pair<Rule>) -> Result<TopLevel> {
+-    let mut inner = pair.into_inner();
+-
+-    let mut purity = Purity::Impure;
+-    let mut first = inner.next().unwrap();
+-
+-    // Check for purity marker
+-    if first.as_rule() == Rule::purity_marker {
+-        purity = match first.as_str() {
+-            "@pure" => Purity::Pure,
+-            "@total" => Purity::Total,
+-            _ => Purity::Impure,
+-        };
+-        first = inner.next().unwrap();
+-    }
+-
+-    let name = first.as_str().to_string();
+-
+-    let mut params = Vec::new();
+-    let mut return_type = None;
+-    let mut body = Vec::new();
+-
+-    for pair in inner {
+-        match pair.as_rule() {
+-            Rule::param_list => {
+-                for param_pair in pair.into_inner() {
+-                    params.push(parse_param(param_pair)?);
+-                }
+-            }
+-            Rule::return_type => {
+-                return_type = Some(parse_type_annotation(pair.into_inner().next().unwrap())?);
+-            }
+-            Rule::block => {
+-                for stmt_pair in pair.into_inner() {
+-                    body.push(parse_control_stmt(stmt_pair)?);
+-                }
+-            }
+-            _ => {}
+-        }
+-    }
+-
+-    Ok(TopLevel::Function(FunctionDecl {
+-        name,
+-        params,
+-        return_type,
+-        purity,
+-        body,
+-    }))
++    Ok(Default::default()) /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ fn parse_param(pair: pest::iterators::Pair<Rule>) -> Result<Param> {
+     let mut inner = pair.into_inner();
+     let name = inner.next().unwrap().as_str().to_string();
+     let type_annotation = inner.next().map(|p| parse_type_annotation(p)).transpose()?;
+ 
+     Ok(Param {

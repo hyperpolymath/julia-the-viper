@@ -1,0 +1,24 @@
+--- crates/jtv-core/src/number.rs
++++ delete match arm Value::Hex(n) in Value::negate
+@@ -64,20 +64,17 @@
+         match self {
+             Value::Int(n) => n
+                 .checked_neg()
+                 .map(Value::Int)
+                 .ok_or(JtvError::IntegerOverflow),
+             Value::Float(n) => Ok(Value::Float(-n)),
+             Value::Rational(n) => Ok(Value::Rational(-n)),
+             Value::Complex(n) => Ok(Value::Complex(-n)),
+-            Value::Hex(n) => n
+-                .checked_neg()
+-                .map(Value::Hex)
+-                .ok_or(JtvError::IntegerOverflow),
++             /* ~ changed by cargo-mutants ~ */
+             Value::Binary(n) => n
+                 .checked_neg()
+                 .map(Value::Binary)
+                 .ok_or(JtvError::IntegerOverflow),
+             Value::Symbolic(s) => Ok(Value::Symbolic(format!("-({})", s))),
+             _ => Err(JtvError::TypeError(format!("Cannot negate {:?}", self))),
+         }
+     }

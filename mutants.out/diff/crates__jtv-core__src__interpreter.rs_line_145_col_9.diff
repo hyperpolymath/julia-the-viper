@@ -1,0 +1,75 @@
+--- crates/jtv-core/src/interpreter.rs
++++ replace Interpreter::eval_top_level_with_context -> Result<()> with Ok(())
+@@ -137,71 +137,17 @@
+         self.eval_top_level_with_context(top_level, None)
+     }
+ 
+     fn eval_top_level_with_context(
+         &mut self,
+         top_level: &TopLevel,
+         current_module: Option<&str>,
+     ) -> Result<()> {
+-        match top_level {
+-            TopLevel::Module(module) => {
+-                // Register module and process its body
+-                let mut func_names = Vec::new();
+-
+-                for stmt in &module.body {
+-                    if let TopLevel::Function(func) = stmt {
+-                        func_names.push(func.name.clone());
+-                    }
+-                    self.eval_top_level_with_context(stmt, Some(&module.name))?;
+-                }
+-
+-                self.modules.insert(module.name.clone(), func_names);
+-                Ok(())
+-            }
+-            TopLevel::Import(import) => {
+-                // Register import
+-                let module_name = import.path.join("::");
+-                self.imports
+-                    .insert(module_name.clone(), import.alias.clone());
+-
+-                // If module is already defined, make its functions available
+-                if let Some(func_names) = self.modules.get(&module_name).cloned() {
+-                    for func_name in func_names {
+-                        let qualified = format!("{}::{}", module_name, func_name);
+-                        if let Some(func) = self.functions.get(&qualified).cloned() {
+-                            // Also register with alias if present
+-                            if let Some(alias) = &import.alias {
+-                                let aliased = format!("{}::{}", alias, func_name);
+-                                self.functions.insert(aliased, func.clone());
+-                            }
+-                            // Register as unqualified for direct use after import
+-                            self.functions.insert(func_name, func);
+-                        }
+-                    }
+-                }
+-                Ok(())
+-            }
+-            TopLevel::Function(func) => {
+-                // Store function with qualified name if in a module context
+-                let qualified_name = match current_module {
+-                    Some(module) => format!("{}::{}", module, func.name),
+-                    None => func.name.clone(),
+-                };
+-                self.functions.insert(qualified_name, func.clone());
+-
+-                // Also store with just the name for local access within module
+-                self.functions.insert(func.name.clone(), func.clone());
+-                Ok(())
+-            }
+-            TopLevel::Control(stmt) => {
+-                self.eval_control_stmt(stmt)?;
+-                Ok(())
+-            }
+-        }
++        Ok(()) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     fn eval_control_stmt(&mut self, stmt: &ControlStmt) -> Result<Option<Value>> {
+         self.check_iteration_limit()?;
+ 
+         match stmt {
+             ControlStmt::Assignment(assignment) => {
+                 let value = match &assignment.value {

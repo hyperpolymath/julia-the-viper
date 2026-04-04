@@ -410,6 +410,7 @@ impl TypeChecker {
     pub fn infer_data_expr(&self, expr: &DataExpr) -> Result<Type> {
         match expr {
             DataExpr::Number(num) => Ok(self.number_type(num)),
+            DataExpr::StringLit(_) => Ok(Type::String),
             DataExpr::Identifier(name) => self
                 .env
                 .get_var(name)

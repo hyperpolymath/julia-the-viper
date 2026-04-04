@@ -1,0 +1,29 @@
+--- crates/jtv-core/src/interpreter.rs
++++ replace Interpreter::reset with ()
+@@ -81,25 +81,17 @@
+ 
+     /// Get captured output without clearing the buffer
+     pub fn get_output(&self) -> &[String] {
+         &self.output_buffer
+     }
+ 
+     /// Reset interpreter state completely (variables, functions, modules, trace, output)
+     pub fn reset(&mut self) {
+-        self.globals.clear();
+-        self.functions.clear();
+-        self.modules.clear();
+-        self.imports.clear();
+-        self.call_stack.clear();
+-        self.iteration_count = 0;
+-        self.trace.clear();
+-        self.last_result = None;
+-        self.output_buffer.clear();
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     pub fn get_variables(&self) -> Vec<(String, Value)> {
+         self.globals
+             .iter()
+             .map(|(k, v)| (k.clone(), v.clone()))
+             .collect()
+     }

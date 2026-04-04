@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/formatter.rs
++++ replace > with >= in Formatter::format_data_expr
+@@ -425,17 +425,17 @@
+             DataExpr::Negate(inner) => {
+                 self.output.push('-');
+                 self.format_data_expr(inner);
+             }
+             DataExpr::FunctionCall(call) => {
+                 self.output.push_str(&call.name);
+                 self.output.push('(');
+                 for (i, arg) in call.args.iter().enumerate() {
+-                    if i > 0 {
++                    if i >= /* ~ changed by cargo-mutants ~ */ 0 {
+                         self.output.push_str(", ");
+                     }
+                     self.format_data_expr(arg);
+                 }
+                 self.output.push(')');
+             }
+             DataExpr::List(elements) => {
+                 self.output.push('[');

@@ -212,6 +212,7 @@ impl PurityChecker {
     fn analyze_data_expr(&self, expr: &DataExpr) -> Result<PurityLevel> {
         match expr {
             DataExpr::Number(_) => Ok(PurityLevel::Total),
+            DataExpr::StringLit(_) => Ok(PurityLevel::Total),
             DataExpr::Identifier(_) => Ok(PurityLevel::Total),
             DataExpr::Add(left, right) => {
                 let left_level = self.analyze_data_expr(left)?;

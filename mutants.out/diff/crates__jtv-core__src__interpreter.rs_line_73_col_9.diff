@@ -1,0 +1,22 @@
+--- crates/jtv-core/src/interpreter.rs
++++ replace Interpreter::disable_output_capture with ()
+@@ -65,18 +65,17 @@
+ 
+     /// Enable output capture (print statements buffer instead of writing to stdout)
+     pub fn enable_output_capture(&mut self) {
+         self.capture_output = true;
+     }
+ 
+     /// Disable output capture (print statements go to stdout again)
+     pub fn disable_output_capture(&mut self) {
+-        self.capture_output = false;
+-        self.output_buffer.clear();
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Retrieve and clear the captured output buffer
+     pub fn take_output(&mut self) -> Vec<String> {
+         std::mem::take(&mut self.output_buffer)
+     }
+ 
+     /// Get captured output without clearing the buffer

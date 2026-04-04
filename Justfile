@@ -214,19 +214,56 @@ build-pwa: build-wasm
     @echo "✅ PWA files in web/"
     @echo "📝 Ready to deploy!"
 
+# Smoke test: fast sanity check (<30 seconds). Taxonomy: SMK
+smoke:
+    @echo "Running smoke test..."
+    @echo "  [1/4] Cargo check (jtv-core)..."
+    @cargo check --quiet -p jtv-core 2>&1
+    @echo "  [OK] Build compiles"
+    @echo "  [2/4] Parse conformance file..."
+    @cargo run --quiet --bin jtv parse conformance/valid/data_expressions.jtv 2>&1 > /dev/null
+    @echo "  [OK] Parser works"
+    @echo "  [3/4] Run unit tests (quick)..."
+    @cargo test --quiet -p jtv-core --lib 2>&1 > /dev/null
+    @echo "  [OK] Unit tests pass"
+    @echo "  [4/4] Clippy (jtv-core, no warnings)..."
+    @cargo clippy --quiet -p jtv-core -- -D warnings 2>&1 > /dev/null
+    @echo "  [OK] No clippy warnings"
+    @echo "Smoke test passed."
+
 # Run panic-attacker pre-commit scan
 assail:
     @command -v panic-attack >/dev/null 2>&1 && panic-attack assail . || echo "panic-attack not found — install from https://github.com/hyperpolymath/panic-attacker"
 
-# Self-diagnostic — checks dependencies, permissions, paths
+# Self-diagnostic — checks dependencies, permissions, paths, proofs. Taxonomy: REF
 doctor:
     @echo "Running diagnostics for julia-the-viper..."
-    @echo "Checking required tools..."
-    @command -v just >/dev/null 2>&1 && echo "  [OK] just" || echo "  [FAIL] just not found"
-    @command -v git >/dev/null 2>&1 && echo "  [OK] git" || echo "  [FAIL] git not found"
-    @echo "Checking for hardcoded paths..."
-    @grep -rn '$HOME\|$ECLIPSE_DIR' --include='*.rs' --include='*.ex' --include='*.res' --include='*.gleam' --include='*.sh' . 2>/dev/null | head -5 || echo "  [OK] No hardcoded paths"
-    @echo "Diagnostics complete."
+    @FAIL=0; \
+    echo "=== Required Tools ==="; \
+    command -v just >/dev/null 2>&1 && echo "  [OK] just" || { echo "  [FAIL] just not found"; FAIL=1; }; \
+    command -v cargo >/dev/null 2>&1 && echo "  [OK] cargo ($(cargo --version 2>/dev/null | head -c 20))" || { echo "  [FAIL] cargo not found"; FAIL=1; }; \
+    command -v git >/dev/null 2>&1 && echo "  [OK] git" || { echo "  [FAIL] git not found"; FAIL=1; }; \
+    echo "=== Project Structure ==="; \
+    test -f Cargo.toml && echo "  [OK] Cargo.toml" || { echo "  [FAIL] Cargo.toml missing"; FAIL=1; }; \
+    test -f Justfile && echo "  [OK] Justfile" || { echo "  [FAIL] Justfile missing"; FAIL=1; }; \
+    test -f LICENSE && echo "  [OK] LICENSE" || { echo "  [FAIL] LICENSE missing"; FAIL=1; }; \
+    test -d crates/jtv-core/src && echo "  [OK] crates/jtv-core/src/" || { echo "  [FAIL] core crate missing"; FAIL=1; }; \
+    test -f crates/jtv-core/src/grammar.pest && echo "  [OK] grammar.pest" || { echo "  [FAIL] grammar.pest missing"; FAIL=1; }; \
+    echo "=== Formal Proofs ==="; \
+    test -d jtv_proofs && echo "  [OK] jtv_proofs/ (Lean 4)" || echo "  [WARN] jtv_proofs/ missing"; \
+    test -f src/abi/Types.idr && echo "  [OK] src/abi/Types.idr (Idris2)" || echo "  [WARN] src/abi/Types.idr missing"; \
+    echo "=== Conformance Suite ==="; \
+    VALID=$(ls conformance/valid/*.jtv 2>/dev/null | wc -l); \
+    INVALID=$(ls conformance/invalid/*.jtv 2>/dev/null | wc -l); \
+    echo "  [INFO] $VALID valid programs, $INVALID invalid programs"; \
+    echo "=== Security Checks ==="; \
+    grep -rn 'believe_me\|assert_total\|sorry\|Admitted\|unsafeCoerce' --include='*.rs' --include='*.idr' --include='*.lean' . 2>/dev/null | grep -v target/ | head -5 && { echo "  [WARN] Dangerous patterns found"; } || echo "  [OK] No dangerous patterns"; \
+    echo "=== Hardcoded Paths ==="; \
+    grep -rn '\$HOME\|\$ECLIPSE_DIR\|/home/' --include='*.rs' --include='*.ex' --include='*.sh' . 2>/dev/null | grep -v target/ | head -5 && echo "  [WARN] Hardcoded paths found" || echo "  [OK] No hardcoded paths"; \
+    echo "=== Test Count ==="; \
+    TESTS=$(grep -r '#\[test\]' crates/ --include='*.rs' 2>/dev/null | grep -v target/ | wc -l); \
+    echo "  [INFO] $TESTS tests found"; \
+    if [ $FAIL -gt 0 ]; then echo "DIAGNOSTICS: FAILED ($FAIL issues)"; exit 1; else echo "DIAGNOSTICS: PASSED"; fi
 
 # Auto-repair common issues
 heal:

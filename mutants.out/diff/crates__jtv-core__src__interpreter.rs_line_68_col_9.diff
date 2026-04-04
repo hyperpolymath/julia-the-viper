@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/interpreter.rs
++++ replace Interpreter::enable_output_capture with ()
+@@ -60,17 +60,17 @@
+     }
+ 
+     pub fn get_trace(&self) -> &[TraceEntry] {
+         &self.trace
+     }
+ 
+     /// Enable output capture (print statements buffer instead of writing to stdout)
+     pub fn enable_output_capture(&mut self) {
+-        self.capture_output = true;
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Disable output capture (print statements go to stdout again)
+     pub fn disable_output_capture(&mut self) {
+         self.capture_output = false;
+         self.output_buffer.clear();
+     }
+ 

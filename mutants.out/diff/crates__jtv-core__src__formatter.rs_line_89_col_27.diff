@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/formatter.rs
++++ replace -= with += in Formatter::format_module
+@@ -81,17 +81,17 @@
+         self.output
+             .push_str(&format!("module {} {{\n", module.name));
+         self.indent_level += 1;
+ 
+         for stmt in &module.body {
+             self.format_top_level(stmt);
+         }
+ 
+-        self.indent_level -= 1;
++        self.indent_level += /* ~ changed by cargo-mutants ~ */ 1;
+         self.write_indent();
+         self.output.push_str("}\n");
+     }
+ 
+     fn format_import(&mut self, import: &ImportStmt) {
+         self.write_indent();
+         self.output.push_str("import ");
+         self.output.push_str(&import.path.join("/"));

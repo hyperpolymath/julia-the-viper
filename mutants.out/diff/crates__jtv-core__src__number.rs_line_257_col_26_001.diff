@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/number.rs
++++ replace > with < in <impl fmt::Display for Value>::fmt
+@@ -249,17 +249,17 @@
+                     }
+                     write!(f, "{}", v)?;
+                 }
+                 write!(f, "]")
+             }
+             Value::Tuple(t) => {
+                 write!(f, "(")?;
+                 for (i, v) in t.iter().enumerate() {
+-                    if i > 0 {
++                    if i < /* ~ changed by cargo-mutants ~ */ 0 {
+                         write!(f, ", ")?;
+                     }
+                     write!(f, "{}", v)?;
+                 }
+                 write!(f, ")")
+             }
+             Value::Unit => write!(f, "()"),
+         }

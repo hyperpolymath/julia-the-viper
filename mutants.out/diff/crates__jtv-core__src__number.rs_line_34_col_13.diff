@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/number.rs
++++ delete match arm (Value::Rational(a), Value::Rational(b)) in Value::add
+@@ -26,17 +26,17 @@
+     // Addition operation (the only arithmetic operation in Data Language)
+     pub fn add(&self, other: &Value) -> Result<Value> {
+         match (self, other) {
+             (Value::Int(a), Value::Int(b)) => a
+                 .checked_add(*b)
+                 .map(Value::Int)
+                 .ok_or(JtvError::IntegerOverflow),
+             (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a + b)),
+-            (Value::Rational(a), Value::Rational(b)) => Ok(Value::Rational(a + b)),
++             /* ~ changed by cargo-mutants ~ */
+             (Value::Complex(a), Value::Complex(b)) => Ok(Value::Complex(a + b)),
+             (Value::Hex(a), Value::Hex(b)) => a
+                 .checked_add(*b)
+                 .map(Value::Hex)
+                 .ok_or(JtvError::IntegerOverflow),
+             (Value::Binary(a), Value::Binary(b)) => a
+                 .checked_add(*b)
+                 .map(Value::Binary)

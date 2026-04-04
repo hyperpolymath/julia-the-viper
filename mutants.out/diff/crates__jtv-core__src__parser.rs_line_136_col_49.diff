@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/parser.rs
++++ replace == with != in parse_control_stmt
+@@ -128,17 +128,17 @@
+     let inner = pair.into_inner().next().unwrap();
+ 
+     match inner.as_rule() {
+         Rule::assignment => {
+             let mut parts = inner.into_inner();
+             let target = parts.next().unwrap().as_str().to_string();
+             let value_pair = parts.next().unwrap();
+ 
+-            let value = if value_pair.as_rule() == Rule::data_expr {
++            let value = if value_pair.as_rule() != /* ~ changed by cargo-mutants ~ */ Rule::data_expr {
+                 Expr::Data(parse_data_expr(value_pair)?)
+             } else {
+                 Expr::Control(parse_control_expr(value_pair)?)
+             };
+ 
+             Ok(ControlStmt::Assignment(Assignment { target, value }))
+         }
+         Rule::if_stmt => {

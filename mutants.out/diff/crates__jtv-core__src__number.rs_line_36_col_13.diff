@@ -1,0 +1,24 @@
+--- crates/jtv-core/src/number.rs
++++ delete match arm (Value::Hex(a), Value::Hex(b)) in Value::add
+@@ -28,20 +28,17 @@
+         match (self, other) {
+             (Value::Int(a), Value::Int(b)) => a
+                 .checked_add(*b)
+                 .map(Value::Int)
+                 .ok_or(JtvError::IntegerOverflow),
+             (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a + b)),
+             (Value::Rational(a), Value::Rational(b)) => Ok(Value::Rational(a + b)),
+             (Value::Complex(a), Value::Complex(b)) => Ok(Value::Complex(a + b)),
+-            (Value::Hex(a), Value::Hex(b)) => a
+-                .checked_add(*b)
+-                .map(Value::Hex)
+-                .ok_or(JtvError::IntegerOverflow),
++             /* ~ changed by cargo-mutants ~ */
+             (Value::Binary(a), Value::Binary(b)) => a
+                 .checked_add(*b)
+                 .map(Value::Binary)
+                 .ok_or(JtvError::IntegerOverflow),
+             (Value::Symbolic(a), Value::Symbolic(b)) => {
+                 Ok(Value::Symbolic(format!("{} + {}", a, b)))
+             }
+             (Value::String(a), Value::String(b)) => Ok(Value::String(format!("{}{}", a, b))),

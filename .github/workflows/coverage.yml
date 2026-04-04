@@ -1,0 +1,71 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+#
+# coverage.yml — Code coverage reporting via cargo-tarpaulin.
+# Generates coverage report and uploads to Codecov.
+name: Coverage
+
+on:
+  pull_request:
+    branches: ['**']
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  coverage:
+    name: Code coverage
+    runs-on: ubuntu-latest
+    if: hashFiles('Cargo.toml') != ''
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@4be9e76fd7c4901c61fb841f559994984270fce7 # stable
+
+      - name: Cache cargo registry and build
+        uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5 # v2
+
+      - name: Install cargo-tarpaulin
+        run: cargo install cargo-tarpaulin
+
+      - name: Generate coverage report
+        run: |
+          cargo tarpaulin \
+            -p jtv-core \
+            --out xml \
+            --out html \
+            --output-dir coverage/ \
+            --skip-clean \
+            --timeout 120
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5
+        with:
+          files: coverage/cobertura.xml
+          fail_ci_if_error: false
+
+      - name: Write summary
+        if: always()
+        run: |
+          echo "## Code Coverage Report" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f coverage/cobertura.xml ]; then
+            LINE_RATE=$(grep -oP 'line-rate="\K[^"]+' coverage/cobertura.xml | head -1)
+            PERCENT=$(echo "$LINE_RATE * 100" | bc -l 2>/dev/null | head -c 5 || echo "$LINE_RATE")
+            echo "Line coverage: **${PERCENT}%**" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Coverage report not generated." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload HTML report as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30

@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/parser.rs
++++ delete match arm Rule::data_expr in parse_factor
+@@ -383,17 +383,17 @@
+                         "Unknown unary operator: {}",
+                         op
+                     ))),
+                 }
+             } else {
+                 parse_factor(first)
+             }
+         }
+-        Rule::data_expr => parse_data_expr(pair),
++         /* ~ changed by cargo-mutants ~ */
+         _ => Err(JtvError::ParseError(format!(
+             "Unexpected factor: {:?}",
+             pair.as_rule()
+         ))),
+     }
+ }
+ 
+ fn parse_number(pair: pest::iterators::Pair<Rule>) -> Result<Number> {

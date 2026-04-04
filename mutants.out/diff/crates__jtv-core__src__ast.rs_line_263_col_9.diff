@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/ast.rs
++++ replace Number::float -> Self with Default::default()
+@@ -255,17 +255,17 @@
+ }
+ 
+ impl Number {
+     pub fn int(n: i64) -> Self {
+         Number::Int(n)
+     }
+ 
+     pub fn float(n: f64) -> Self {
+-        Number::Float(n)
++        Default::default() /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     pub fn rational(num: i64, den: i64) -> Self {
+         Number::Rational(num, den)
+     }
+ 
+     pub fn complex(real: f64, imag: f64) -> Self {
+         Number::Complex(real, imag)

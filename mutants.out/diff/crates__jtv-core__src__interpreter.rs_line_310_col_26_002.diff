@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/interpreter.rs
++++ replace > with >= in Interpreter::eval_control_stmt
+@@ -302,17 +302,17 @@
+                     Value::Unit
+                 };
+                 self.add_trace("return", &format!("return {}", value));
+                 Ok(Some(value))
+             }
+             ControlStmt::Print(exprs) => {
+                 let mut output = String::new();
+                 for (i, expr) in exprs.iter().enumerate() {
+-                    if i > 0 {
++                    if i >= /* ~ changed by cargo-mutants ~ */ 0 {
+                         output.push(' ');
+                     }
+                     let value = self.eval_data_expr(expr)?;
+                     output.push_str(&format!("{}", value));
+                 }
+                 if self.capture_output {
+                     self.output_buffer.push(output.clone());
+                 } else {

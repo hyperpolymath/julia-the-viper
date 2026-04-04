@@ -1,0 +1,24 @@
+--- crates/jtv-core/src/interpreter.rs
++++ replace Interpreter::get_variables -> Vec<(String, Value)> with vec![("xyzzy".into(), Default::default())]
+@@ -93,20 +93,17 @@
+         self.call_stack.clear();
+         self.iteration_count = 0;
+         self.trace.clear();
+         self.last_result = None;
+         self.output_buffer.clear();
+     }
+ 
+     pub fn get_variables(&self) -> Vec<(String, Value)> {
+-        self.globals
+-            .iter()
+-            .map(|(k, v)| (k.clone(), v.clone()))
+-            .collect()
++        vec![("xyzzy".into(), Default::default())] /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     pub fn get_last_result(&self) -> Option<&Value> {
+         self.last_result.as_ref()
+     }
+ 
+     fn add_trace(&mut self, stmt_type: &str, line: &str) {
+         if self.trace_enabled {

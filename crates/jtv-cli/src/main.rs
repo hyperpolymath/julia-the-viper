@@ -425,6 +425,7 @@ fn data_to_sexpr(expr: &jtv_core::DataExpr, out: &mut String) {
                 jtv_core::Number::Symbolic(s) => out.push_str(&format!("(sym \"{}\")", s)),
             }
         }
+        jtv_core::DataExpr::StringLit(s) => out.push_str(&format!("(str \"{}\")", s)),
         jtv_core::DataExpr::Identifier(name) => out.push_str(&format!("(id \"{}\")", name)),
         jtv_core::DataExpr::Add(l, r) => {
             out.push_str("(+ ");

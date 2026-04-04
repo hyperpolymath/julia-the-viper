@@ -1,0 +1,74 @@
+--- crates/jtv-core/src/parser.rs
++++ replace parse_number -> Result<Number> with Ok(Default::default())
+@@ -392,70 +392,17 @@
+         _ => Err(JtvError::ParseError(format!(
+             "Unexpected factor: {:?}",
+             pair.as_rule()
+         ))),
+     }
+ }
+ 
+ fn parse_number(pair: pest::iterators::Pair<Rule>) -> Result<Number> {
+-    match pair.as_rule() {
+-        Rule::integer => {
+-            let n = pair
+-                .as_str()
+-                .parse::<i64>()
+-                .map_err(|e| JtvError::ParseError(format!("Invalid integer: {}", e)))?;
+-            Ok(Number::Int(n))
+-        }
+-        Rule::float => {
+-            let n = pair
+-                .as_str()
+-                .parse::<f64>()
+-                .map_err(|e| JtvError::ParseError(format!("Invalid float: {}", e)))?;
+-            Ok(Number::Float(n))
+-        }
+-        Rule::rational => {
+-            let parts: Vec<&str> = pair.as_str().split('/').collect();
+-            let num = parts[0]
+-                .parse::<i64>()
+-                .map_err(|e| JtvError::ParseError(format!("Invalid rational numerator: {}", e)))?;
+-            let den = parts[1].parse::<i64>().map_err(|e| {
+-                JtvError::ParseError(format!("Invalid rational denominator: {}", e))
+-            })?;
+-            Ok(Number::Rational(num, den))
+-        }
+-        Rule::complex => {
+-            // Simplified complex parsing
+-            let s = pair.as_str();
+-            if s.ends_with('i') {
+-                let real_part = &s[..s.len() - 1];
+-                if let Some(plus_pos) = real_part.rfind('+') {
+-                    let real = real_part[..plus_pos].parse::<f64>().unwrap_or(0.0);
+-                    let imag = real_part[plus_pos + 1..].parse::<f64>().unwrap_or(0.0);
+-                    Ok(Number::Complex(real, imag))
+-                } else {
+-                    let imag = real_part.parse::<f64>().unwrap_or(0.0);
+-                    Ok(Number::Complex(0.0, imag))
+-                }
+-            } else {
+-                Err(JtvError::ParseError("Invalid complex number".to_string()))
+-            }
+-        }
+-        Rule::hex => Ok(Number::Hex(pair.as_str().to_string())),
+-        Rule::binary => Ok(Number::Binary(pair.as_str().to_string())),
+-        Rule::symbolic => {
+-            // Strip the '#' prefix to get the symbolic name
+-            let name = pair.as_str().trim_start_matches('#').to_string();
+-            Ok(Number::Symbolic(name))
+-        }
+-        _ => Err(JtvError::ParseError(format!(
+-            "Unknown number type: {:?}",
+-            pair.as_rule()
+-        ))),
+-    }
++    Ok(Default::default()) /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ fn parse_control_expr(pair: pest::iterators::Pair<Rule>) -> Result<ControlExpr> {
+     let inner = pair.into_inner().next().unwrap();
+ 
+     match inner.as_rule() {
+         Rule::logical_expr => parse_logical_expr(inner),
+         Rule::comparison_expr => parse_comparison_expr(inner),

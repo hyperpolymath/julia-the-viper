@@ -1,0 +1,33 @@
+--- crates/jtv-core/src/parser.rs
++++ delete match arm Rule::assignment in parse_control_stmt
+@@ -123,29 +123,17 @@
+         type_annotation,
+     })
+ }
+ 
+ fn parse_control_stmt(pair: pest::iterators::Pair<Rule>) -> Result<ControlStmt> {
+     let inner = pair.into_inner().next().unwrap();
+ 
+     match inner.as_rule() {
+-        Rule::assignment => {
+-            let mut parts = inner.into_inner();
+-            let target = parts.next().unwrap().as_str().to_string();
+-            let value_pair = parts.next().unwrap();
+-
+-            let value = if value_pair.as_rule() == Rule::data_expr {
+-                Expr::Data(parse_data_expr(value_pair)?)
+-            } else {
+-                Expr::Control(parse_control_expr(value_pair)?)
+-            };
+-
+-            Ok(ControlStmt::Assignment(Assignment { target, value }))
+-        }
++         /* ~ changed by cargo-mutants ~ */
+         Rule::if_stmt => {
+             let mut parts = inner.into_inner();
+             let condition = parse_control_expr(parts.next().unwrap())?;
+ 
+             let then_block = parts.next().unwrap();
+             let mut then_branch = Vec::new();
+             for stmt in then_block.into_inner() {
+                 then_branch.push(parse_control_stmt(stmt)?);

@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/parser.rs
++++ replace - with + in parse_factor
+@@ -334,17 +334,17 @@
+             // Parse qualified name: Module.submodule.function
+             let name_parts: Vec<String> = qualified_name
+                 .into_inner()
+                 .map(|p| p.as_str().to_string())
+                 .collect();
+ 
+             let (module, name) = if name_parts.len() > 1 {
+                 // Has module path: ["Module", "submod", "func"] -> module=["Module", "submod"], name="func"
+-                let last = name_parts.len() - 1;
++                let last = name_parts.len() + /* ~ changed by cargo-mutants ~ */ 1;
+                 (Some(name_parts[..last].to_vec()), name_parts[last].clone())
+             } else {
+                 // No module path
+                 (None, name_parts[0].clone())
+             };
+ 
+             let mut args = Vec::new();
+             if let Some(arg_list) = parts.next() {

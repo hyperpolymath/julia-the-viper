@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/number.rs
++++ replace >= with < in Value::ge
+@@ -165,17 +165,17 @@
+             (Value::Rational(a), Value::Rational(b)) => Ok(a >= b),
+             (Value::Hex(a), Value::Hex(b)) => Ok(a >= b),
+             (Value::Binary(a), Value::Binary(b)) => Ok(a >= b),
+             // Cross-type: Int with other numeric types
+             (Value::Int(a), Value::Float(b)) => Ok((*a as f64) >= *b),
+             (Value::Float(a), Value::Int(b)) => Ok(*a >= (*b as f64)),
+             (Value::Int(a), Value::Rational(b)) => Ok(Ratio::from_integer(*a) >= *b),
+             (Value::Rational(a), Value::Int(b)) => Ok(*a >= Ratio::from_integer(*b)),
+-            (Value::Hex(a), Value::Int(b)) | (Value::Int(b), Value::Hex(a)) => Ok(a >= b),
++            (Value::Hex(a), Value::Int(b)) | (Value::Int(b), Value::Hex(a)) => Ok(a < /* ~ changed by cargo-mutants ~ */ b),
+             (Value::Binary(a), Value::Int(b)) | (Value::Int(b), Value::Binary(a)) => Ok(a >= b),
+             _ => Err(JtvError::TypeError(format!(
+                 "Cannot compare {:?} and {:?}",
+                 self, other
+             ))),
+         }
+     }
+ 

@@ -1,0 +1,39 @@
+crates/jtv-core/src/ast.rs:241:9: replace DataExpr::add -> Self with Default::default()
+crates/jtv-core/src/ast.rs:245:9: replace DataExpr::negate -> Self with Default::default()
+crates/jtv-core/src/ast.rs:249:9: replace DataExpr::number -> Self with Default::default()
+crates/jtv-core/src/ast.rs:253:9: replace DataExpr::identifier -> Self with Default::default()
+crates/jtv-core/src/ast.rs:259:9: replace Number::int -> Self with Default::default()
+crates/jtv-core/src/ast.rs:263:9: replace Number::float -> Self with Default::default()
+crates/jtv-core/src/ast.rs:267:9: replace Number::rational -> Self with Default::default()
+crates/jtv-core/src/ast.rs:271:9: replace Number::complex -> Self with Default::default()
+crates/jtv-core/src/error.rs:53:9: replace <impl From<std::io::Error> for JtvError>::from -> Self with Default::default()
+crates/jtv-core/src/error.rs:59:9: replace <impl From<std::num::ParseIntError> for JtvError>::from -> Self with Default::default()
+crates/jtv-core/src/error.rs:65:9: replace <impl From<std::num::ParseFloatError> for JtvError>::from -> Self with Default::default()
+crates/jtv-core/src/formatter.rs:64:44: replace + with - in Formatter::format_program
+crates/jtv-core/src/formatter.rs:64:44: replace + with * in Formatter::format_program
+crates/jtv-core/src/interpreter.rs:63:9: replace Interpreter::get_trace -> &[TraceEntry] with Vec::leak(vec![Default::default()])
+crates/jtv-core/src/interpreter.rs:101:9: replace Interpreter::get_variables -> Vec<(String, Value)> with vec![(String::new(), Default::default())]
+crates/jtv-core/src/interpreter.rs:101:9: replace Interpreter::get_variables -> Vec<(String, Value)> with vec![("xyzzy".into(), Default::default())]
+crates/jtv-core/src/interpreter.rs:108:9: replace Interpreter::get_last_result -> Option<&Value> with Some(Box::leak(Box::new(Default::default())))
+crates/jtv-core/src/interpreter.rs:203:9: replace Interpreter::eval_control_stmt -> Result<Option<Value>> with Ok(Some(Default::default()))
+crates/jtv-core/src/interpreter.rs:375:9: replace Interpreter::eval_data_expr -> Result<Value> with Ok(Default::default())
+crates/jtv-core/src/interpreter.rs:407:9: replace Interpreter::eval_control_expr_to_value -> Result<Value> with Ok(Default::default())
+crates/jtv-core/src/interpreter.rs:455:9: replace Interpreter::eval_function_call -> Result<Value> with Ok(Default::default())
+crates/jtv-core/src/interpreter.rs:503:9: replace Interpreter::get_variable -> Result<Value> with Ok(Default::default())
+crates/jtv-core/src/number.rs:28:9: replace Value::add -> Result<Value> with Ok(Default::default())
+crates/jtv-core/src/number.rs:64:9: replace Value::negate -> Result<Value> with Ok(Default::default())
+crates/jtv-core/src/number.rs:69:48: delete - in Value::negate
+crates/jtv-core/src/number.rs:70:54: delete - in Value::negate
+crates/jtv-core/src/number.rs:71:52: delete - in Value::negate
+crates/jtv-core/src/number.rs:184:9: replace Value::from_number -> Result<Value> with Ok(Default::default())
+crates/jtv-core/src/parser.rs:37:5: replace parse_module -> Result<TopLevel> with Ok(Default::default())
+crates/jtv-core/src/parser.rs:53:5: replace parse_import -> Result<TopLevel> with Ok(Default::default())
+crates/jtv-core/src/parser.rs:67:5: replace parse_function -> Result<TopLevel> with Ok(Default::default())
+crates/jtv-core/src/parser.rs:117:5: replace parse_param -> Result<Param> with Ok(Default::default())
+crates/jtv-core/src/parser.rs:128:5: replace parse_control_stmt -> Result<ControlStmt> with Ok(Default::default())
+crates/jtv-core/src/parser.rs:246:5: replace parse_reversible_stmt -> Result<ReversibleStmt> with Ok(Default::default())
+crates/jtv-core/src/parser.rs:297:5: replace parse_data_expr -> Result<DataExpr> with Ok(Default::default())
+crates/jtv-core/src/parser.rs:302:5: replace parse_additive_expr -> Result<DataExpr> with Ok(Default::default())
+crates/jtv-core/src/parser.rs:314:5: replace parse_term -> Result<DataExpr> with Ok(Default::default())
+crates/jtv-core/src/parser.rs:319:5: replace parse_factor -> Result<DataExpr> with Ok(Default::default())
+crates/jtv-core/src/parser.rs:400:5: replace parse_number -> Result<Number> with Ok(Default::default())

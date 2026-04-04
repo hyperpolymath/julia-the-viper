@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/formatter.rs
++++ replace += with -= in Formatter::format_control_stmt
+@@ -280,17 +280,17 @@
+                         self.output.push_str(", ");
+                     }
+                     self.format_data_expr(e);
+                 }
+                 self.output.push(')');
+             }
+             ControlStmt::ReverseBlock(block) => {
+                 self.output.push_str("reverse {\n");
+-                self.indent_level += 1;
++                self.indent_level -= /* ~ changed by cargo-mutants ~ */ 1;
+                 for s in &block.body {
+                     self.format_reversible_stmt(s);
+                     self.output.push('\n');
+                 }
+                 self.indent_level -= 1;
+                 self.write_indent();
+                 self.output.push('}');
+             }

@@ -1,0 +1,33 @@
+--- crates/jtv-core/src/interpreter.rs
++++ replace Interpreter::add_trace with ()
+@@ -104,29 +104,17 @@
+             .collect()
+     }
+ 
+     pub fn get_last_result(&self) -> Option<&Value> {
+         self.last_result.as_ref()
+     }
+ 
+     fn add_trace(&mut self, stmt_type: &str, line: &str) {
+-        if self.trace_enabled {
+-            let env: HashMap<String, String> = self
+-                .globals
+-                .iter()
+-                .map(|(k, v)| (k.clone(), format!("{}", v)))
+-                .collect();
+-
+-            self.trace.push(TraceEntry {
+-                stmt_type: stmt_type.to_string(),
+-                line: line.to_string(),
+-                env,
+-            });
+-        }
++        () /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     pub fn run(&mut self, program: &Program) -> Result<()> {
+         self.last_result = None;
+         self.trace.clear();
+         for statement in &program.statements {
+             self.eval_top_level(statement)?;
+         }

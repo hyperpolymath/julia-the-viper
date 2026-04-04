@@ -1,0 +1,26 @@
+--- crates/jtv-core/src/interpreter.rs
++++ replace Interpreter::run -> Result<()> with Ok(())
+@@ -120,22 +120,17 @@
+                 stmt_type: stmt_type.to_string(),
+                 line: line.to_string(),
+                 env,
+             });
+         }
+     }
+ 
+     pub fn run(&mut self, program: &Program) -> Result<()> {
+-        self.last_result = None;
+-        self.trace.clear();
+-        for statement in &program.statements {
+-            self.eval_top_level(statement)?;
+-        }
+-        Ok(())
++        Ok(()) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     fn eval_top_level(&mut self, top_level: &TopLevel) -> Result<()> {
+         self.eval_top_level_with_context(top_level, None)
+     }
+ 
+     fn eval_top_level_with_context(
+         &mut self,

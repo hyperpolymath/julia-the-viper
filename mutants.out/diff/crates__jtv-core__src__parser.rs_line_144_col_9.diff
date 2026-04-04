@@ -1,0 +1,44 @@
+--- crates/jtv-core/src/parser.rs
++++ delete match arm Rule::if_stmt in parse_control_stmt
+@@ -136,40 +136,17 @@
+             let value = if value_pair.as_rule() == Rule::data_expr {
+                 Expr::Data(parse_data_expr(value_pair)?)
+             } else {
+                 Expr::Control(parse_control_expr(value_pair)?)
+             };
+ 
+             Ok(ControlStmt::Assignment(Assignment { target, value }))
+         }
+-        Rule::if_stmt => {
+-            let mut parts = inner.into_inner();
+-            let condition = parse_control_expr(parts.next().unwrap())?;
+-
+-            let then_block = parts.next().unwrap();
+-            let mut then_branch = Vec::new();
+-            for stmt in then_block.into_inner() {
+-                then_branch.push(parse_control_stmt(stmt)?);
+-            }
+-
+-            let else_branch = parts.next().map(|else_block| {
+-                let mut stmts = Vec::new();
+-                for stmt in else_block.into_inner() {
+-                    stmts.push(parse_control_stmt(stmt).unwrap());
+-                }
+-                stmts
+-            });
+-
+-            Ok(ControlStmt::If(IfStmt {
+-                condition,
+-                then_branch,
+-                else_branch,
+-            }))
+-        }
++         /* ~ changed by cargo-mutants ~ */
+         Rule::while_stmt => {
+             let mut parts = inner.into_inner();
+             let condition = parse_control_expr(parts.next().unwrap())?;
+ 
+             let mut body = Vec::new();
+             for stmt in parts.next().unwrap().into_inner() {
+                 body.push(parse_control_stmt(stmt)?);
+             }

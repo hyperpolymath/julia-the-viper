@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/formatter.rs
++++ replace > with >= in Formatter::format_control_stmt
+@@ -271,17 +271,17 @@
+                 if let Some(e) = expr {
+                     self.output.push(' ');
+                     self.format_data_expr(e);
+                 }
+             }
+             ControlStmt::Print(exprs) => {
+                 self.output.push_str("print(");
+                 for (i, e) in exprs.iter().enumerate() {
+-                    if i > 0 {
++                    if i >= /* ~ changed by cargo-mutants ~ */ 0 {
+                         self.output.push_str(", ");
+                     }
+                     self.format_data_expr(e);
+                 }
+                 self.output.push(')');
+             }
+             ControlStmt::ReverseBlock(block) => {
+                 self.output.push_str("reverse {\n");

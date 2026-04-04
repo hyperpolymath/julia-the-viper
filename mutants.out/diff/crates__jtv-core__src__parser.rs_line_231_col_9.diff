@@ -1,0 +1,27 @@
+--- crates/jtv-core/src/parser.rs
++++ delete match arm Rule::block in parse_control_stmt
+@@ -223,23 +223,17 @@
+         }
+         Rule::reverse_block => {
+             let mut body = Vec::new();
+             for stmt_pair in inner.into_inner() {
+                 body.push(parse_reversible_stmt(stmt_pair)?);
+             }
+             Ok(ControlStmt::ReverseBlock(ReverseBlock { body }))
+         }
+-        Rule::block => {
+-            let mut stmts = Vec::new();
+-            for stmt_pair in inner.into_inner() {
+-                stmts.push(parse_control_stmt(stmt_pair)?);
+-            }
+-            Ok(ControlStmt::Block(stmts))
+-        }
++         /* ~ changed by cargo-mutants ~ */
+         _ => Err(JtvError::ParseError(format!(
+             "Unexpected control statement: {:?}",
+             inner.as_rule()
+         ))),
+     }
+ }
+ 
+ fn parse_reversible_stmt(pair: pest::iterators::Pair<Rule>) -> Result<ReversibleStmt> {

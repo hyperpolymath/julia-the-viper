@@ -90,6 +90,7 @@ pub enum Expr {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum DataExpr {
     Number(Number),
+    StringLit(String),
     Identifier(String),
     Add(Box<DataExpr>, Box<DataExpr>),
     Negate(Box<DataExpr>),

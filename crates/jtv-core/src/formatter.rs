@@ -407,6 +407,11 @@ impl Formatter {
     fn format_data_expr(&mut self, expr: &DataExpr) {
         match expr {
             DataExpr::Number(num) => self.format_number(num),
+            DataExpr::StringLit(s) => {
+                self.output.push('"');
+                self.output.push_str(s);
+                self.output.push('"');
+            }
             DataExpr::Identifier(name) => self.output.push_str(name),
             DataExpr::Add(left, right) => {
                 self.format_data_expr(left);

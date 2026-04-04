@@ -294,6 +294,7 @@ impl ReversibleInterpreter {
     fn eval_data_expr(&self, expr: &DataExpr) -> Result<Value> {
         match expr {
             DataExpr::Number(num) => Value::from_number(num),
+            DataExpr::StringLit(s) => Ok(Value::String(s.clone())),
             DataExpr::Identifier(name) => self.get_variable(name),
             DataExpr::Add(left, right) => {
                 let left_val = self.eval_data_expr(left)?;
@@ -385,6 +386,7 @@ fn check_reversible_stmt(stmt: &ReversibleStmt) -> Result<()> {
 fn expr_contains_var(expr: &DataExpr, var: &str) -> bool {
     match expr {
         DataExpr::Number(_) => false,
+        DataExpr::StringLit(_) => false,
         DataExpr::Identifier(name) => name == var,
         DataExpr::Add(left, right) => expr_contains_var(left, var) || expr_contains_var(right, var),
         DataExpr::Negate(inner) => expr_contains_var(inner, var),

@@ -374,6 +374,7 @@ impl Interpreter {
     fn eval_data_expr(&mut self, expr: &DataExpr) -> Result<Value> {
         match expr {
             DataExpr::Number(num) => Value::from_number(num),
+            DataExpr::StringLit(s) => Ok(Value::String(s.clone())),
             DataExpr::Identifier(name) => self.get_variable(name),
             DataExpr::Add(left, right) => {
                 let left_val = self.eval_data_expr(left)?;

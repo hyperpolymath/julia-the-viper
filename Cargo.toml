@@ -50,6 +50,7 @@ dirs = "5.0"
 # Testing
 criterion = "0.5"
 insta = "1"
+proptest = "1.4"
 
 # Async runtime
 tokio = "1.0"

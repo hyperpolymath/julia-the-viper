@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/interpreter.rs
++++ replace += with -= in Interpreter::eval_control_stmt
+@@ -236,17 +236,17 @@
+             }
+             ControlStmt::While(while_stmt) => {
+                 self.add_trace("while", "entering while loop");
+ 
+                 while self
+                     .eval_control_expr_to_value(&while_stmt.condition)?
+                     .is_truthy()
+                 {
+-                    self.iteration_count += 1;
++                    self.iteration_count -= /* ~ changed by cargo-mutants ~ */ 1;
+                     self.check_iteration_limit()?;
+ 
+                     for stmt in &while_stmt.body {
+                         if let Some(val) = self.eval_control_stmt(stmt)? {
+                             return Ok(Some(val));
+                         }
+                     }
+                 }

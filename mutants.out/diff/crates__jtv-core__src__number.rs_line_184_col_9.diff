@@ -1,0 +1,45 @@
+--- crates/jtv-core/src/number.rs
++++ replace Value::from_number -> Result<Value> with Ok(Default::default())
+@@ -176,41 +176,17 @@
+                 "Cannot compare {:?} and {:?}",
+                 self, other
+             ))),
+         }
+     }
+ 
+     // Conversion from AST Number to Value
+     pub fn from_number(num: &Number) -> Result<Value> {
+-        match num {
+-            Number::Int(n) => Ok(Value::Int(*n)),
+-            Number::Float(n) => Ok(Value::Float(*n)),
+-            Number::Rational(num, den) => {
+-                if *den == 0 {
+-                    Err(JtvError::DivisionByZero)
+-                } else {
+-                    Ok(Value::Rational(Ratio::new(*num, *den)))
+-                }
+-            }
+-            Number::Complex(real, imag) => Ok(Value::Complex(Complex64::new(*real, *imag))),
+-            Number::Hex(s) => {
+-                let without_prefix = s.trim_start_matches("0x");
+-                let n = i64::from_str_radix(without_prefix, 16)
+-                    .map_err(|e| JtvError::ParseError(format!("Invalid hex: {}", e)))?;
+-                Ok(Value::Hex(n))
+-            }
+-            Number::Binary(s) => {
+-                let without_prefix = s.trim_start_matches("0b");
+-                let n = i64::from_str_radix(without_prefix, 2)
+-                    .map_err(|e| JtvError::ParseError(format!("Invalid binary: {}", e)))?;
+-                Ok(Value::Binary(n))
+-            }
+-            Number::Symbolic(s) => Ok(Value::Symbolic(s.clone())),
+-        }
++        Ok(Default::default()) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     // Check if value is truthy (for conditionals)
+     pub fn is_truthy(&self) -> bool {
+         match self {
+             Value::Bool(b) => *b,
+             Value::Int(n) => *n != 0,
+             Value::Float(f) => *f != 0.0,

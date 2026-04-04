@@ -1,0 +1,39 @@
+--- crates/jtv-core/src/number.rs
++++ replace Value::ge -> Result<bool> with Ok(false)
+@@ -153,35 +153,17 @@
+             _ => Err(JtvError::TypeError(format!(
+                 "Cannot compare {:?} and {:?}",
+                 self, other
+             ))),
+         }
+     }
+ 
+     pub fn ge(&self, other: &Value) -> Result<bool> {
+-        match (self, other) {
+-            // Same types
+-            (Value::Int(a), Value::Int(b)) => Ok(a >= b),
+-            (Value::Float(a), Value::Float(b)) => Ok(a >= b),
+-            (Value::Rational(a), Value::Rational(b)) => Ok(a >= b),
+-            (Value::Hex(a), Value::Hex(b)) => Ok(a >= b),
+-            (Value::Binary(a), Value::Binary(b)) => Ok(a >= b),
+-            // Cross-type: Int with other numeric types
+-            (Value::Int(a), Value::Float(b)) => Ok((*a as f64) >= *b),
+-            (Value::Float(a), Value::Int(b)) => Ok(*a >= (*b as f64)),
+-            (Value::Int(a), Value::Rational(b)) => Ok(Ratio::from_integer(*a) >= *b),
+-            (Value::Rational(a), Value::Int(b)) => Ok(*a >= Ratio::from_integer(*b)),
+-            (Value::Hex(a), Value::Int(b)) | (Value::Int(b), Value::Hex(a)) => Ok(a >= b),
+-            (Value::Binary(a), Value::Int(b)) | (Value::Int(b), Value::Binary(a)) => Ok(a >= b),
+-            _ => Err(JtvError::TypeError(format!(
+-                "Cannot compare {:?} and {:?}",
+-                self, other
+-            ))),
+-        }
++        Ok(false) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     // Conversion from AST Number to Value
+     pub fn from_number(num: &Number) -> Result<Value> {
+         match num {
+             Number::Int(n) => Ok(Value::Int(*n)),
+             Number::Float(n) => Ok(Value::Float(*n)),
+             Number::Rational(num, den) => {

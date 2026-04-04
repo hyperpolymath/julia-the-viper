@@ -1,0 +1,23 @@
+--- crates/jtv-core/src/parser.rs
++++ delete match arm Rule::return_type in parse_function
+@@ -87,19 +87,17 @@
+ 
+     for pair in inner {
+         match pair.as_rule() {
+             Rule::param_list => {
+                 for param_pair in pair.into_inner() {
+                     params.push(parse_param(param_pair)?);
+                 }
+             }
+-            Rule::return_type => {
+-                return_type = Some(parse_type_annotation(pair.into_inner().next().unwrap())?);
+-            }
++             /* ~ changed by cargo-mutants ~ */
+             Rule::block => {
+                 for stmt_pair in pair.into_inner() {
+                     body.push(parse_control_stmt(stmt_pair)?);
+                 }
+             }
+             _ => {}
+         }
+     }

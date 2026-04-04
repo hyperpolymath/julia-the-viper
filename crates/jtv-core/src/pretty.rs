@@ -337,6 +337,7 @@ impl PrettyPrinter {
     pub fn print_data_expr(&self, expr: &DataExpr) -> String {
         match expr {
             DataExpr::Number(n) => self.print_number(n),
+            DataExpr::StringLit(s) => format!("\"{}\"", s),
             DataExpr::Identifier(name) => name.clone(),
             DataExpr::Add(left, right) => {
                 format!("{} + {}", self.print_data_expr(left), self.print_data_expr(right))

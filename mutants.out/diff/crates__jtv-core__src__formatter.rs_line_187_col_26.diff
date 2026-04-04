@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/formatter.rs
++++ replace > with == in Formatter::format_type_annotation
+@@ -179,17 +179,17 @@
+                     }
+                     self.format_type_annotation(t);
+                 }
+                 self.output.push(')');
+             }
+             TypeAnnotation::Function(params, ret) => {
+                 self.output.push_str("Fn(");
+                 for (i, p) in params.iter().enumerate() {
+-                    if i > 0 {
++                    if i == /* ~ changed by cargo-mutants ~ */ 0 {
+                         self.output.push_str(", ");
+                     }
+                     self.format_type_annotation(p);
+                 }
+                 self.output.push_str(") -> ");
+                 self.format_type_annotation(ret);
+             }
+         }

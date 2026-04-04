@@ -1,0 +1,22 @@
+--- crates/jtv-core/src/parser.rs
++++ replace parse_term -> Result<DataExpr> with Ok(Default::default())
+@@ -306,18 +306,17 @@
+         let right = parse_term(right_pair)?;
+         left = DataExpr::add(left, right);
+     }
+ 
+     Ok(left)
+ }
+ 
+ fn parse_term(pair: pest::iterators::Pair<Rule>) -> Result<DataExpr> {
+-    let inner = pair.into_inner().next().unwrap();
+-    parse_factor(inner)
++    Ok(Default::default()) /* ~ changed by cargo-mutants ~ */
+ }
+ 
+ fn parse_factor(pair: pest::iterators::Pair<Rule>) -> Result<DataExpr> {
+     match pair.as_rule() {
+         Rule::number => {
+             let num = parse_number(pair.into_inner().next().unwrap())?;
+             Ok(DataExpr::Number(num))
+         }

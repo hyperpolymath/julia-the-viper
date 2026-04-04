@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/interpreter.rs
++++ replace Interpreter::get_trace -> &[TraceEntry] with Vec::leak(Vec::new())
+@@ -55,17 +55,17 @@
+     }
+ 
+     pub fn disable_trace(&mut self) {
+         self.trace_enabled = false;
+         self.trace.clear();
+     }
+ 
+     pub fn get_trace(&self) -> &[TraceEntry] {
+-        &self.trace
++        Vec::leak(Vec::new()) /* ~ changed by cargo-mutants ~ */
+     }
+ 
+     /// Enable output capture (print statements buffer instead of writing to stdout)
+     pub fn enable_output_capture(&mut self) {
+         self.capture_output = true;
+     }
+ 
+     /// Disable output capture (print statements go to stdout again)

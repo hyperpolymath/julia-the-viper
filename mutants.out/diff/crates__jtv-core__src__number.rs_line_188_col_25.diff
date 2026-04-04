@@ -1,0 +1,21 @@
+--- crates/jtv-core/src/number.rs
++++ replace == with != in Value::from_number
+@@ -180,17 +180,17 @@
+     }
+ 
+     // Conversion from AST Number to Value
+     pub fn from_number(num: &Number) -> Result<Value> {
+         match num {
+             Number::Int(n) => Ok(Value::Int(*n)),
+             Number::Float(n) => Ok(Value::Float(*n)),
+             Number::Rational(num, den) => {
+-                if *den == 0 {
++                if *den != /* ~ changed by cargo-mutants ~ */ 0 {
+                     Err(JtvError::DivisionByZero)
+                 } else {
+                     Ok(Value::Rational(Ratio::new(*num, *den)))
+                 }
+             }
+             Number::Complex(real, imag) => Ok(Value::Complex(Complex64::new(*real, *imag))),
+             Number::Hex(s) => {
+                 let without_prefix = s.trim_start_matches("0x");
