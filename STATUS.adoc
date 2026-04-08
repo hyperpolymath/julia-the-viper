@@ -1,0 +1,71 @@
+= Status
+
+== Overview
+
+*Version*: 0.1.0  
+*Stage*: Alpha (home context)  
+*Assessment*: C+ (approaching B)
+
+Julia the Viper is an experimental language with a partially implemented core,
+supported by a substantial test suite and formal proof work, but with clear
+gaps in completeness, portability, and verification integration.
+
+== Implemented Core
+
+- Parser and interpreter for core data/control model
+- Addition-only arithmetic across 7 number systems
+- Enforced purity model (Total < Pure < Impure)
+- Harvard architecture separation (data vs control)
+- Partial reversibility (subset only)
+
+== Evidence
+
+- 339 automated tests across multiple suites
+- Property-based testing covering all number systems
+- Security and boundary tests for Harvard separation
+- Contract tests for invariants (addition-only, purity, reversibility)
+- Fuzz targets for parser safety
+- Benchmark suites (not yet tracked in CI)
+
+== Formal Work (Partial Integration)
+
+- Lean 4 proofs:
+  - type soundness
+  - operational semantics
+  - algebraic properties
+  - injection resistance (model-level)
+- Idris2 proofs:
+  - ABI/type-level constraints
+  - algebraic structures
+
+These proofs validate models and components, but are not yet fully connected to
+the executable implementation.
+
+== Known Gaps
+
+- Reversibility incomplete (no full round-trip guarantee)
+- Verification chain incomplete (proofs not fully integrated)
+- Conformance gaps (e.g. string and range syntax)
+- No mutation testing
+- Limited CI (Linux only)
+- FFI and WASM not fully validated
+- No version compatibility matrix
+
+== Classification
+
+[cols="1,3"]
+|===
+|Area |Status
+
+|Core language
+|Implemented (partial)
+
+|Reversibility
+|Partial / experimental
+
+|Verification
+|Partial (model-level proofs, not end-to-end)
+
+|Extensions (quantum, probabilistic, advanced types)
+|Research / not implemented
+|===
