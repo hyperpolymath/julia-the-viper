@@ -1,0 +1,51 @@
+= Reversibility Testing
+
+This document describes how reversibility-related behaviour is tested.
+
+== Overview
+
+Testing focuses on verifying identity properties and invariants.
+
+== Property-Based Testing
+
+Reversibility is tested using property-based tests.
+
+Example:
+
+[source,rust]
+----
+#[test]
+fn test_config_undo() {
+    let mut config = Config::new();
+    let original = config.clone();
+
+    config.set("key", "new_value");
+    config.undo();
+
+    assert_eq!(config, original);
+}
+----
+
+== Coverage
+
+Tests include:
+
+- Identity properties (forward + reverse)
+- Multi-variable interactions
+- Boundary conditions
+
+== Status
+
+- Partial coverage
+- Focused on specific subsystems
+- Not comprehensive across entire language
+
+== Limitations
+
+- No full-program reversibility testing
+- No formal linkage to proof system
+- Some behaviours assumed rather than enforced
+
+== Summary
+
+Reversibility testing exists but is incomplete and scoped to selected cases.
