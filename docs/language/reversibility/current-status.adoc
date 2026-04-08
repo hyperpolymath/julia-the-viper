@@ -1,0 +1,21 @@
+= Reversibility (Current State)
+
+JtV currently provides limited, partial reversibility.
+
+== Implemented / Partially Implemented
+
+- Property-tested reversible identities (subset)
+- No guaranteed full program reversibility
+- No reverse execution model
+- No general undo system across all operations
+
+== Constraints
+
+- Reversibility is not enforced at the language level
+- Round-trip identity holds only for tested cases
+- No integration with formal proofs
+
+== Summary
+
+Reversibility is an experimental property of parts of the system,
+not a guaranteed characteristic of the language.
