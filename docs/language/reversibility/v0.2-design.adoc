@@ -1,0 +1,26 @@
+= Reversibility (v0.2 Design - Proposed)
+
+This document describes a proposed extension introducing reversible execution.
+
+== Concept
+
+A `reverse` block would invert operations:
+
+[source]
+----
+reverse {
+    x = Data { 5 + 3 };
+}
+----
+
+== Status
+
+- Not implemented
+- No runtime support
+- No formal semantics integrated
+
+== Open Questions
+
+- How inversion is defined for non-linear operations
+- Interaction with effects and impurity
+- Performance implications
