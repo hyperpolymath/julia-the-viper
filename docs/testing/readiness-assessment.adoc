@@ -1,0 +1,4 @@
+= Readiness Assessment (Detailed)
+
+This document provides a detailed internal assessment of the current
+implementation. It is not a release certification.
