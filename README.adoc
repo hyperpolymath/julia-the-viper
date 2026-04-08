@@ -6,7 +6,326 @@ image:https://img.shields.io/badge/Philosophy-Palimpsest-indigo.svg[Palimpsest,l
 
 :toc: left
 :toclevels: 3
-:icons: font
+:icons: font= Julia the Viper (JtV)
+:toc:
+:toclevels: 2
+:sectnums:
+
+Julia the Viper (JtV) is a stratified programming language project centered on a strict separation between a restricted *Data* fragment and a general *Control* fragment.
+
+Its central design aim is simple:
+
+____
+make certain classes of control/data confusion structurally unavailable, rather than merely discouraged by convention.
+____
+
+JtV is implemented in Rust, supported by a growing proof and testing stack, and documented in AsciiDoc as the canonical format for repository documentation.
+
+== Current Status
+
+JtV is *not* “finished”, “100% complete”, or “fully verified end-to-end”.
+
+It *is*:
+
+- an implemented core language project
+- substantially tested
+- partially mechanised
+- supported by a growing formal and academic documentation set
+- surrounded by several planned extensions that are *not yet part of the stable core*
+
+The best current summary is:
+
+____
+JtV has a real implemented and tested core, with partial formalisation and a larger speculative halo of future features.
+____
+
+For the most accurate current state, see:
+
+- `STATUS.adoc` or `STATUS.md` if still transitional
+- `TEST-NEEDS.md`
+- `ROADMAP.adoc`
+
+== Core Idea
+
+JtV separates computation into two distinct regions:
+
+=== Data Fragment
+
+The Data fragment is intended to be:
+
+- restricted
+- side-effect-free
+- easier to reason about
+- structurally separated from general control flow
+
+In the current design direction, Data expressions exclude constructs such as:
+
+- loops
+- general control statements
+- assignments
+- unrestricted effectful computation
+
+This is the main architectural idea behind the project.
+
+=== Control Fragment
+
+The Control fragment is the general execution layer. It is intended to handle:
+
+- sequencing
+- branching
+- iteration
+- state changes
+- I/O
+- runtime orchestration
+
+The Data fragment may be embedded in Control, but the reverse is deliberately restricted.
+
+== Why This Exists
+
+Traditional systems often rely on runtime discipline to keep data from becoming executable control.
+
+JtV explores a different route:
+
+- separate the fragments in syntax
+- reinforce the split in typing and effects
+- make the boundary explicit in implementation and tests
+- reason about the restricted fragment more strongly than the unrestricted one
+
+This does *not* magically solve every security problem.
+
+It does, however, create a clearer foundation for reasoning about:
+
+- restricted computation
+- purity
+- totality of a core fragment
+- reversible sub-fragments
+- language-level control/data discipline
+
+== Current Project Scope
+
+=== What Is Part of the Current Core
+
+The current defensible core includes, at minimum:
+
+- parser and grammar work
+- Rust interpreter core
+- Data / Control separation as a first-class project idea
+- multiple numeric forms
+- property tests, fuzz targets, and contract tests
+- proof artifacts for parts of the core
+- early reversible-computation support in a constrained fragment
+
+=== What Is *Not* Yet Stable Core
+
+The following are documented, explored, or partially specified, but should be treated as extensions or research directions unless explicitly marked otherwise:
+
+- refinement types
+- dependent types
+- linear / affine types
+- effect polymorphism
+- full type-class machinery
+- gradual typing
+- sized types
+- full symbolic simplification
+- probabilistic extensions
+- quantum algorithm libraries
+- full end-to-end verification chain
+
+== Reversibility
+
+Reversibility is an important theme in JtV, but it must be stated precisely.
+
+At present, the strongest technical sense of reversibility in JtV is:
+
+- a restricted reversible computational fragment
+- based on constrained invertible updates
+- supported by tests and ongoing semantic clarification
+
+JtV does *not* yet justify broad claims like “full quantum language” or “thermodynamically efficient computation” as current implementation facts.
+
+Those belong, where appropriate, to:
+
+- future work
+- theoretical motivation
+- or extension documents
+
+See:
+
+- `REVERSIBILITY.adoc` if present
+- `docs/reversibility/`
+- `academic/`
+- `jtv_proofs/`
+
+== Repository Structure
+
+The repository is organized around implementation, proofs, specs, and documentation.
+
+Typical key areas include:
+
+- `crates/` — Rust crates for the language and tooling
+- `shared/grammar/` — grammar artifacts
+- `jtv_proofs/` — Lean proof artifacts
+- `academic/` — academic and formal documentation
+- `spec/` — language and design specifications
+- `verification/` — verification-related materials
+- `fuzz/` — fuzzing targets
+- `conformance/` — conformance material
+- `ffi/zig/` — Zig FFI work
+- `vscode-extension/` — editor integration
+- `playground/` / `web/` — web-facing tooling and experimentation
+
+== Build and Development
+
+JtV uses `just` for common development workflows.
+
+Common commands include:
+
+[source,bash]
+----
+just --list
+just build
+just test
+just smoke
+just doctor
+just bench
+----
+
+You can also use Cargo directly for core testing:
+
+[source,bash]
+----
+cargo test -p jtv-core
+----
+
+Useful targeted commands may include:
+
+[source,bash]
+----
+cargo test --test property_tests
+cargo test --test harvard_boundary_tests
+cargo test --test contract_tests
+cargo +nightly fuzz run fuzz_parser
+----
+
+If you use Nix:
+
+[source,bash]
+----
+nix develop
+nix build
+----
+
+== Testing and Verification
+
+JtV’s current strength is increasingly in the implemented/tested core, not just in design prose.
+
+The repository includes evidence such as:
+
+- inline unit tests
+- parser and grammar tests
+- property-based tests
+- Harvard-boundary tests
+- contract / invariant tests
+- conformance tests
+- fuzz targets
+- benchmark suites
+- proof-regression workflows
+- Lean and Idris artifacts
+
+This does *not* mean every language-level or white-paper-level claim is already fully verified.
+
+It *does* mean the core is much more grounded than a purely speculative prototype.
+
+See:
+
+- `TEST-NEEDS.md`
+- `READINESS.md` if retained
+- proof CI and verification directories
+
+== Documentation Policy
+
+AsciiDoc is the canonical documentation format for this repository.
+
+If Markdown files remain, they should be treated as:
+
+- transitional
+- stubs
+- or compatibility files only
+
+If both `.md` and `.adoc` versions of a document exist, the `.adoc` version is authoritative.
+
+== What To Read Next
+
+For different purposes:
+
+=== To understand the current project
+- `STATUS.adoc`
+- `ROADMAP.adoc`
+- `TEST-NEEDS.md`
+
+=== To understand the language direction
+- `shared/grammar/`
+- `spec/`
+- `docs/language/` if present
+
+=== To understand the formal / academic side
+- `academic/`
+- `jtv_proofs/`
+- `verification/`
+
+=== To contribute
+- `CONTRIBUTING.adoc`
+- `DEVELOPMENT_PLAN.md` or its replacement if still retained
+- `Justfile`
+
+== Contribution and Governance
+
+JtV is an active project, not a frozen release artifact.
+
+Contributions should be guided by:
+
+- current implementation reality
+- explicit status documents
+- the distinction between stable core and speculative extension work
+
+Please consult:
+
+- `CONTRIBUTING.adoc`
+- `CODE_OF_CONDUCT.adoc` or `CODE_OF_CONDUCT.md`
+- `GOVERNANCE.adoc`
+- `SECURITY.adoc` or `SECURITY.md`
+
+== Licensing
+
+Refer to the repository licensing files for the current authoritative licensing arrangement:
+
+- `LICENSE`
+- `LICENSING.md`
+- any additional project license files in root
+
+Do not rely on older duplicated readmes for licensing summaries.
+
+== Name
+
+“Julia the Viper” is both a serious and playful name.
+
+It gestures toward:
+
+- Julia Robinson
+- the “adder” / snake / calculator wordplay
+- the project’s emphasis on addition-centered restricted computation
+
+The name is part of the project’s character, but the language should be judged by the clarity of its semantics, implementation, and proofs.
+
+== Bottom Line
+
+JtV is best understood today as:
+
+____
+a language project with a strong central architectural idea, a real and increasingly well-tested implementation core, partial formalisation, and a large set of ambitious extensions that still need disciplined separation from the stable core.
+____
+
+That is a good place to be — provided the documentation remains honest about where the core ends and the research programme begins.
 :source-highlighter: rouge
 :experimental:
 
