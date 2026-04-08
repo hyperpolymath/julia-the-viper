@@ -1,26 +1,114 @@
 = Reversibility (v0.2 Design - Proposed)
 
-This document describes a proposed extension introducing reversible execution.
+This document describes a proposed extension to Julia the Viper introducing
+reversible execution semantics.
 
-== Concept
+This is a design document only. No features described here are currently
+implemented.
 
-A `reverse` block would invert operations:
+== Overview
+
+The v0.2 design introduces explicit reversible computation via structured
+control constructs.
+
+The goal is to enable:
+
+- Explicit inversion of computation
+- Stepwise backward execution (debugging)
+- Identity verification (forward + reverse = no-op)
+- Foundations for future formal verification
+
+== Core Concept
+
+A `reverse` block is intended to invert the effects of a corresponding forward
+computation.
 
 [source]
 ----
-reverse {
-    x = Data { 5 + 3 };
+Control {
+    let x = Data { 5 + 3 };
+
+    reverse {
+        x = Data { 5 + 3 };
+    }
 }
 ----
+
+In this model:
+
+- Forward execution computes a result
+- Reverse execution applies the inverse transformation
+- The composition should yield identity
 
 == Status
 
 - Not implemented
-- No runtime support
+- No parser or runtime support
 - No formal semantics integrated
+- No guarantees of reversibility in current system
 
-== Open Questions
+== Design Goals
 
-- How inversion is defined for non-linear operations
-- Interaction with effects and impurity
-- Performance implications
+=== Explicitness
+
+Reversibility is opt-in via syntax. It is not implicit.
+
+=== Locality
+
+Reversal applies to clearly scoped blocks, not global program state.
+
+=== Determinism
+
+Only deterministic computations are eligible for inversion.
+
+=== Composability
+
+Reversible blocks should compose without ambiguity.
+
+== Open Problems
+
+=== Inversion Semantics
+
+- How to invert non-linear operations
+- Handling of non-invertible functions
+- Partial inverses and failure modes
+
+=== Effects
+
+- Interaction with impurity
+- Interaction with I/O and external state
+- Whether effects invalidate reversibility
+
+=== State Management
+
+- Variable mutation vs structural transformation
+- Snapshot vs algebraic inversion models
+
+=== Performance
+
+- Cost of storing intermediate state
+- Trade-offs between recomputation and logging
+
+== Relationship to Existing System
+
+The current implementation does not enforce reversibility.
+
+This design builds on:
+
+- Addition-only constraints
+- Purity lattice
+- Structured control/data separation
+
+but does not yet integrate with them.
+
+== Future Directions
+
+- Reverse execution debugging
+- Formal semantics for invertibility
+- Integration with verification systems
+- Exploration of quantum-inspired models
+
+== References
+
+- Bennett (1973), Logical Reversibility of Computation
+- Landauer (1961), Irreversibility and Heat Generation
