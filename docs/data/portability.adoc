@@ -1,0 +1,66 @@
+= Data Portability
+
+JtV supports data portability through the use of open formats and export
+mechanisms.
+
+This is distinct from computational reversibility.
+
+== Overview
+
+Users should be able to:
+
+- Export their data
+- Re-import it into a new environment
+- Avoid vendor lock-in
+
+== Export
+
+Example commands:
+
+[source,bash]
+----
+jtv data export --format json --output my-data.json
+jtv data export --category config --format toml
+----
+
+== Import
+
+[source,bash]
+----
+jtv data import my-data.json
+----
+
+== Format Support
+
+[cols="1,1,1"]
+|===
+|Format |Export |Import
+
+|JSON |Yes |Yes
+|TOML |Yes |Yes
+|YAML |Yes |Yes
+|CSV |Partial |Partial
+|SQLite |Not implemented |Not implemented
+|===
+
+== Status
+
+- Export: partial
+- Import: partial
+- Format coverage: incomplete
+
+== Design Principles
+
+- Open formats (no proprietary encoding)
+- Human-readable where possible
+- Compatibility with external tooling
+
+== Limitations
+
+- Not all data types are exportable
+- No guarantee of lossless round-trip
+- Migration tools are incomplete
+
+== Summary
+
+Data portability is partially supported and remains under development.
