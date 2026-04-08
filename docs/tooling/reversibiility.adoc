@@ -1,3 +1,95 @@
-jtv trace analyze
+= Reversibility (Tooling)
+
+This document describes tooling-related support for reversible workflows.
+
+These features are experimental and not guaranteed to be complete or stable.
+
+== Overview
+
+Tooling aims to support:
+
+- Inspection of execution
+- Limited undo/rollback where available
+- Analysis of program behaviour
+
+This is separate from language-level reversibility.
+
+== Execution Tracing
+
+Tracing records execution steps for later inspection.
+
+[source,bash]
+----
+jtv run program.jtv --trace > execution.log
+----
+
+Analysis tools may be available:
+
+[source,bash]
+----
+jtv trace analyze execution.log
+jtv trace replay execution.log --steps 1-10
+----
+
+== Status
+
+- Tracing: partial / experimental
+- Replay: not fully implemented
+- No guarantee of deterministic replay
+
+== Configuration Undo
+
+Configuration changes may support rollback mechanisms.
+
+[source,bash]
+----
+jtv config set telemetry false
 jtv config undo
+----
+
+== Status
+
+- Partial support
+- Not comprehensive across all configuration fields
+
+== Transactions (Conceptual)
+
+Some operations may be grouped into transactional units:
+
+[source]
+----
+begin_transaction();
+rollback_transaction();
+commit_transaction();
+----
+
+== Status
+
+- Conceptual or partial
+- Not uniformly enforced across system
+
+== Audit Logging
+
+Operations may be logged for inspection.
+
+[source,bash]
+----
 jtv audit log
+----
+
+== Status
+
+- Logging exists in parts of the system
+- Not complete or standardized
+
+== Limitations
+
+- No global undo system
+- No guarantee that all operations are reversible
+- External effects (files, network) are not reversible
+
+== Summary
+
+Tooling provides partial support for inspection and limited rollback.
+
+It does not provide full operational reversibility.
