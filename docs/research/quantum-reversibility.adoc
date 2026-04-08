@@ -1,0 +1,36 @@
+= Quantum-Inspired Reversibility (Research)
+
+This document outlines speculative directions for reversible computation inspired
+by quantum computing.
+
+Nothing in this document is implemented.
+
+== Motivation
+
+Reversible computation is relevant to:
+
+- Quantum algorithms
+- Thermodynamic efficiency
+- Formal reasoning about computation
+
+== Potential Directions
+
+- Unitary transformations
+- Reversible circuits
+- Stepwise inversion of computation
+
+== Status
+
+- Research only
+- No implementation
+- No formal integration
+
+== Risks
+
+- High complexity
+- Unclear applicability to current system
+- Potential mismatch with language constraints
+
+== Summary
+
+This is an exploratory research area, not part of the current system.
