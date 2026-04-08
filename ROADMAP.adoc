@@ -1,22 +1,121 @@
-// SPDX-License-Identifier: PMPL-1.0-or-later
-= Julia The Viper Roadmap
+= Julia the Viper — Roadmap
 
-== Current Status
+This roadmap describes the *actual development trajectory* of JtV as a research language.
 
-Initial development phase.
+It is intentionally conservative and distinguishes clearly between:
 
-== Milestones
+* core stabilisation
+* implementation work
+* research directions
 
-=== v0.1.0 - Foundation
-* [ ] Core functionality
-* [ ] Basic documentation
-* [ ] CI/CD pipeline
+---
 
-=== v1.0.0 - Stable Release
-* [ ] Full feature set
-* [ ] Comprehensive tests
-* [ ] Production ready
+== Current Phase
 
-== Future Directions
+*Phase 0 — Implemented Core (Alpha)*
 
-_To be determined based on community feedback._
+The project currently has:
+
+* a working interpreter core (Rust)
+* defined grammar (in flux)
+* extensive testing infrastructure
+* partial formal artifacts
+
+However:
+
+* semantics are still being clarified
+* boundaries between core and extensions are not fully stabilised
+* some documentation overstates implementation completeness (being corrected)
+
+---
+
+== Near-Term (Phase 1 — Core Stabilisation)
+
+Goal: make the current system *coherent and defensible*
+
+=== Priorities
+
+* unify grammar (resolve version drift)
+* clarify Data vs Control semantics
+* align documentation with implementation reality
+* remove duplicated or conflicting documents
+* define minimal “core language” precisely
+
+=== Deliverables
+
+* stable grammar (v0.1.x)
+* canonical documentation set (AsciiDoc)
+* consistent test coverage across core features
+* clear separation of:
+
+  * implemented features
+  * partial features
+  * research directions
+
+---
+
+== Mid-Term (Phase 2 — Semantic Consolidation)
+
+Goal: strengthen theoretical and semantic grounding
+
+=== Areas of Work
+
+* formalise Data fragment more precisely (termination / totality constraints)
+* clarify construction-based computation (CNO model)
+* define reversible sub-fragment semantics rigorously
+* expand proof coverage where meaningful
+
+=== Deliverables
+
+* refined specification in `spec/`
+* improved alignment between proofs and implementation
+* clearer semantics for core evaluation model
+
+---
+
+== Longer-Term (Phase 3 — Extensions)
+
+These are *research directions*, not commitments.
+
+Possible areas:
+
+* richer type systems (dependent, refinement, linear)
+* effect tracking and purity systems
+* symbolic and algebraic reasoning
+* probabilistic extensions
+* reversible computation beyond restricted fragments
+
+Each of these will only be incorporated if they can be:
+
+* clearly specified
+* integrated without breaking the core architecture
+
+---
+
+== Explicit Non-Goals (for now)
+
+To maintain clarity, the following are *not current priorities*:
+
+* full “quantum language” implementation
+* complete end-to-end formal verification
+* production-grade tooling ecosystem
+* feature parity with general-purpose languages
+
+---
+
+== Success Criteria (Short-Term)
+
+The project is in a good state when:
+
+* the core language can be described precisely in a small spec
+* documentation reflects reality (no overclaiming)
+* tests align with semantics
+* contributors can identify what is “core” vs “experimental”
+
+---
+
+== Guiding Principle
+
+Progress is measured not by feature count, but by:
+
+> *clarity of semantics, correctness of implementation, and honesty of documentation.*
