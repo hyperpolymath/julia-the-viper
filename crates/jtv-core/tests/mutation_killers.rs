@@ -153,6 +153,33 @@ fn lt_incompatible_types_error() {
     assert!(Value::Int(1).lt(&Value::Symbolic("x".to_string())).is_err());
 }
 
+// Cross-type EQUAL values: lt must return false, gt must return false
+// These kill `< with <=` and `> with >=` mutations on cross-type arms
+#[test]
+fn lt_cross_type_equal_is_false() {
+    // Int(2) < Float(2.0) should be false
+    assert_eq!(Value::Int(2).lt(&Value::Float(2.0)).unwrap(), false);
+    assert_eq!(Value::Float(2.0).lt(&Value::Int(2)).unwrap(), false);
+    assert_eq!(Value::Int(1).lt(&Value::Rational(Ratio::new(1, 1))).unwrap(), false);
+    assert_eq!(Value::Rational(Ratio::new(1, 1)).lt(&Value::Int(1)).unwrap(), false);
+    assert_eq!(Value::Hex(5).lt(&Value::Int(5)).unwrap(), false);
+    assert_eq!(Value::Int(5).lt(&Value::Hex(5)).unwrap(), false);
+    assert_eq!(Value::Binary(5).lt(&Value::Int(5)).unwrap(), false);
+    assert_eq!(Value::Int(5).lt(&Value::Binary(5)).unwrap(), false);
+}
+
+#[test]
+fn gt_cross_type_equal_is_false() {
+    assert_eq!(Value::Int(2).gt(&Value::Float(2.0)).unwrap(), false);
+    assert_eq!(Value::Float(2.0).gt(&Value::Int(2)).unwrap(), false);
+    assert_eq!(Value::Int(1).gt(&Value::Rational(Ratio::new(1, 1))).unwrap(), false);
+    assert_eq!(Value::Rational(Ratio::new(1, 1)).gt(&Value::Int(1)).unwrap(), false);
+    assert_eq!(Value::Hex(5).gt(&Value::Int(5)).unwrap(), false);
+    assert_eq!(Value::Int(5).gt(&Value::Hex(5)).unwrap(), false);
+    assert_eq!(Value::Binary(5).gt(&Value::Int(5)).unwrap(), false);
+    assert_eq!(Value::Int(5).gt(&Value::Binary(5)).unwrap(), false);
+}
+
 // ============================================================================
 // Value::gt — greater than comparisons
 // ============================================================================
@@ -432,6 +459,33 @@ fn ge_binary_int() {
 // ============================================================================
 // Value::eq and Value::ne
 // ============================================================================
+
+// Kills "delete match arm" mutations for negate and string add
+#[test]
+fn negate_hex() {
+    let result = Value::Hex(5).negate().unwrap();
+    assert_eq!(result, Value::Hex(-5));
+}
+
+#[test]
+fn negate_binary() {
+    let result = Value::Binary(5).negate().unwrap();
+    assert_eq!(result, Value::Binary(-5));
+}
+
+#[test]
+fn negate_symbolic() {
+    let result = Value::Symbolic("x".to_string()).negate().unwrap();
+    assert!(matches!(result, Value::Symbolic(_)));
+}
+
+#[test]
+fn add_string_string() {
+    let a = Value::String("hello".to_string());
+    let b = Value::String(" world".to_string());
+    let result = a.add(&b).unwrap();
+    assert_eq!(result, Value::String("hello world".to_string()));
+}
 
 #[test]
 fn eq_int_true() {
@@ -892,6 +946,199 @@ fn interp_for_loop_step() {
     interp.run(&program).unwrap();
     // 0 + 2 + 4 + 6 + 8 = 20
     assert_eq!(interp.get_variable("sum").unwrap(), Value::Int(20));
+}
+
+// ============================================================================
+// Type checker: add_result and negate_result (kills type coercion mutations)
+// ============================================================================
+
+use jtv_core::typechecker::Type;
+
+#[test]
+fn type_add_same_types() {
+    assert_eq!(Type::Int.add_result(&Type::Int), Some(Type::Int));
+    assert_eq!(Type::Float.add_result(&Type::Float), Some(Type::Float));
+    assert_eq!(Type::Rational.add_result(&Type::Rational), Some(Type::Rational));
+    assert_eq!(Type::Complex.add_result(&Type::Complex), Some(Type::Complex));
+    assert_eq!(Type::Hex.add_result(&Type::Hex), Some(Type::Hex));
+    assert_eq!(Type::Binary.add_result(&Type::Binary), Some(Type::Binary));
+    assert_eq!(Type::Symbolic.add_result(&Type::Symbolic), Some(Type::Symbolic));
+    assert_eq!(Type::String.add_result(&Type::String), Some(Type::String));
+}
+
+#[test]
+fn type_add_coercions() {
+    // Int + Float = Float
+    assert_eq!(Type::Int.add_result(&Type::Float), Some(Type::Float));
+    assert_eq!(Type::Float.add_result(&Type::Int), Some(Type::Float));
+    // Int + Rational = Rational
+    assert_eq!(Type::Int.add_result(&Type::Rational), Some(Type::Rational));
+    assert_eq!(Type::Rational.add_result(&Type::Int), Some(Type::Rational));
+    // Int + Complex = Complex
+    assert_eq!(Type::Int.add_result(&Type::Complex), Some(Type::Complex));
+    assert_eq!(Type::Complex.add_result(&Type::Int), Some(Type::Complex));
+    // Float + Complex = Complex
+    assert_eq!(Type::Float.add_result(&Type::Complex), Some(Type::Complex));
+    assert_eq!(Type::Complex.add_result(&Type::Float), Some(Type::Complex));
+    // Hex + Int = Int
+    assert_eq!(Type::Hex.add_result(&Type::Int), Some(Type::Int));
+    assert_eq!(Type::Int.add_result(&Type::Hex), Some(Type::Int));
+    // Binary + Int = Int
+    assert_eq!(Type::Binary.add_result(&Type::Int), Some(Type::Int));
+    assert_eq!(Type::Int.add_result(&Type::Binary), Some(Type::Int));
+}
+
+#[test]
+fn type_add_incompatible() {
+    assert_eq!(Type::Int.add_result(&Type::String), None);
+    assert_eq!(Type::Bool.add_result(&Type::Int), None);
+    assert_eq!(Type::String.add_result(&Type::Float), None);
+}
+
+#[test]
+fn type_add_any() {
+    assert_eq!(Type::Any.add_result(&Type::Int), Some(Type::Int));
+    assert_eq!(Type::Float.add_result(&Type::Any), Some(Type::Float));
+}
+
+#[test]
+fn type_negate_numeric() {
+    assert_eq!(Type::Int.negate_result(), Some(Type::Int));
+    assert_eq!(Type::Float.negate_result(), Some(Type::Float));
+    assert_eq!(Type::Rational.negate_result(), Some(Type::Rational));
+    assert_eq!(Type::Complex.negate_result(), Some(Type::Complex));
+    assert_eq!(Type::Hex.negate_result(), Some(Type::Hex));
+    assert_eq!(Type::Binary.negate_result(), Some(Type::Binary));
+    assert_eq!(Type::Symbolic.negate_result(), Some(Type::Symbolic));
+    assert_eq!(Type::Any.negate_result(), Some(Type::Any));
+}
+
+#[test]
+fn type_negate_non_numeric() {
+    assert_eq!(Type::Bool.negate_result(), None);
+    assert_eq!(Type::String.negate_result(), None);
+    assert_eq!(Type::Unit.negate_result(), None);
+}
+
+#[test]
+fn type_coercible() {
+    assert!(Type::Int.coercible_to(&Type::Int));
+    assert!(Type::Int.coercible_to(&Type::Float));
+    assert!(Type::Int.coercible_to(&Type::Rational));
+    assert!(Type::Int.coercible_to(&Type::Complex));
+    assert!(Type::Hex.coercible_to(&Type::Int));
+    assert!(Type::Binary.coercible_to(&Type::Int));
+    assert!(Type::Float.coercible_to(&Type::Complex));
+    assert!(Type::Any.coercible_to(&Type::Int));
+    assert!(Type::Int.coercible_to(&Type::Any));
+    // Not coercible
+    assert!(!Type::Int.coercible_to(&Type::String));
+    assert!(!Type::String.coercible_to(&Type::Int));
+    assert!(!Type::Bool.coercible_to(&Type::Float));
+}
+
+// ============================================================================
+// Pretty printer: control statement indentation (kills depth+1 mutations)
+// ============================================================================
+
+#[test]
+fn pretty_print_if_indented_body() {
+    let code = "if x > 0 { y = 1 }";
+    let program = parse_program(code).unwrap();
+    let printer = PrettyPrinter::new();
+    let output = printer.print_program(&program);
+    // Body should be indented (2 spaces by default)
+    assert!(output.contains("  y = 1"), "If body should be indented:\n{}", output);
+}
+
+#[test]
+fn pretty_print_while_indented_body() {
+    let code = "while x > 0 { x = x + 1 }";
+    let program = parse_program(code).unwrap();
+    let printer = PrettyPrinter::new();
+    let output = printer.print_program(&program);
+    assert!(output.contains("  x = x"), "While body should be indented:\n{}", output);
+}
+
+#[test]
+fn pretty_print_for_indented_body() {
+    let code = "for i in 0..10 { x = x + 1 }";
+    let program = parse_program(code).unwrap();
+    let printer = PrettyPrinter::new();
+    let output = printer.print_program(&program);
+    assert!(output.contains("  x = x"), "For body should be indented:\n{}", output);
+}
+
+#[test]
+fn pretty_print_reverse_indented_body() {
+    let code = "reverse { x += 5 }";
+    let program = parse_program(code).unwrap();
+    let printer = PrettyPrinter::new();
+    let output = printer.print_program(&program);
+    assert!(output.contains("  x += 5"), "Reverse body should be indented:\n{}", output);
+}
+
+#[test]
+fn pretty_print_if_else_both_branches_indented() {
+    let code = "if x > 0 { y = 1 } else { y = 0 }";
+    let program = parse_program(code).unwrap();
+    let printer = PrettyPrinter::new();
+    let output = printer.print_program(&program);
+    assert!(output.contains("  y = 1"), "Then branch should be indented:\n{}", output);
+    assert!(output.contains("  y = 0"), "Else branch should be indented:\n{}", output);
+}
+
+#[test]
+fn pretty_print_module() {
+    let code = "module M { fn f(): Int { return 1 } }";
+    let program = parse_program(code).unwrap();
+    let printer = PrettyPrinter::new();
+    let output = printer.print_program(&program);
+    assert!(output.contains("module M"), "Module header:\n{}", output);
+    assert!(output.contains("  fn f"), "Function should be indented in module:\n{}", output);
+}
+
+#[test]
+fn pretty_print_program_multiple_stmts() {
+    let code = "x = 1\ny = 2";
+    let program = parse_program(code).unwrap();
+    let printer = PrettyPrinter::new();
+    let output = printer.print_program(&program);
+    assert!(output.contains("x = 1"), "First stmt:\n{}", output);
+    assert!(output.contains("y = 2"), "Second stmt:\n{}", output);
+}
+
+#[test]
+fn pretty_print_return_with_value() {
+    let printer = PrettyPrinter::new();
+    let stmt = ControlStmt::Return(Some(DataExpr::Number(Number::Int(42))));
+    let output = printer.print_control_stmt(&stmt, 0);
+    assert_eq!(output, "return 42");
+}
+
+#[test]
+fn pretty_print_return_without_value() {
+    let printer = PrettyPrinter::new();
+    let stmt = ControlStmt::Return(None);
+    let output = printer.print_control_stmt(&stmt, 0);
+    assert_eq!(output, "return");
+}
+
+#[test]
+fn pretty_print_complex_number_formats() {
+    let printer = PrettyPrinter::new();
+    // Complex with real and positive imaginary
+    assert_eq!(printer.print_number(&Number::Complex(3.0, 4.0)), "3+4i");
+    // Complex with real and negative imaginary
+    assert_eq!(printer.print_number(&Number::Complex(3.0, -4.0)), "3-4i");
+    // Pure imaginary
+    assert_eq!(printer.print_number(&Number::Complex(0.0, 5.0)), "5i");
+}
+
+#[test]
+fn pretty_print_symbolic() {
+    let printer = PrettyPrinter::new();
+    assert_eq!(printer.print_number(&Number::Symbolic("pi".to_string())), "#pi");
 }
 
 // ============================================================================

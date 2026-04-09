@@ -2,7 +2,7 @@
 
 <!-- SPDX-License-Identifier: PMPL-1.0-or-later -->
 
-## CRG Grade: C+ (approaching B) — Updated 2026-04-04
+## CRG Grade: B — Updated 2026-04-04
 
 ## Current Test State
 
@@ -14,8 +14,18 @@
 | Property-based | `tests/property_tests.rs` | 41 | PBT |
 | Harvard boundary | `tests/harvard_boundary_tests.rs` | 35 | P2P/SEC/SAF |
 | Contract/invariant | `tests/contract_tests.rs` | 20 | CTR/LCY |
-| Conformance | `tests/conformance_tests.rs` | 2 (pre-existing failures) | E2E |
-| **Total passing** | | **339** | |
+| Compatibility | `tests/compatibility_tests.rs` | 12 | CMP/VER |
+| Mutation killers | `tests/mutation_killers.rs` | 156 | MUT targeting |
+| Conformance | `tests/conformance_tests.rs` | 2 (31 valid + 21 invalid programs) | E2E |
+| **Total passing** | | **509** | |
+
+## Mutation Testing Results (cargo-mutants)
+
+**Kill rate: 81.9%** on core files (number, typechecker, interpreter, pretty, ast, purity, reversible)
+- 344 mutants caught
+- 76 mutants missed
+- 48 unviable
+- 420 total non-unviable
 
 ## Proof Files
 
