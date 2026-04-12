@@ -1,31 +1,20 @@
-;; SPDX-License-Identifier: PMPL-1.0-or-later
-;; ECOSYSTEM.scm - Ecosystem positioning
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+#
+# ECOSYSTEM.a2ml — Playground ecosystem position
+[metadata]
+version = "1.0.0"
+last-updated = "2026-04-11"
 
-(ecosystem
-  (version . "1.0.0")
-  (name . "jtv-playground")
-  (type . "language-playground")
-  (purpose . "Comprehensive development experimentation sandbox")
+[project]
+name = "Playground"
+purpose = "Comprehensive development experimentation sandbox"
+role = "language-playground"
 
-  (position-in-ecosystem
-    ((parent . "language-playgrounds")
-     (grandparent . "nextgen-languages")
-     (category . "general-experimentation")))
+[position-in-ecosystem]
+category = "general-experimentation"
 
-  (related-projects
-    ((julia-the-viper
-       ((relationship . "origin")
-        (description . "Harvard Architecture systems programming")))
-     (all-playgrounds
-       ((relationship . "sibling")
-        (description . "Part of language-playgrounds family")))))
-
-  (what-this-is
-    ("Multi-technology playground"
-     "API and frontend demos"
-     "Testing and infrastructure experiments"))
-
-  (what-this-is-not
-    ("Production codebase"
-     "Single-technology focus"
-     "Stable API")))
+[related-projects]
+projects = [
+  { name = "jtv-playground", relationship = "origin" },
+]
