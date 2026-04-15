@@ -2,6 +2,8 @@
 # Justfile - Julia the Viper build system
 
 # Default: show all available commands
+import? "contractile.just"
+
 default:
     @just --list
 
