@@ -1,0 +1,145 @@
+= Julia the Viper Type System Specification (V2 Draft)
+:version: 2.0.0-draft
+:date: 2026-04-16
+
+SPDX-License-Identifier: PMPL-1.0-or-later
+Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath)
+
+== 0. Design Goals
+
+This document defines Version 2 of the Julia the Viper (JtV) type system.
+
+Goals:
+
+* Preserve Harvard separation between Data and Control.
+* Ensure Data fragment is statically total.
+* Introduce Safe Control fragment (S).
+* Keep Control fragment Turing-complete.
+* Add Echo typing layer without interfering with value types.
+
+== 1. Static Axes
+
+JtV typing operates across four orthogonal axes:
+
+1. Value typing: Γ ⊢ e : τ
+2. Fragment typing:
+   * Γ ⊢_D e : τ
+   * Γ ⊢_S s : ()
+   * Γ ⊢_C s : ()
+3. Effect classification:
+   * Total ⊂ Pure ⊂ Impure
+4. Echo classification:
+   * EchoSafe | EchoNeutral | EchoBreaking
+
+== 2. Type Language
+
+----
+τ ::= Int | Float | Rational | Complex
+    | Hex | Binary
+    | Symbolic
+    | Bool
+    | String
+    | Unit
+    | List[τ]
+    | (τ₁, …, τₙ)
+    | (τ₁, …, τₙ) → τᵣ
+    | Any
+----
+
+Echo is NOT part of τ in V2.
+
+== 3. Fragment Hierarchy
+
+D ⊂ S ⊂ C
+
+* D = Data (total)
+* S = Safe Control (total by construction)
+* C = Full Control (Turing-complete)
+
+== 4. Data Typing
+
+Examples:
+
+----
+Γ ⊢_D n : Int
+Γ ⊢_D e₁ + e₂ : widen(τ₁, τ₂)
+Γ ⊢_D -e : τ
+----
+
+No loops, no recursion, no effects.
+
+== 5. Safe Control Fragment (S)
+
+Allowed:
+
+* let from Data
+* sequencing
+* if with Data guards
+* bounded for loops
+* calls to @total functions
+
+Forbidden:
+
+* while
+* unrestricted recursion
+* I/O
+* impure calls
+
+== 6. Safe Loop Rule
+
+----
+Γ ⊢_D start : Int
+Γ ⊢_D end : Int
+Γ, x:Int ⊢_S body : ()
+--------------------------------
+Γ ⊢_S for x in start..end { body } : ()
+----
+
+== 7. Effects
+
+----
+Total ⊂ Pure ⊂ Impure
+----
+
+@total functions must check entirely in S.
+
+== 8. Echo Layer
+
+----
+Echo ::= EchoSafe | EchoNeutral | EchoBreaking
+----
+
+Example:
+
+----
+Γ ⊢ e₁ + e₂ : EchoSafe
+Γ ⊢ x = e : EchoBreaking
+----
+
+Echo does not affect core typing.
+
+== 9. Reverse Blocks
+
+----
+All statements must be invertible AND not EchoBreaking.
+----
+
+== 10. Guarantees
+
+* Data always terminates
+* Safe Control always terminates
+* Control may diverge
+* Halting boundary is syntactic and decidable
+* Echo does not interfere with typing
+
+== 11. Summary
+
+JtV V2 introduces a safe computational island:
+
+Data (total) ⊂ Safe Control (total) ⊂ Control (general)
+
+This enables:
+
+* static termination guarantees
+* explicit boundary of undecidability
+* extensibility via echo typing
