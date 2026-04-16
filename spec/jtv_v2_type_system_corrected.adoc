@@ -1,0 +1,157 @@
+= Julia the Viper Type System Specification (V2 Corrected Draft)
+:version: 2.0.0-draft
+:date: 2026-04-16
+
+SPDX-License-Identifier: PMPL-1.0-or-later
+Copyright (c) 2026 Jonathan D.A. Jewell
+
+== 1. Effect Lattice
+
+Total ⊑ Pure ⊑ Impure
+
+Interpretation:
+- Total = strongest guarantees (termination + no effects)
+- Impure = weakest guarantees
+
+Join (⊔) moves rightward (loses guarantees).
+
+== 2. Numeric Types and Widening
+
+Numeric ::= Int | Float | Rational | Complex | Hex | Binary
+
+Tower:
+Binary, Hex ⊂ Int ⊂ Rational ⊂ Float ⊂ Complex
+
+widen(τ₁, τ₂) = least upper bound in the tower
+
+Addition rule:
+
+Γ ⊢_D e₁ : τ₁
+Γ ⊢_D e₂ : τ₂
+τ₁, τ₂ ∈ Numeric
+--------------------------------
+Γ ⊢_D e₁ + e₂ : widen(τ₁, τ₂)
+
+== 3. Fragment Hierarchy
+
+D ⊂ S ⊂ C
+
+D = Data (total)
+S = Safe Control (total per input)
+C = Full Control (Turing-complete)
+
+== 4. Data Fragment
+
+Includes:
+- literals
+- variables
+- addition
+- negation
+- calls to @total functions
+
+Guarantee: all Data expressions terminate.
+
+== 5. Safe Control Fragment (S)
+
+Allowed:
+- let bindings from D
+- sequencing
+- if with Data guards
+- bounded for loops
+- calls to @total functions
+
+Forbidden:
+- while
+- recursion (unless proven terminating)
+- impure or pure calls
+- I/O
+
+Note: termination is per-input, not bounded.
+
+== 6. Safe Loop Rule
+
+Γ ⊢_D start : Int
+Γ ⊢_D end : Int
+Γ, x:Int ⊢_S body : ()
+--------------------------------
+Γ ⊢_S for x in start..end { body } : ()
+
+== 7. Function Effects
+
+@total:
+- must check entirely in S
+- no recursion unless verified
+
+@pure:
+- no I/O
+- may diverge
+
+@impure:
+- unrestricted
+
+== 8. Echo System
+
+Echo ::= EchoSafe | EchoNeutral | EchoBreaking
+
+Join:
+
+| ⊔ | Safe | Neutral | Breaking |
+|---|------|---------|----------|
+| Safe | Safe | Neutral | Breaking |
+| Neutral | Neutral | Neutral | Breaking |
+| Breaking | Breaking | Breaking | Breaking |
+
+Addition:
+
+Γ ⊢ e₁ : η₁
+Γ ⊢ e₂ : η₂
+---------------------------
+Γ ⊢ e₁ + e₂ : η₁ ⊔ η₂
+
+== 9. Reverse Blocks
+
+Allowed only if:
+- all statements invertible
+- no EchoBreaking statements
+- no loops in V2
+
+== 10. Soundness Theorem
+
+Theorem (Safe Fragment Termination):
+
+If Γ ⊢_S s : (), then for all environments ρ:
+eval(s, ρ) terminates.
+
+Proof Sketch:
+
+By induction on typing derivation:
+
+- let: terminates (Data totality)
+- seq: composition of terminating statements
+- if: guard terminates, branch terminates
+- for: finite iteration over total domain
+- call: @total invariant guarantees termination
+
+QED.
+
+== 11. Decidability
+
+Fragment membership is decidable syntactically.
+
+@total checking depends on a termination checker T.
+
+Default V2:
+- no recursion allowed
+
+Future:
+- structural recursion
+- sized types
+
+== 12. Invariants
+
+- Data totality holds
+- Safe fragment termination holds
+- Halting boundary is syntactic
+- Echo does not affect value typing
+- Widening may be lossy and is independent of echo
+
