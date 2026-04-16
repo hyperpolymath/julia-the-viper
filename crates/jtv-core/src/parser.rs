@@ -35,7 +35,7 @@ pub fn parse_program(input: &str) -> Result<Program> {
 
 fn parse_module(pair: pest::iterators::Pair<Rule>) -> Result<TopLevel> {
     let mut inner = pair.into_inner();
-    let name = inner.next().unwrap().as_str().to_string();
+    let name = inner.next().expect("TODO: handle error").as_str().to_string();
 
     let mut body = Vec::new();
     for pair in inner {
@@ -51,7 +51,7 @@ fn parse_module(pair: pest::iterators::Pair<Rule>) -> Result<TopLevel> {
 
 fn parse_import(pair: pest::iterators::Pair<Rule>) -> Result<TopLevel> {
     let mut inner = pair.into_inner();
-    let module_path = inner.next().unwrap();
+    let module_path = inner.next().expect("TODO: handle error");
 
     let path: Vec<String> = module_path
         .into_inner()
@@ -67,7 +67,7 @@ fn parse_function(pair: pest::iterators::Pair<Rule>) -> Result<TopLevel> {
     let mut inner = pair.into_inner();
 
     let mut purity = Purity::Impure;
-    let mut first = inner.next().unwrap();
+    let mut first = inner.next().expect("TODO: handle error");
 
     // Check for purity marker
     if first.as_rule() == Rule::purity_marker {
@@ -76,7 +76,7 @@ fn parse_function(pair: pest::iterators::Pair<Rule>) -> Result<TopLevel> {
             "@total" => Purity::Total,
             _ => Purity::Impure,
         };
-        first = inner.next().unwrap();
+        first = inner.next().expect("TODO: handle error");
     }
 
     let name = first.as_str().to_string();
@@ -93,7 +93,7 @@ fn parse_function(pair: pest::iterators::Pair<Rule>) -> Result<TopLevel> {
                 }
             }
             Rule::return_type => {
-                return_type = Some(parse_type_annotation(pair.into_inner().next().unwrap())?);
+                return_type = Some(parse_type_annotation(pair.into_inner().next().expect("TODO: handle error"))?);
             }
             Rule::block => {
                 for stmt_pair in pair.into_inner() {
@@ -115,7 +115,7 @@ fn parse_function(pair: pest::iterators::Pair<Rule>) -> Result<TopLevel> {
 
 fn parse_param(pair: pest::iterators::Pair<Rule>) -> Result<Param> {
     let mut inner = pair.into_inner();
-    let name = inner.next().unwrap().as_str().to_string();
+    let name = inner.next().expect("TODO: handle error").as_str().to_string();
     let type_annotation = inner.next().map(|p| parse_type_annotation(p)).transpose()?;
 
     Ok(Param {
@@ -125,13 +125,13 @@ fn parse_param(pair: pest::iterators::Pair<Rule>) -> Result<Param> {
 }
 
 fn parse_control_stmt(pair: pest::iterators::Pair<Rule>) -> Result<ControlStmt> {
-    let inner = pair.into_inner().next().unwrap();
+    let inner = pair.into_inner().next().expect("TODO: handle error");
 
     match inner.as_rule() {
         Rule::assignment => {
             let mut parts = inner.into_inner();
-            let target = parts.next().unwrap().as_str().to_string();
-            let value_pair = parts.next().unwrap();
+            let target = parts.next().expect("TODO: handle error").as_str().to_string();
+            let value_pair = parts.next().expect("TODO: handle error");
 
             let value = if value_pair.as_rule() == Rule::data_expr {
                 Expr::Data(parse_data_expr(value_pair)?)
@@ -143,9 +143,9 @@ fn parse_control_stmt(pair: pest::iterators::Pair<Rule>) -> Result<ControlStmt> 
         }
         Rule::if_stmt => {
             let mut parts = inner.into_inner();
-            let condition = parse_control_expr(parts.next().unwrap())?;
+            let condition = parse_control_expr(parts.next().expect("TODO: handle error"))?;
 
-            let then_block = parts.next().unwrap();
+            let then_block = parts.next().expect("TODO: handle error");
             let mut then_branch = Vec::new();
             for stmt in then_block.into_inner() {
                 then_branch.push(parse_control_stmt(stmt)?);
@@ -154,7 +154,7 @@ fn parse_control_stmt(pair: pest::iterators::Pair<Rule>) -> Result<ControlStmt> 
             let else_branch = parts.next().map(|else_block| {
                 let mut stmts = Vec::new();
                 for stmt in else_block.into_inner() {
-                    stmts.push(parse_control_stmt(stmt).unwrap());
+                    stmts.push(parse_control_stmt(stmt).expect("TODO: handle error"));
                 }
                 stmts
             });
@@ -167,10 +167,10 @@ fn parse_control_stmt(pair: pest::iterators::Pair<Rule>) -> Result<ControlStmt> 
         }
         Rule::while_stmt => {
             let mut parts = inner.into_inner();
-            let condition = parse_control_expr(parts.next().unwrap())?;
+            let condition = parse_control_expr(parts.next().expect("TODO: handle error"))?;
 
             let mut body = Vec::new();
-            for stmt in parts.next().unwrap().into_inner() {
+            for stmt in parts.next().expect("TODO: handle error").into_inner() {
                 body.push(parse_control_stmt(stmt)?);
             }
 
@@ -178,8 +178,8 @@ fn parse_control_stmt(pair: pest::iterators::Pair<Rule>) -> Result<ControlStmt> 
         }
         Rule::for_stmt => {
             let mut parts = inner.into_inner();
-            let variable = parts.next().unwrap().as_str().to_string();
-            let iterable = parts.next().unwrap();
+            let variable = parts.next().expect("TODO: handle error").as_str().to_string();
+            let iterable = parts.next().expect("TODO: handle error");
 
             // Support both range expressions (0..10) and data expressions (xs)
             let range = if iterable.as_rule() == Rule::range_expr {
@@ -196,7 +196,7 @@ fn parse_control_stmt(pair: pest::iterators::Pair<Rule>) -> Result<ControlStmt> 
             };
 
             let mut body = Vec::new();
-            for stmt in parts.next().unwrap().into_inner() {
+            for stmt in parts.next().expect("TODO: handle error").into_inner() {
                 body.push(parse_control_stmt(stmt)?);
             }
 
@@ -243,14 +243,14 @@ fn parse_control_stmt(pair: pest::iterators::Pair<Rule>) -> Result<ControlStmt> 
 }
 
 fn parse_reversible_stmt(pair: pest::iterators::Pair<Rule>) -> Result<ReversibleStmt> {
-    let inner = pair.into_inner().next().unwrap();
+    let inner = pair.into_inner().next().expect("TODO: handle error");
 
     match inner.as_rule() {
         Rule::reversible_assignment => {
             let mut parts = inner.into_inner();
-            let target = parts.next().unwrap().as_str().to_string();
-            let op = parts.next().unwrap().as_str();
-            let expr = parse_data_expr(parts.next().unwrap())?;
+            let target = parts.next().expect("TODO: handle error").as_str().to_string();
+            let op = parts.next().expect("TODO: handle error").as_str();
+            let expr = parse_data_expr(parts.next().expect("TODO: handle error"))?;
 
             match op {
                 "+=" => Ok(ReversibleStmt::AddAssign(target, expr)),
@@ -264,9 +264,9 @@ fn parse_reversible_stmt(pair: pest::iterators::Pair<Rule>) -> Result<Reversible
         Rule::if_stmt => {
             // Parse as regular if statement
             let mut parts = inner.into_inner();
-            let condition = parse_control_expr(parts.next().unwrap())?;
+            let condition = parse_control_expr(parts.next().expect("TODO: handle error"))?;
 
-            let then_block = parts.next().unwrap();
+            let then_block = parts.next().expect("TODO: handle error");
             let mut then_branch = Vec::new();
             for stmt in then_block.into_inner() {
                 then_branch.push(parse_control_stmt(stmt)?);
@@ -275,7 +275,7 @@ fn parse_reversible_stmt(pair: pest::iterators::Pair<Rule>) -> Result<Reversible
             let else_branch = parts.next().map(|else_block| {
                 let mut stmts = Vec::new();
                 for stmt in else_block.into_inner() {
-                    stmts.push(parse_control_stmt(stmt).unwrap());
+                    stmts.push(parse_control_stmt(stmt).expect("TODO: handle error"));
                 }
                 stmts
             });
@@ -294,13 +294,13 @@ fn parse_reversible_stmt(pair: pest::iterators::Pair<Rule>) -> Result<Reversible
 }
 
 fn parse_data_expr(pair: pest::iterators::Pair<Rule>) -> Result<DataExpr> {
-    let inner = pair.into_inner().next().unwrap();
+    let inner = pair.into_inner().next().expect("TODO: handle error");
     parse_additive_expr(inner)
 }
 
 fn parse_additive_expr(pair: pest::iterators::Pair<Rule>) -> Result<DataExpr> {
     let mut inner = pair.into_inner();
-    let mut left = parse_term(inner.next().unwrap())?;
+    let mut left = parse_term(inner.next().expect("TODO: handle error"))?;
 
     while let Some(right_pair) = inner.next() {
         let right = parse_term(right_pair)?;
@@ -311,25 +311,25 @@ fn parse_additive_expr(pair: pest::iterators::Pair<Rule>) -> Result<DataExpr> {
 }
 
 fn parse_term(pair: pest::iterators::Pair<Rule>) -> Result<DataExpr> {
-    let inner = pair.into_inner().next().unwrap();
+    let inner = pair.into_inner().next().expect("TODO: handle error");
     parse_factor(inner)
 }
 
 fn parse_factor(pair: pest::iterators::Pair<Rule>) -> Result<DataExpr> {
     match pair.as_rule() {
         Rule::number => {
-            let num = parse_number(pair.into_inner().next().unwrap())?;
+            let num = parse_number(pair.into_inner().next().expect("TODO: handle error"))?;
             Ok(DataExpr::Number(num))
         }
         Rule::string => {
             // String literal: extract the inner content (without quotes)
-            let inner = pair.into_inner().next().unwrap();
+            let inner = pair.into_inner().next().expect("TODO: handle error");
             Ok(DataExpr::StringLit(inner.as_str().to_string()))
         }
         Rule::identifier => Ok(DataExpr::Identifier(pair.as_str().to_string())),
         Rule::function_call => {
             let mut parts = pair.into_inner();
-            let qualified_name = parts.next().unwrap();
+            let qualified_name = parts.next().expect("TODO: handle error");
 
             // Parse qualified name: Module.submodule.function
             let name_parts: Vec<String> = qualified_name
@@ -371,11 +371,11 @@ fn parse_factor(pair: pest::iterators::Pair<Rule>) -> Result<DataExpr> {
         }
         Rule::factor => {
             let mut inner = pair.into_inner();
-            let first = inner.next().unwrap();
+            let first = inner.next().expect("TODO: handle error");
 
             if first.as_rule() == Rule::unary_op {
                 let op = first.as_str();
-                let expr = parse_factor(inner.next().unwrap())?;
+                let expr = parse_factor(inner.next().expect("TODO: handle error"))?;
 
                 match op {
                     "-" => Ok(DataExpr::Negate(Box::new(expr))),
@@ -454,7 +454,7 @@ fn parse_number(pair: pest::iterators::Pair<Rule>) -> Result<Number> {
 }
 
 fn parse_control_expr(pair: pest::iterators::Pair<Rule>) -> Result<ControlExpr> {
-    let inner = pair.into_inner().next().unwrap();
+    let inner = pair.into_inner().next().expect("TODO: handle error");
 
     match inner.as_rule() {
         Rule::logical_expr => parse_logical_expr(inner),
@@ -469,7 +469,7 @@ fn parse_control_expr(pair: pest::iterators::Pair<Rule>) -> Result<ControlExpr> 
 
 fn parse_logical_expr(pair: pest::iterators::Pair<Rule>) -> Result<ControlExpr> {
     let mut inner = pair.into_inner();
-    let mut left = parse_logical_term(inner.next().unwrap())?;
+    let mut left = parse_logical_term(inner.next().expect("TODO: handle error"))?;
 
     for right_pair in inner {
         let right = parse_logical_term(right_pair)?;
@@ -481,7 +481,7 @@ fn parse_logical_expr(pair: pest::iterators::Pair<Rule>) -> Result<ControlExpr> 
 
 fn parse_logical_term(pair: pest::iterators::Pair<Rule>) -> Result<ControlExpr> {
     let mut inner = pair.into_inner();
-    let mut left = parse_logical_factor(inner.next().unwrap())?;
+    let mut left = parse_logical_factor(inner.next().expect("TODO: handle error"))?;
 
     for right_pair in inner {
         let right = parse_logical_factor(right_pair)?;
@@ -493,11 +493,11 @@ fn parse_logical_term(pair: pest::iterators::Pair<Rule>) -> Result<ControlExpr> 
 
 fn parse_logical_factor(pair: pest::iterators::Pair<Rule>) -> Result<ControlExpr> {
     let mut inner = pair.into_inner();
-    let first = inner.next().unwrap();
+    let first = inner.next().expect("TODO: handle error");
 
     match first.as_str() {
         "!" => {
-            let expr = parse_logical_factor(inner.next().unwrap())?;
+            let expr = parse_logical_factor(inner.next().expect("TODO: handle error"))?;
             Ok(ControlExpr::Not(Box::new(expr)))
         }
         _ => match first.as_rule() {
@@ -511,9 +511,9 @@ fn parse_logical_factor(pair: pest::iterators::Pair<Rule>) -> Result<ControlExpr
 
 fn parse_comparison_expr(pair: pest::iterators::Pair<Rule>) -> Result<ControlExpr> {
     let mut inner = pair.into_inner();
-    let left = parse_data_expr(inner.next().unwrap())?;
-    let op = inner.next().unwrap().as_str();
-    let right = parse_data_expr(inner.next().unwrap())?;
+    let left = parse_data_expr(inner.next().expect("TODO: handle error"))?;
+    let op = inner.next().expect("TODO: handle error").as_str();
+    let right = parse_data_expr(inner.next().expect("TODO: handle error"))?;
 
     let comparator = match op {
         "==" => Comparator::Eq,
@@ -534,15 +534,15 @@ fn parse_comparison_expr(pair: pest::iterators::Pair<Rule>) -> Result<ControlExp
 
 fn parse_range_expr(pair: pest::iterators::Pair<Rule>) -> Result<RangeExpr> {
     let mut inner = pair.into_inner();
-    let start = Box::new(parse_data_expr(inner.next().unwrap())?);
-    let end = Box::new(parse_data_expr(inner.next().unwrap())?);
-    let step = inner.next().map(|p| Box::new(parse_data_expr(p).unwrap()));
+    let start = Box::new(parse_data_expr(inner.next().expect("TODO: handle error"))?);
+    let end = Box::new(parse_data_expr(inner.next().expect("TODO: handle error"))?);
+    let step = inner.next().map(|p| Box::new(parse_data_expr(p).expect("TODO: handle error")));
 
     Ok(RangeExpr { start, end, step })
 }
 
 fn parse_type_annotation(pair: pest::iterators::Pair<Rule>) -> Result<TypeAnnotation> {
-    let inner = pair.into_inner().next().unwrap();
+    let inner = pair.into_inner().next().expect("TODO: handle error");
 
     match inner.as_rule() {
         Rule::basic_type => {
@@ -562,7 +562,7 @@ fn parse_type_annotation(pair: pest::iterators::Pair<Rule>) -> Result<TypeAnnota
             Ok(TypeAnnotation::Basic(basic))
         }
         Rule::list_type => {
-            let elem_type = parse_type_annotation(inner.into_inner().next().unwrap())?;
+            let elem_type = parse_type_annotation(inner.into_inner().next().expect("TODO: handle error"))?;
             Ok(TypeAnnotation::List(Box::new(elem_type)))
         }
         Rule::tuple_type => {
@@ -578,7 +578,7 @@ fn parse_type_annotation(pair: pest::iterators::Pair<Rule>) -> Result<TypeAnnota
 
             // Collect all but the last (which is return type)
             let all_types: Vec<_> = parts.collect();
-            let return_type = all_types.last().unwrap();
+            let return_type = all_types.last().expect("TODO: handle error");
 
             for i in 0..all_types.len() - 1 {
                 param_types.push(parse_type_annotation(all_types[i].clone())?);
@@ -632,7 +632,7 @@ mod tests {
         let code = "x = #pi + #e";
         let result = parse_program(code);
         assert!(result.is_ok(), "Failed to parse symbolic literals: {:?}", result.err());
-        let program = result.unwrap();
+        let program = result.expect("TODO: handle error");
         // Verify the AST contains symbolic numbers
         if let TopLevel::Control(ControlStmt::Assignment(ref assign)) = program.statements[0] {
             if let Expr::Data(DataExpr::Add(ref left, ref right)) = assign.value {
