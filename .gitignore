@@ -32,3 +32,11 @@ Thumbs.db
 *.tmp
 *.log
 mutants.out/
+target/
+node_modules/
+_build/
+deps/
+.elixir_ls/
+.cache/
+build/
+dist/
