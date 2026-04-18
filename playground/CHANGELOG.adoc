@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive documentation: SECURITY.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, MAINTAINERS.md
 - Dual MIT + Palimpsest v0.8 licensing
 - TPCF (Tri-Perimeter Contribution Framework) governance model
-- justfile for build automation (upcoming)
+- Justfile for build automation (upcoming)
 - flake.nix for reproducible builds (upcoming)
 
 === Changed
@@ -184,7 +184,7 @@ Example: `1.0.0-alpha.1`, `1.0.0-beta.2`, `1.0.0-rc.1`, `1.0.0`
 - [ ] Offline-first architecture (partial)
 - [x] Complete documentation
 - [x] .well-known/ directory
-- [ ] Build system (justfile in progress)
+- [ ] Build system (Justfile in progress)
 - [ ] 100% test coverage (varies)
 - [x] TPCF Perimeter 3 model
 - [x] Dual licensing

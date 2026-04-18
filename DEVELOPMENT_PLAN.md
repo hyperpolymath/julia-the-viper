@@ -671,7 +671,7 @@ julia-the-viper/
 ├── benches/                     # Benchmarks
 │
 ├── Cargo.toml                   # Workspace root
-├── justfile                     # Build commands
+├── Justfile                     # Build commands
 ├── flake.nix                    # Nix packaging
 └── guix.scm                     # Guix packaging
 ```

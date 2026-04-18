@@ -57,7 +57,7 @@ jtv-playground/
 │   └── tools/              # Development tools
 ├── experiments/_attic/     # Legacy experiments (frozen)
 ├── .machine_read/          # Control plane files
-├── justfile                # Command interface
+├── Justfile                # Command interface
 └── Mustfile                # Mandatory checks
 ----
 
@@ -125,7 +125,7 @@ All operations must go through:
 * `just <recipe>` - User-visible operations
 * `must` - Deployment/physical-state transitions (Mustfile)
 
-Do not run ad-hoc commands. If a recipe doesn't exist, add it to the justfile first.
+Do not run ad-hoc commands. If a recipe doesn't exist, add it to the Justfile first.
 
 == Contributing
 

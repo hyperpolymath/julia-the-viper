@@ -81,7 +81,7 @@ Created complete PWA infrastructure in `web/`:
 
 **Commits:**
 - `54e1933` - feat: add PWA scaffold with Deno server and WASM integration
-- `569ac28` - feat: add PWA-related justfile recipes
+- `569ac28` - feat: add PWA-related Justfile recipes
 
 ## Current State
 
