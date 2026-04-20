@@ -1,21 +1,76 @@
 # SPDX-License-Identifier: PMPL-1.0-or-later
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
-# NEUROSYM.a2ml — Neurosymbolic integration metadata
+# NEUROSYM.a2ml — Neurosymbolic integration metadata for julia-the-viper
 [metadata]
-version = "0.1.0"
-last-updated = "2026-04-11"
+version = "0.2.0"
+last-updated = "2026-04-19"
 
 [hypatia-config]
 scan-enabled = true
 scan-depth = "standard"  # quick | standard | deep
-report-format = "logtalk"
+report-format = "a2ml"   # Logtalk removed 2026-04-12 — see memory: hypatia-logtalk-removed
+# JtV is scanned on every CI run; findings go into .github/hypatia-findings/
 
 [symbolic-rules]
-# Custom symbolic rules for this project
-# - { name = "no-unsafe-ffi", pattern = "believe_me|unsafeCoerce", severity = "critical" }
+# Project-specific symbolic rules for Hypatia's logic engine.
+rules = [
+  # Harvard thesis protection
+  { name = "jtv-no-control-in-data-expr",
+    pattern = "data_expr.*if|data_expr.*while|data_expr.*for|data_expr.*assignment",
+    severity = "blocker",
+    rationale = "Data expressions MUST NOT contain Control constructs — injection-impossibility depends on this",
+    fix-hint = "Remove Control construct from Data expression; refactor into Control context" },
+
+  { name = "jtv-no-subtract-in-data-grammar",
+    pattern = "additive_expr.*\"-\"",
+    severity = "blocker",
+    rationale = "Data Language is addition-only. v2 reverse blocks auto-generate -= semantics but do NOT introduce user-visible subtract syntax",
+    fix-hint = "Revert; discuss in ADR if real need" },
+
+  # Post-pivot coproc rules
+  { name = "jtv-no-embedded-predicate-in-extern-coproc",
+    pattern = "extern_coproc_block.*target\\s*\\(|extern_coproc_block.*requires\\s+[a-z]|extern_coproc_block.*encoding\\s+[a-z]",
+    severity = "blocker",
+    rationale = "ADR-0006 Delta pivot: extern coproc MUST reference PataCL gate by identifier, not embed predicates",
+    fix-hint = "Extract predicate into a .pata file; reference gate by name from JtV" },
+
+  # v2 reversibility
+  { name = "jtv-reversible-block-requires-snapshot",
+    pattern = "reversible\\s*\\{[^}]*\\}(?!\\s*(reverse|abandon|->))",
+    severity = "warning",
+    rationale = "reversible block should produce a ReversalToken (v2 Decision 4 — linear-use-once typing)",
+    fix-hint = "Use reverse { ... } sugar OR capture token with -> tok" },
+
+  # Dangerous patterns (reinforces estate rules)
+  { name = "jtv-no-unwrap-to-expect-antipattern",
+    pattern = "\\.expect\\s*\\(\\s*\"TODO\"",
+    severity = "warning",
+    rationale = "per feedback_unwrap_to_expect_antipattern — identical panic with fake debt marker",
+    fix-hint = "Handle the error properly or revert to .unwrap() with comment explaining why" }
+]
 
 [neural-config]
-# Neural pattern detection settings
-# confidence-threshold = 0.85
-# model = "hypatia-v2"
+# Neural pattern detection (Phase 2+)
+enabled = true
+confidence-threshold = 0.85
+model = "hypatia-v2"
+rationale = "subtle thesis violations (e.g., sneaking arithmetic into Data via trick operators) benefit from neural detection beyond regex"
+
+[proof-integration]
+# JtV has formal verification hooks for v2 reversibility and (planned) coproc ABI
+proof-obligations = [
+  "Data Language totality — structural induction on additive_expr (trivial)",
+  "v2 reverse block semantics — forward-then-reverse = identity (Lean/Coq)",
+  "Snapshot capture completeness — all locals captured on reversible { } entry",
+  "Post-pivot: extern coproc gate result faithfulness — JtV's liveness decision matches PataCL's evaluation"
+]
+preferred-proof-system = "Idris2 (per feedback_idris_over_ephapax)"
+alternative-proof-systems = ["Lean4", "Agda", "Coq"]
+
+[dangerous-pattern-exclusion]
+banned = [
+  "believe_me", "unsafeCoerce", "assert_total",
+  "Admitted", "sorry", "Obj.magic",
+  ".unwrap() → .expect('TODO') anti-pattern"
+]

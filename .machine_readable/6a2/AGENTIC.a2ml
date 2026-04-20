@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: PMPL-1.0-or-later
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
-# AGENTIC.a2ml — AI agent constraints and capabilities
+# AGENTIC.a2ml — AI agent constraints and capabilities for julia-the-viper
 [metadata]
-version = "0.1.0"
-last-updated = "2026-04-11"
+version = "0.2.0"
+last-updated = "2026-04-19"
 
 [agent-permissions]
 can-edit-source = true
@@ -15,11 +15,33 @@ can-create-files = true
 
 [agent-constraints]
 # What AI agents must NOT do:
-# - Never use banned language patterns (believe_me, unsafeCoerce, etc.)
-# - Never commit secrets or credentials
-# - Never use banned languages (TypeScript, Python, Go, etc.)
-# - Never place state files in repository root (must be in .machine_readable/)
-# - Never use AGPL license (use PMPL-1.0-or-later)
+banned-patterns = [
+  "believe_me (Idris2)",
+  "assert_total (Idris2)",
+  "Admitted (Coq)",
+  "sorry (Lean)",
+  "unsafeCoerce (Haskell)",
+  "Obj.magic (OCaml)",
+  ".unwrap() → .expect('TODO') anti-pattern (Rust)"
+]
+banned-languages = [
+  "TypeScript (use ReScript)",
+  "Python (no SaltStack here)",
+  "Go (use Rust)",
+  "V-lang (banned 2026-04-10 → migrate to Zig)"
+]
+structural-rules = [
+  "no SCM files — use A2ML",
+  "no state files in repo root — must be in .machine_readable/",
+  "no .git in subdirs (exception: declared submodules)",
+  "no AGPL (JtV is PMPL)"
+]
+thesis-protection = [
+  "Harvard separation: Data MUST NOT contain Control constructs",
+  "Addition-only: no explicit subtract token in user Data syntax (v2 reverse blocks auto-generate -= — still no new syntax)",
+  "Totality: @pure MUST NOT call impure; @total MUST provably terminate",
+  "Post-pivot 2026-04-19: extern coproc MUST NOT embed predicate syntax — references PataCL gate by name only"
+]
 
 [maintenance-integrity]
 fail-closed = true
@@ -27,8 +49,49 @@ require-evidence-per-step = true
 allow-silent-skip = false
 require-rerun-after-fix = true
 release-claim-requires-hard-pass = true
+no-stubbing = true
+
+[memory-discipline]
+# Per user global memory feedback_ask_before_memory_creation.md (2026-04-19):
+# agents MUST ASK user before creating new memory files.
+# Explicit requests ("remember this", "save this") bypass confirmation.
+ask-before-memory-creation = true
+spot-fix-immediately = true  # per feedback_spot_fix_memorize_immediately.md (updated 2026-04-19 — no longer requires autonomous memory write)
 
 [automation-hooks]
-# on-enter: Read 0-AI-MANIFEST.a2ml, then STATE.a2ml
-# on-exit: Update STATE.a2ml with session outcomes
-# on-commit: Run just validate-rsr
+on-enter = """
+1. Read 0-AI-MANIFEST.a2ml
+2. Read .machine_readable/6a2/STATE.a2ml for current phase
+3. Read docs/design-decisions/0001-0006-*.adoc if working on coproc support
+4. Acknowledge in first response
+"""
+on-exit = """
+1. Update STATE.a2ml with session outcomes
+2. Ask user before creating any new memory (per feedback_ask_before_memory_creation.md)
+3. End-of-session marker: 'SAFE TO CLOSE'
+"""
+on-commit = """
+1. Run panic-attack assail (pre-commit)
+2. Verify SPDX headers on modified files
+3. Verify no banned-pattern introductions
+4. Verify Harvard thesis not violated (grep for subtract tokens in data_expr grammar rules)
+"""
+
+[cross-repo-coordination]
+# JtV depends on PataCL for compile-time decisions (post-pivot).
+# Agents must respect the coordination points:
+coordination-points = [
+  "PataCL grammar/semantics change → update JtV ADR-0005 call-site contract if needed",
+  "JtV coproc use-case expansion → may unblock deferred PataCL features (ordering, list-valued facts) — file a PataCL ADR",
+  "PataCL version releases → update META.a2ml dependency line"
+]
+
+[trust-level]
+level = "maximal"
+destructive-ops-require-auth = true  # git push, branch deletion, memory deletion
+
+[delegation-policy]
+# Per estate standing rule feedback_opus_supervise_haiku_first.md:
+phase-0-docs-default = "haiku"
+phase-1-impl-default = "sonnet (code) / haiku (docs)"
+escalation = "opus only as fallback"

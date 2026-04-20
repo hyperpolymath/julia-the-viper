@@ -80,9 +80,29 @@
     (must "no removal of formal verification proofs")
   )
 
-  ; === Project-Specific Invariants ===
-  ; *REMINDER: Add invariants specific to this repo*
-  ; (must "# Add project-specific invariants here")
+  ; === Project-Specific Invariants (julia-the-viper) ===
+  (project-invariants
+    ; Harvard thesis — LOAD-BEARING
+    (must "Data expressions MUST NOT contain Control constructs (if/while/for/assignment/print/impure calls) — grammatical injection-impossibility depends on this")
+    (must "Data Language MUST remain addition-only at syntax level — no explicit subtract token in user grammar")
+    (must "v2 reverse blocks MUST snapshot-capture locals on entry (Decision 1 in DESIGN-JTV-V2-REVERSIBILITY.md)")
+    (must "reverse tok / abandon tok linear-use-once typing MUST be preserved (v2 Decision 4)")
+    (must "Send to ExternalHandle inside reversible { } MUST be a static error unless wrapped in irreversible { } (v2 Decision 2)")
+
+    ; Pata-pathway / PataCL integration (post-pivot 2026-04-19)
+    (must "extern coproc block MUST reference PataCL gate by identifier, not embedded predicate syntax (ADR-0006)")
+    (must "Compile-time decisions MUST be delegated to PataCL — JtV grammar MUST NOT grow target(...) / requires / family predicate operators")
+    (must "Extern coproc call sites MUST fire ExternCoprocNotYetLowered at evaluation when native lowering is not yet implemented (ADR-0005, informational phase-boundary error)")
+    (must "Encoding strings MUST remain opaque to JtV — assembler is authoritative (ADR-0005 Decision 7)")
+
+    ; Purity lattice
+    (must "@pure functions MUST NOT contain loops or IO (v2 Pure Function enforcement)")
+    (must "@total functions MUST be provably terminating")
+    (must "Impure functions MUST NOT be callable from @pure contexts (Data context)")
+
+    ; Banned primitives (reinforces universal list)
+    (must "No Rust .unwrap() → .expect(\"TODO\") anti-pattern — equivalent panic with fake debt marker (per feedback_unwrap_to_expect_antipattern)")
+  )
 
   (enforcement
     (k9-validator "contractiles/k9/must-check.k9.ncl")

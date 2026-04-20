@@ -30,43 +30,72 @@
 ; ── End Definitions ──────────────────────────────────────────────
 
 (intent-contractile
-  (version "1.0.0")
+  (version "1.1.0")
   (repo "julia-the-viper")
+  (last-updated "2026-04-19")
 
   ; === Purpose (what this repo IS) ===
   (purpose
-    "{{ONE_PARAGRAPH_PURPOSE}}"
+    "Julia the Viper (JtV) is a Harvard-architecture programming language that
+     grammatically separates Control (Turing-complete, imperative, effectful) from
+     Data (total, addition-only, provably halting). Its mission is to serve as a
+     universal extender: a language that can retrofit code-injection-resistant
+     semantics onto legacy systems (Python/PHP/JS) by making injection
+     grammatically impossible, not just a runtime check. v2 adds reversibility
+     via reverse blocks for quantum-simulation and Landauer-efficient computation.
+     Post-pivot 2026-04-19: compile-time decisions (target gating, feature gating,
+     coprocessor declaration liveness) are DELEGATED to PataCL — a sibling
+     language at /var/mnt/eclipse/repos/patacl/."
   )
 
   ; === Anti-Purpose (what this repo is NOT — prevents scope creep) ===
   (anti-purpose
-    "{{ONE_PARAGRAPH_ANTI_PURPOSE}}"
-    ; Examples:
-    ; "This is NOT a general-purpose database — it solves one specific problem."
-    ; "This is NOT a framework — it is a library with a focused API."
-    ; "This does NOT handle authentication — that is delegated to [other repo]."
+    "JtV is NOT a general-purpose language — it is a grammatically-constrained
+     security-first language. It does NOT aim to be ergonomic at the expense
+     of the Harvard thesis. It does NOT grow a compile-time decision language
+     embedded in its own grammar — that work lives in PataCL (see
+     docs/design-decisions/0006-patacl-pivot.adoc). It does NOT claim Turing
+     completeness for Data expressions (that would break totality). It does
+     NOT attempt to replace Rust, Zig, or Ada — it coexists with them via
+     FFI and extern-coproc integration. It is NOT only for able-bodied users
+     with modern hardware — accessibility is a first-class concern
+     (see ADJUST.contractile)."
   )
 
   ; === Key Architectural Decisions That Must Not Be Reversed ===
   (architectural-invariants
-    ; *REMINDER: List the foundational decisions*
-    ; ("Idris2 for ABI definitions — dependent types prove interface correctness")
-    ; ("Zig for FFI — zero-cost C ABI compatibility")
-    ; ("Elixir for supervision — OTP fault tolerance")
+    ("Harvard separation — Control and Data are grammatically disjoint sublanguages; Data expressions cannot contain Control constructs. This is the load-bearing security thesis.")
+    ("Addition-only Data Language — the Data sublanguage uses addition as its sole binary operator; subtraction is syntactically forbidden. v2 reversibility uses auto-generated -= inside reverse blocks, but no explicit subtract token exists in user syntax.")
+    ("Totality — Data expressions provably halt by construction. @total / @pure / impure purity lattice enforces it.")
+    ("Injection-impossibility by grammar — attacker-controlled data cannot become executable control flow because Data grammar rejects Control constructs structurally.")
+    ("v2 reversibility via reverse blocks — snapshot-based rollback, linear ReversalToken typing, no new subtract syntax.")
+    ("Compile-time decisions delegated to PataCL — JtV gains one new construct (extern coproc <gate-name> { item* }) and references PataCL gates by name, never embeds predicate syntax. See ADR-0006.")
+    ("Idris2 for ABI when safety-critical paths land — dependent types prove FFI interface correctness.")
+    ("Zig for FFI emission — zero-cost C-ABI compatibility; @Vector for SIMD, asm volatile for custom opcodes.")
+    ("SPARK-optional for safety-critical coprocessors — formal contracts across the coproc boundary.")
   )
 
   ; === Sensitive Areas (if in doubt, ask) ===
   (ask-before-touching
-    ; *REMINDER: List areas where LLMs should check before modifying*
-    ; "src/abi/ — formal proofs, changes require re-verification"
-    ; "ffi/zig/ — C ABI boundary, changes affect all language bindings"
-    ; ".machine_readable/ — checkpoint files, format is specified"
+    "spec/LANGUAGE_SPECIFICATION.md — the published thesis; any change must preserve Harvard + totality claims"
+    "spec/grammar.ebnf — grammar spec; changes propagate to crates/jtv-core/src/grammar.pest"
+    "crates/jtv-core/src/grammar.pest — canonical parser grammar"
+    "docs/design-decisions/0001-0006-*.adoc — coprocessor / pata pathway ADR trail; ADR-0006 is current truth for the Delta pivot"
+    "docs/language/DESIGN-JTV-V2-REVERSIBILITY.md — v2 reversibility design (5 closed decisions)"
+    ".machine_readable/COPROC-TRAJECTORIES.a2ml — authoritative trajectory state; update via ADR process"
+    ".machine_readable/6a2/*.a2ml — descriptive state snapshot; update-all-six-together convention"
   )
 
   ; === Ecosystem Position ===
   (ecosystem
-    (belongs-to "{{MONOREPO_OR_STANDALONE}}")
-    (depends-on ("{{DEP1}}" "{{DEP2}}"))
-    (depended-on-by ("{{CONSUMER1}}" "{{CONSUMER2}}"))
+    (belongs-to "standalone top-level repo")
+    (depends-on
+      ("PataCL (post-pivot 2026-04-19) — compile-time decision substrate for extern coproc blocks; located at /var/mnt/eclipse/repos/patacl/"
+       "Rust toolchain — current implementation language"
+       "pest / pest_derive — parser generator"))
+    (depended-on-by
+      ("(none yet; potentially future security-research adopters, legacy-retrofit users, or teaching/research use)"))
+    (first-adopter-of  "PataCL — JtV is the first host-language adopter and co-designed the integration contract")
+    (sibling-languages "oblibeny (MPR heritage for PataCL); affinescript, my-lang (hyperpolymath language family)")
   )
 )

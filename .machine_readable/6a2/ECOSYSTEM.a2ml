@@ -3,18 +3,84 @@
 #
 # ECOSYSTEM.a2ml — Julia The Viper ecosystem position
 [metadata]
-version = "1.0"
-last-updated = "2026-04-11"
+version = "1.1"
+last-updated = "2026-04-19"
 
 [project]
 name = "Julia The Viper"
-purpose = ""
-role = ""
+purpose = "Harvard-architecture programming language with grammatical Control/Data separation; universal extender for injection-resistant retrofits"
+role = "Programming language — user-facing runtime substrate"
 
 [position-in-ecosystem]
-category = ""
+category = "language"
+tier = "user-facing-runtime"
+top-level-repo = true
 
 [related-projects]
 projects = [
-  # No related projects recorded
+  { name = "patacl",
+    relationship = "dependency (post-pivot 2026-04-19)",
+    role = "compile-time decision substrate for extern coproc blocks",
+    path = "/var/mnt/eclipse/repos/patacl/",
+    status = "co-designed 2026-04-19; integration lands in JtV Phase 2 (blocked on PataCL Phase 1)",
+    integration-shape = "extern coproc <gate-name> { item* } references PataCL gates by name; PataCL evaluates predicates and returns liveness + family string",
+    adr-reference = "docs/design-decisions/0006-patacl-pivot.adoc" },
+
+  { name = "oblibeny",
+    relationship = "sibling-in-family (MPR inspiration for PataCL, not direct dependency)",
+    path = "developer-ecosystem/nextgen-languages/oblibeny/",
+    contribution = "Maximum Principle Reduction, dual-form, reversibility discipline — inherited by PataCL (JtV consumes PataCL)",
+    status = "reference only" },
+
+  { name = "idris2",
+    relationship = "potential-dependency (Phase 2+)",
+    role = "formal ABI layer for coprocessor preconditions (Phase 4 in coproc trajectory)",
+    status = "planned" },
+
+  { name = "zig",
+    relationship = "potential-dependency (Phase 2+)",
+    role = "native emission for extern coproc decls (@Vector / asm volatile / extern)",
+    status = "planned" },
+
+  { name = "spark-ada",
+    relationship = "potential-dependency (optional, Phase 5+)",
+    role = "safety-critical coprocessor contracts — optional path for safety-tier work",
+    status = "deferred" },
+
+  { name = "hypatia",
+    relationship = "consumer (existing)",
+    role = "neurosymbolic scan of JtV repo; consumes A2ML findings",
+    status = "integrated via .github/workflows/hypatia-scan.yml" }
 ]
+
+[ecosystem-role]
+what-jtv-provides = [
+  "Harvard-architecture runtime language (Control + Data)",
+  "v2 reversibility for quantum-simulation / Landauer-efficient computation",
+  "Extern-coproc surface for ISA-extension accelerators (via PataCL, post-pivot)",
+  "Teaching platform for grammar-enforced injection-impossibility"
+]
+what-jtv-consumes = [
+  "PataCL (compile-time decisions)",
+  "Rust toolchain (implementation)",
+  "pest (parser generator)",
+  "Idris2 / Zig / SPARK (deferred; for native coproc emission)"
+]
+
+[supply-chain]
+upstream-deps = [
+  "pest / pest_derive (Rust parsing)",
+  "tower-lsp (LSP implementation)",
+  "wasm-pack (WASM backend)"
+]
+downstream-consumers = [
+  "(none yet; JtV is a pilot/research language. Future: security-research, legacy-retrofit tooling.)"
+]
+
+[governance]
+maintainer = "Jonathan D.A. Jewell (single author)"
+license = "PMPL-1.0-or-later"
+
+[visibility]
+public = true
+mirror-targets = "GitHub only (origin); downstream mirroring via hub-and-spoke per hyperpolymath policy"

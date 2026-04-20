@@ -1,26 +1,71 @@
 # SPDX-License-Identifier: PMPL-1.0-or-later
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
-# PLAYBOOK.a2ml — Operational playbook
+# PLAYBOOK.a2ml — Julia The Viper operational runbook
 [metadata]
-version = "0.1.0"
-last-updated = "2026-04-11"
+version = "0.2.0"
+last-updated = "2026-04-19"
 
 [deployment]
-# method = "gitops"  # gitops | manual | ci-triggered
-# target = "container"  # container | binary | library | wasm
+method = "gitops"     # gitops | manual | ci-triggered
+target = "wasm + native-binary + rust-crate"
+distribution = "crates.io + Guix channel + Nix overlay"
 
 [incident-response]
-# 1. Check .machine_readable/STATE.a2ml for current status
-# 2. Review recent commits and CI results
-# 3. Run `just validate` to check compliance
-# 4. Run `just security` to audit for vulnerabilities
+steps = [
+  "1. Check .machine_readable/6a2/STATE.a2ml for current phase and known issues",
+  "2. Check .machine_readable/COPROC-TRAJECTORIES.a2ml for current coproc design/impl state",
+  "3. Review recent commits and CI results",
+  "4. Run `just validate` to check compliance (pre-existing)",
+  "5. Run `just security` to audit for vulnerabilities",
+  "6. If coproc-related: check PataCL repo state at /var/mnt/eclipse/repos/patacl/",
+  "7. If v2-reversibility-related: consult docs/language/DESIGN-JTV-V2-REVERSIBILITY.md and 007-jtv-v2-design-decisions memory"
+]
 
 [release-process]
-# 1. Update version in STATE.a2ml, META.a2ml
-# 2. Run `just release-preflight` (validate + quality + security + maint-hard-pass)
-# 3. Tag and push
+steps = [
+  "1. Update version in STATE.a2ml, META.a2ml, Cargo.toml",
+  "2. Update CHANGELOG.adoc",
+  "3. Run `just release-preflight` (validate + quality + security + maint-hard-pass)",
+  "4. Verify PataCL version compatibility if coproc support is in this release",
+  "5. Tag and push (signed tag)",
+  "6. Push to origin only (hyperpolymath GitHub-only mirroring policy)",
+  "7. Publish crate to crates.io if applicable",
+  "8. Update COPROC-TRAJECTORIES.a2ml if release affects integration shape"
+]
 
 [maintenance-operations]
-# Baseline audit: just maint-audit
-# Hard release gate: just maint-hard-pass
+baseline-audit = "just maint-audit"
+hard-release-gate = "just maint-hard-pass"
+sessional-drift-check = "compare STATE.a2ml to contractiles; flag drift per feedback_sessional_drift_detection"
+
+[cross-repo-coordination]
+# Post-pivot 2026-04-19: JtV ↔ PataCL coordination
+patacl-dependency = "/var/mnt/eclipse/repos/patacl/"
+coordination-points = [
+  "PataCL Phase 1 release → JtV Phase 2 integration branch unblocked",
+  "PataCL fact-vocabulary change → JtV ADR-0003 update and re-evaluation",
+  "PataCL grammar evolution → JtV ADR-0005 call-site contract may need revision",
+  "JtV coproc use-case expansion → potentially unblocks deferred PataCL features (ordering, list-valued facts)",
+  "PataCL version pinning in JtV's Cargo.toml (when implementation begins)"
+]
+
+[rollback-procedure]
+# For shipped releases:
+steps = [
+  "1. Yank from crates.io",
+  "2. Issue fixed patch promptly",
+  "3. If integration with PataCL broke: pin PataCL to previous version",
+  "4. Document root cause in an audit entry",
+  "5. Add symbolic rule to NEUROSYM.a2ml to catch the regression class"
+]
+
+[monitoring]
+ci-on-push = "lint + test + conformance + panic-attack + hypatia-scan"
+weekly = "dep audit; SHA-pinning verification"
+monthly = "reproducibility verification across three build hosts"
+
+[contact]
+maintainer-email = "j.d.a.jewell@open.ac.uk"
+security-email = "j.d.a.jewell@open.ac.uk (subject: JTV SECURITY)"
+response-sla = "72h acknowledgement, 7-day triage"

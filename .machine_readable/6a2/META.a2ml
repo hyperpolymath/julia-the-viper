@@ -3,25 +3,68 @@
 #
 # META.a2ml — Julia The Viper meta-level information
 [metadata]
-version = "0.1.0"
-last-updated = "2026-04-11"
+version = "0.2.0"
+last-updated = "2026-04-19"
 
 [project-info]
 license = "PMPL-1.0-or-later"
+license-fallback = "MPL-2.0 (automatic legal fallback until PMPL formally recognised)"
 author = "Jonathan D.A. Jewell (hyperpolymath)"
+author-email = "j.d.a.jewell@open.ac.uk"
+git-author-email = "6759885+hyperpolymath@users.noreply.github.com"
 
 [architecture-decisions]
 decisions = [
-  # No ADRs recorded
+  { id = "v2-reversibility", title = "v2 reversibility via reverse blocks (5 decisions closed)", status = "design-complete",
+    path = "docs/language/DESIGN-JTV-V2-REVERSIBILITY.md",
+    date = "2026-04-12" },
+  { id = "coproc-0001", title = "Coprocessor support via pata pathway (Trajectory E)", status = "closed",
+    path = "docs/design-decisions/0001-coprocessor-pata-pathway.adoc",
+    date = "2026-04-19" },
+  { id = "coproc-0002", title = "Decision sublanguage (SUPERSEDED by Delta pivot)", status = "superseded",
+    superseded-by = "coproc-0006",
+    path = "docs/design-decisions/0002-decision-sublanguage.adoc" },
+  { id = "coproc-0003", title = "Compile-time fact vocabulary", status = "closed",
+    path = "docs/design-decisions/0003-compile-time-fact-vocabulary.adoc" },
+  { id = "coproc-0004", title = "Pata-eval failure semantics", status = "closed",
+    path = "docs/design-decisions/0004-pata-eval-failure-semantics.adoc" },
+  { id = "coproc-0005", title = "Extern coproc call semantics", status = "closed",
+    path = "docs/design-decisions/0005-extern-coproc-call-semantics.adoc" },
+  { id = "coproc-0006", title = "Delta pivot — PataCL as separate DSL", status = "closed",
+    path = "docs/design-decisions/0006-patacl-pivot.adoc",
+    date = "2026-04-19",
+    supersedes = ["coproc-0002"] }
 ]
+
+[design-rationale]
+# Load-bearing choices for JtV:
+# 1. Harvard separation is the whole thesis; do not dilute with embedded sublanguages.
+# 2. Addition-only Data: provable totality + injection impossibility.
+# 3. Reverse blocks (v2): snapshot-based, linear ReversalToken typing, no new subtract syntax.
+# 4. Coprocessor support delegated to PataCL (2026-04-19 Delta pivot) — JtV grammar stays focused on runtime semantics.
+# 5. First pilot target: RISC-V — X-ext exercises Idris2/Zig/SPARK stack end-to-end.
 
 [development-practices]
 versioning = "SemVer"
-documentation = "AsciiDoc"
+documentation = "AsciiDoc (human-primary) + A2ML (bot-primary)"
 build-tool = "just"
+package-manager = "Guix (primary) / Nix (fallback)"
+implementation-language = "Rust; SPARK admissible for safety-critical via Idris2-ABI + Zig-FFI"
 
 [maintenance-axes]
 scoping-first = true
 axis-1 = "must > intend > like"
 axis-2 = "corrective > adaptive > perfective"
 axis-3 = "systems > compliance > effects"
+
+[language-sublanguages-post-pivot]
+# After the 2026-04-19 Delta pivot, JtV Harvard remains BINARY (Control + Data).
+# The Decision sublanguage that ADR-0002 introduced as a third lane is extracted
+# to PataCL, which is a sibling language, not a sublanguage of JtV.
+control = "Turing-complete, runtime, effectful"
+data = "total, addition-only, runtime, pure"
+patacl-relationship = "sibling language consulted at compile time; not a JtV sublanguage post-pivot"
+
+[cross-repo-dependencies]
+patacl = "/var/mnt/eclipse/repos/patacl/ — compile-time decision substrate (post-pivot)"
+oblibeny = "developer-ecosystem/nextgen-languages/oblibeny/ — source of MPR discipline that PataCL inherits"

@@ -5,45 +5,66 @@
 [metadata]
 project = "julia-the-viper"
 version = "0.0.1"
-last-updated = "2026-02-07"
+last-updated = "2026-04-19"
 status = "active"
-session = "converted from scheme — 2026-04-11"
+session = "2026-04-19 — pata pathway + Delta pivot to PataCL; 13 ADR decisions closed"
 
 [project-context]
 name = "Julia The Viper"
-purpose = """Complete WASM code generation"""
+purpose = """Harvard-architecture programming language with grammatical separation
+of Control (Turing-complete) and Data (total, addition-only). Universal extender
+for injection-resistant retrofits. v2 adds reversibility via reverse blocks.
+Post-pivot 2026-04-19: compile-time decisions delegated to PataCL."""
 completion-percentage = 100
 
 [position]
 phase = "production-ready"   # design | implementation | testing | maintenance | archived
 maturity = "experimental"  # experimental | alpha | beta | production | lts
+coproc-sub-phase = "design complete — Phase 1 (grammar / AST / parser) pending PataCL Phase 1"
 
 [route-to-mvp]
 milestones = [
-  # No milestones recorded
+  "core toolchain (parser, typechecker, interpreter, formatter) — DONE",
+  "WASM backend — DONE (591 LOC, functional)",
+  "LSP server — DONE (tower-lsp integration)",
+  "coprocessor support design — DONE (ADRs 0001-0006, 13 decisions closed 2026-04-19)",
+  "coprocessor support implementation — BLOCKED on PataCL Phase 1",
+  "v2 reversibility implementation — PENDING (5 decisions closed, C1 Phase 1 impl pending)"
 ]
 
 [blockers-and-issues]
 issues = [
-  # No blockers recorded
+  "Coprocessor Phase 2 integration (JtV side) blocked by PataCL Phase 1 (MVP compiler)",
+  "v2 reversibility C1 Phase 1 implementation not yet started — uncommitted design files from earlier session"
 ]
 
 [critical-next-actions]
 actions = [
-  "Move examples from jtv-playground to main repo",
-  ")))
-    (this-month
-      (write-documentation
-        (description ",
-  ")
-        (effort ",
-  "))
-      (performance-benchmarking
-        (description ",
-  ")
-        (effort ",
+  "Wait for PataCL Phase 1 (Rust MVP compiler) to unblock JtV coproc Phase 2",
+  "Start v2 reversibility C1 Phase 1 implementation (7-step plan in 007-jtv-v2-design-decisions memory)",
+  "Move examples from jtv-playground to main repo (pending from earlier session)",
+  "Review WASM backend for Phase 2 extern-coproc lowering (deferred until PataCL ready)"
 ]
 
 [maintenance-status]
-last-run-utc = "2026-02-07T00:00:00Z"
+last-run-utc = "2026-04-19T00:00:00Z"
 last-result = "unknown"  # unknown | pass | warn | fail
+
+[session-history]
+sessions = [
+  { date = "2026-04-11", subject = "6a2 files converted from scheme to A2ML" },
+  { date = "2026-04-12", subject = "v2 reversibility design — 5 decisions closed" },
+  { date = "2026-04-19", subject = "coprocessor pata pathway designed — ADRs 0001-0005 + 0006 (Delta pivot to PataCL)" }
+]
+
+[design-artefact-locations]
+coproc-adrs = "docs/design-decisions/0001-0006-*.adoc"
+coproc-trajectories = ".machine_readable/COPROC-TRAJECTORIES.a2ml"
+v2-reversibility-design = "docs/language/DESIGN-JTV-V2-REVERSIBILITY.md"
+patacl-repo = "/var/mnt/eclipse/repos/patacl/"
+
+[tolerable-envelope]
+# What repo states would still be acceptable without raising a flag:
+# - Coprocessor support remains at design-complete until PataCL Phase 1 lands
+# - v2 reversibility design remains uncommitted-to-impl indefinitely (design artefacts exist)
+# - Playground samples (aspirational fixtures) may lag behind canonical grammar for extended periods
