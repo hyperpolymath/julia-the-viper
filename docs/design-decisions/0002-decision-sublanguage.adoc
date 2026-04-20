@@ -1,0 +1,547 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
+// (MPL-2.0 is automatic legal fallback until PMPL is formally recognised)
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+
+= ADR-0002: The Decision Sublanguage — Pata Substrate for Compile-Time Self-Oversight
+Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+:revdate: 2026-04-19
+:revnumber: 0.1
+:toc: left
+:sectnums:
+
+[.lead]
+A third sublanguage alongside Control (Turing-complete, effectful) and Data
+(total, addition-only). *Decision* is total, pure, no-IO, and provides the
+compile-time predicate + fact-reference vocabulary that the pata-compilation
+pathway needs — without touching the published Data Language thesis.
+
+== Status
+
+*Decided (2026-04-19). SUPERSEDED (2026-04-19) by ADR-0006 Delta
+pivot.*  Originally resolved ADR-0001 OQ-1.
+
+[IMPORTANT]
+====
+*SUPERSEDED:* The Decision sublanguage specified here is no longer
+embedded in JtV grammar.  Its semantic content — grammar, evaluator,
+type rules, thesis-preservation argument — moves to *PataCL*
+(PataCompiler Language), a standalone DSL at `/var/mnt/eclipse/repos/patacl/`.
+See `0006-patacl-pivot.adoc` for the extraction.
+
+Post-pivot status of this ADR's content:
+
+* *Grammar of predicate expressions* — now in PataCL's pest grammar
+* *Evaluator semantics* — now in PataCL's evaluator
+* *Type rules and thesis preservation* — now in PataCL's language spec
+* *"Triadic Harvard" framing* — replaced.  JtV Harvard separation
+  stays *binary* (Control + Data).  PataCL is a sibling language, not
+  a sublanguage of JtV.  Post-pivot, JtV's grammar remains focused
+  on runtime semantics.
+
+This ADR is retained for decision-history reasons — the semantic
+content is unchanged, it just lives elsewhere now.
+====
+
+== Context
+
+ADR-0001 committed JtV to the pata-compilation pathway (Trajectory E). Pata
+places compile-time decisions — target matching, feature gating, family-name
+resolution, encoding selection, reversibility-transform firing — inside the
+language's own total sublanguage, so the compiler's self-oversight is
+grounded in the same guarantees the user's program enjoys.
+
+This needs a predicate vocabulary: string equality at minimum, plus boolean
+connectives and identifier reference to compile-time facts like `arch` and
+`feature`. The published Data Language is *addition-only over seven number
+systems* (the totality thesis). Three options were surfaced:
+
+* *OQ-1a — Extend Data Language with comparison and boolean ops for all uses.*
+  Breaks the "addition-only" part of the Data Language thesis; requires
+  revisiting the totality proofs and the Router Visualisation teaching
+  story.
+* *OQ-1b — Introduce a sibling sublanguage with the same meta-properties
+  (total, pure, no-IO) but a richer predicate vocabulary, used only in
+  compile-time decision positions.* Preserves Data Language thesis; shares
+  most of the evaluator infrastructure; triadic Harvard (Control + Data +
+  Decision) rather than binary.
+* *OQ-1c — Allow comparisons and booleans in Control-Language contexts only;
+  parse them as Control expressions in decision slots.* Violates the
+  pata-substrate framing — Control is Turing-complete, not safe for
+  compile-time evaluation.
+
+== Decision
+
+*Adopt OQ-1b.* Introduce a sibling sublanguage, *Decision Language* (AST
+type `DecisionExpr`, grammar rule prefix `decision_`), with the minimum
+vocabulary necessary for compile-time predicates and fact-reference.
+
+Meta-properties (all grammatically enforced, not statically proved):
+
+* *Total* — no recursion, no loops, no function calls. Every expression
+  evaluates in finite time bounded by AST size. Formal proof trivial.
+* *Pure* — no mutation, no IO, no side effects. Deterministic by
+  construction.
+* *Reproducible* — same fact environment produces same value across builds
+  and machines.
+* *Composable* — evaluation order never matters for the result (no shared
+  state, no side effects to interleave).
+
+The published Data Language thesis (addition-only, total, provably halting)
+is *unchanged*. Decision is parallel to Data, not an extension.
+
+JtV's Harvard separation becomes triadic:
+
+[cols="1,1,1,1,1", options="header"]
+|===
+| Sublanguage   | Semantics                 | Occurs at     | Meta-properties           | Appears where
+| Control       | Turing-complete           | Runtime       | effects, divergence       | function bodies, top-level stmts
+| Data          | Total, addition-only      | Runtime       | termination, purity       | expression positions inside Control / @pure fns
+| *Decision*    | Total, predicate-only     | *Compile-time*| termination, purity, no-IO| compile-time decision slots only
+|===
+
+Decision expressions are evaluated *at compile time, by the compiler about
+itself* — never at runtime. This is the pata layer.
+
+=== Naming
+
+* *Operational name:* Decision Language (describes what it does — it makes
+  compile-time decisions).
+* *Architectural / philosophical framing:* the pata layer (describes what it
+  *enables* — lateral self-oversight of compilation, Jarry's science of the
+  particular / imaginary solutions).
+
+Both names live side-by-side. In grammar, AST, and compiler source, use
+Decision. In prose describing the architectural move, either is fine.
+
+== Grammar
+
+=== Minimum viable vocabulary (this ADR)
+
+Precedence (loosest to tightest): `||` < `&&` < `!` < `==`/`!=` < primary.
+
+Pest form (canonical):
+
+[source,pest]
+----
+// ===== DECISION SUBLANGUAGE =====
+// Compile-time predicate / fact-reference expressions.  Total, pure, no-IO
+// by grammar construction.  Appears only in compile-time decision slots
+// (target(...), requires ..., extern-family expression, encoding ...).
+// See docs/design-decisions/0002-decision-sublanguage.adoc.
+decision_expr         = { decision_or }
+decision_or           = { decision_and ~ ("||" ~ decision_and)* }
+decision_and          = { decision_not ~ ("&&" ~ decision_not)* }
+decision_not          = { "!" ~ decision_not | decision_eq }
+decision_eq           = { decision_primary ~ (decision_eq_op ~ decision_primary)? }
+decision_eq_op        = { "==" | "!=" }
+decision_primary      = {
+    decision_bool_lit
+    | string
+    | integer
+    | identifier
+    | "(" ~ decision_expr ~ ")"
+}
+decision_bool_lit     = { "true" | "false" }
+----
+
+EBNF mirror (spec form):
+
+[source,ebnf]
+----
+decision_expr    = decision_or ;
+decision_or      = decision_and , { "||" , decision_and } ;
+decision_and     = decision_not , { "&&" , decision_not } ;
+decision_not     = "!" , decision_not
+                 | decision_eq ;
+decision_eq      = decision_primary , [ ("==" | "!=") , decision_primary ] ;
+decision_primary = decision_bool_lit
+                 | string
+                 | integer
+                 | identifier
+                 | "(" , decision_expr , ")" ;
+decision_bool_lit = "true" | "false" ;
+----
+
+Shared tokens with existing grammar: `string`, `integer`, `identifier`.
+No changes to those rules. No new global keywords — `true` and `false` are
+already in the JtV keyword table.
+
+=== Vocabulary explicitly deferred
+
+Kept minimal so the sublanguage does not grow past what pata needs. Each
+deferred item has a clear "land when" trigger:
+
+[cols="1,2,1", options="header"]
+|===
+| Deferred construct                | Example                                | Trigger to land
+
+| Ordering operators `< > \<= >=`   | `word_size >= 32`                      | First real requirement for numeric
+                                                                               range gating (expected second-pilot
+                                                                               coprocessor family)
+
+| List-valued facts and `contains`  | `"v" contains feature`                 | OQ-2 resolution — if features is
+                                                                               list-valued
+
+| String ops (startsWith, matches)  | `arch startsWith "riscv"`              | When a real use case demands
+                                                                               prefix/pattern matching (e.g.,
+                                                                               any-RISC-V gate)
+
+| Arithmetic (`+`, etc.)            | `word_size + 8`                        | Probably never — predicates don't
+                                                                               need arithmetic. Revisit only if
+                                                                               a concrete pattern forces it.
+
+| Function calls                    | `feature_supported("v")`               | Probably never — facts via identifier
+                                                                               reference are simpler and more
+                                                                               constrained.
+
+| Pattern matching / destructuring  | `match arch { "riscv64" => … }`        | Not planned. Use boolean combinators.
+|===
+
+Deferral discipline: every add must come with a named use case that is
+blocked without it. Decision Language is explicitly a *minimum*; scope creep
+drifts it toward Turing-completeness, which defeats the pata substrate
+argument.
+
+== Semantics
+
+=== Types
+
+Three primitive types: `Bool`, `String`, `Int`. No composite types (no
+lists, tuples, records) in the MVP.
+
+Values:
+
+[source,rust]
+----
+pub enum DecisionValue {
+    Bool(bool),
+    String(String),
+    Int(i64),
+}
+----
+
+=== Type rules
+
+* `decision_bool_lit : Bool`
+* `string : String`
+* `integer : Int`
+* `identifier : T` where `T` is determined by the fact environment at
+  compile time (OQ-2 finalises which facts and their types)
+* `a == b : Bool` when `a : T` and `b : T` for some common `T` in {Bool,
+  String, Int}; otherwise type error
+* `a != b : Bool` symmetric with `==`
+* `!e : Bool` when `e : Bool`
+* `a && b : Bool` when `a : Bool` and `b : Bool`
+* `a || b : Bool` when `a : Bool` and `b : Bool`
+
+Top-level contract at the use site:
+
+[cols="1,1", options="header"]
+|===
+| Slot                                  | Required top-level type
+| `target(<decision_expr>)`             | `Bool`
+| `requires <decision_expr>` (block)    | `Bool`
+| `requires <decision_expr>` (per-decl) | `Bool`
+| extern-coproc family expression       | `String`
+| `encoding <decision_expr>`            | `String`
+|===
+
+=== Evaluator
+
+Straightforward recursive descent. Short-circuits `&&` and `||`. Reuses the
+existing JtV error path for type errors and unknown names.
+
+[source,rust]
+----
+pub fn eval_decision(
+    expr: &DecisionExpr,
+    env: &DecisionEnv,
+) -> Result<DecisionValue, DecisionError> {
+    use DecisionExpr::*;
+    use DecisionValue::*;
+    match expr {
+        BoolLit(b) => Ok(Bool(*b)),
+        StringLit(s) => Ok(String(s.clone())),
+        IntLit(n) => Ok(Int(*n)),
+        Ident(name) => env.lookup(name)
+            .cloned()
+            .ok_or_else(|| DecisionError::UnknownFact(name.clone())),
+        Eq(l, r) => eq_or_ne(l, r, env, |a, b| a == b),
+        Ne(l, r) => eq_or_ne(l, r, env, |a, b| a != b),
+        Not(e) => match eval_decision(e, env)? {
+            Bool(b) => Ok(Bool(!b)),
+            v => Err(DecisionError::TypeMismatch("!", v.type_name())),
+        },
+        And(l, r) => match eval_decision(l, env)? {
+            Bool(false) => Ok(Bool(false)),               // short-circuit
+            Bool(true)  => match eval_decision(r, env)? {
+                Bool(b) => Ok(Bool(b)),
+                v => Err(DecisionError::TypeMismatch("&&", v.type_name())),
+            },
+            v => Err(DecisionError::TypeMismatch("&&", v.type_name())),
+        },
+        Or(l, r) => match eval_decision(l, env)? {
+            Bool(true)  => Ok(Bool(true)),                // short-circuit
+            Bool(false) => match eval_decision(r, env)? {
+                Bool(b) => Ok(Bool(b)),
+                v => Err(DecisionError::TypeMismatch("||", v.type_name())),
+            },
+            v => Err(DecisionError::TypeMismatch("||", v.type_name())),
+        },
+    }
+}
+----
+
+Estimated LOC: ~80 including types, errors, environment plumbing. Shares
+the AST-dispatch + error-formatting idioms used by the existing Data/Control
+interpreters.
+
+=== Error kinds
+
+* `UnknownFact(name)` — identifier references a fact not bound in the
+  environment
+* `TypeMismatch(op, operand_type)` — operator applied to incompatible types
+* `MismatchedOperandTypes(op, lhs_type, rhs_type)` — `==` / `!=` on
+  different types
+* `NonBoolAtPredicateSite` — top-level result is not `Bool` in a predicate
+  slot
+* `NonStringAtValueSite` — top-level result is not `String` in a
+  family/encoding slot
+
+All errors carry source spans (pest provides these) and emit a specific
+message pointing to the predicate site.
+
+Failure semantics (strict vs permissive) is OQ-3 (separate ADR).
+
+=== Termination argument
+
+The evaluator is primitive-recursive on the AST. Each recursive call
+descends into a strictly smaller sub-expression. No recursive definitions,
+no loops, no function calls. Termination proof: structural induction on
+expression size. Proof is trivially one paragraph and can be stated as an
+invariant in the evaluator module comment.
+
+== Integration
+
+=== Where Decision expressions appear
+
+Exhaustive list of syntactic positions admitting `decision_expr` under the
+pata pathway:
+
+. `target(<decision_expr>)` — on `extern_coproc_block`; block-level gate
+. `requires <decision_expr>;` — statement form inside `extern_coproc_block`
+  body; block-level feature gate
+. `requires <decision_expr>` — per-decl modifier on `coproc_intrinsic` and
+  `coproc_insn`; item-level feature gate (multiple allowed, implicit-AND)
+. Family expression: `extern coproc <decision_expr> { … }`
+. Encoding expression: `encoding <decision_expr>;` at the tail of
+  `coproc_insn`
+
+All other positions continue to use Control / Data grammar as today.
+
+=== Where Decision expressions do NOT appear
+
+* Function bodies (control_stmt positions) — still Control Language
+* Arithmetic / expression positions inside function bodies — still Data
+  Language
+* Reverse blocks — still reversible Control (v2 reversibility)
+* Type annotations — still the existing type grammar
+* Module headers, import paths — still identifiers / module paths
+
+Grammatical separation is hard. A user cannot write a Decision expression
+where a Data expression is expected, and vice versa. Pest positional
+matching enforces the boundary. This is directly parallel to the existing
+Control-vs-Data separation — now extended to a third lane.
+
+=== Compile-time fact environment
+
+The pata-eval pass populates the environment from build configuration
+before evaluating any Decision expression. The exact vocabulary is OQ-2
+(separate ADR). Canary seed (subject to OQ-2 finalisation):
+
+[cols="1,1,2", options="header"]
+|===
+| Fact           | Type    | Example values
+| `arch`         | String  | `"riscv64"`, `"riscv32"`, `"arm"`, `"x86_64"`, `"avr"`
+| `feature`      | String  | `"v"`, `"zbb"`, `"mve"`, `"xcustom"` (see OQ-2 re: list vs single)
+| `word_size`    | Int     | `32`, `64`
+| `endianness`   | String  | `"little"`, `"big"`
+| `target`       | String  | full triple, e.g. `"riscv64-unknown-none-elf"`
+|===
+
+=== AST shape
+
+[source,rust]
+----
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum DecisionExpr {
+    BoolLit(bool),
+    StringLit(String),
+    IntLit(i64),
+    Ident(String),
+    Eq(Box<DecisionExpr>, Box<DecisionExpr>),
+    Ne(Box<DecisionExpr>, Box<DecisionExpr>),
+    And(Box<DecisionExpr>, Box<DecisionExpr>),
+    Or(Box<DecisionExpr>, Box<DecisionExpr>),
+    Not(Box<DecisionExpr>),
+}
+
+pub struct DecisionEnv {
+    facts: std::collections::HashMap<String, DecisionValue>,
+}
+
+pub enum DecisionValue {
+    Bool(bool),
+    String(String),
+    Int(i64),
+}
+
+pub enum DecisionError {
+    UnknownFact(String),
+    TypeMismatch(&'static str, &'static str),
+    MismatchedOperandTypes(&'static str, &'static str, &'static str),
+    NonBoolAtPredicateSite(&'static str),
+    NonStringAtValueSite(&'static str),
+}
+----
+
+== Thesis preservation
+
+=== Claim: Data Language thesis is unchanged
+
+Data Language continues to be *addition-only, total, provably halting*. The
+Router Visualisation teaching story (Control blue / Data red, bridge when
+data results cross to control variables) is untouched. None of Decision's
+new operators (`==`, `!=`, `&&`, `||`, `!`) are added to `additive_expr` or
+`factor`. Data stays exactly as published.
+
+=== Claim: Code injection remains grammatically impossible
+
+Original JtV security thesis: attacker input cannot become executable
+control flow because Data expressions grammatically cannot contain control
+constructs. That claim is strengthened, not weakened:
+
+* Decision expressions grammatically cannot contain Control constructs
+  (no `if`, `while`, `for`, assignment, `print`, function call)
+* Decision expressions grammatically cannot contain Data expressions other
+  than at primary-value positions (numeric and string literals, which are
+  inert)
+* Decision expressions appear only in compile-time slots — they cannot be
+  reached via runtime evaluation
+* The compile-time evaluator binds only a fixed, compiler-known set of
+  facts — user source code cannot inject new facts into the environment
+
+Stronger claim now admissible: *compile-time injection is also grammatically
+impossible.* An attacker cannot smuggle runtime behaviour into a compile-
+time decision slot because Decision Language does not contain any runtime
+construct.
+
+=== Claim: Totality extends to the third lane
+
+Decision Language is total by grammar construction (no recursion
+mechanism, no loops, no function calls). Proof: structural induction on
+AST size, evaluator is primitive-recursive, each recursive step strictly
+decreases the expression. One paragraph. No evaluator bound on depth
+needed.
+
+This is actually *stronger* than Data's totality argument: Data's totality
+requires the "no recursion in data context" and "calls only to @pure
+functions" rules (v2); Decision has neither rule because it has no
+function-call construct at all.
+
+=== Claim: Harvard separation is preserved and extended
+
+Binary Harvard (Control / Data) becomes triadic (Control / Data /
+Decision). The grammatical disjointness of positions is maintained — each
+lane has positions it exclusively occupies, no lane can be written where
+another is expected. The security argument generalises by induction.
+
+== Example expressions
+
+All valid Decision Language:
+
+[source]
+----
+// Boolean literal
+true
+
+// String equality
+arch == "riscv64"
+
+// Disjunction
+arch == "riscv64" || arch == "riscv32"
+
+// Conjunction
+arch == "riscv" && feature == "v"
+
+// Negation
+!(arch == "avr")
+
+// Parenthesised
+(arch == "riscv64" || arch == "riscv32") && feature == "zbb"
+
+// Nested
+!(arch == "avr") && word_size == 64
+
+// Identifier only (evaluates to the fact's value — used in family/encoding slots)
+arch
+----
+
+All examples evaluate in at most a dozen primitive-recursive steps with a
+fully populated fact environment.
+
+== Consequences
+
+. *Three-lane Harvard becomes the new mental model.* Documentation and the
+  Router Visualisation demo need to show Decision as a third colour — say,
+  green (compile-time-only) alongside Control-blue (runtime-effectful) and
+  Data-red (runtime-total-pure).
+. *Parser gains a Decision descent path.* New pest rules and parser
+  functions. Scope ~150 LOC combined with the extern-coproc block work.
+. *Evaluator gains a second mode.* Same evaluator infrastructure, different
+  environment. Decision evaluator is a separate function (`eval_decision`),
+  not a reuse of Data's evaluator (types differ, operators differ).
+. *No new global keywords* — `true` and `false` are already keywords, all
+  other tokens (`==`, `!=`, `&&`, `||`, `!`, `(`, `)`) are operators that
+  don't collide.
+. *Data Language is untouched.* No risk to existing users, existing
+  conformance corpus, or published thesis documents.
+. *Pata pathway is unblocked.* OQ-1 is resolved; OQ-2 (fact vocabulary),
+  OQ-3 (failure semantics), and OQ-4 (call-site semantics) remain open but
+  are independently scoped.
+
+== Residual open questions
+
+=== OQ-1.a: Ordering operators
+
+Not included in the MVP. Landing is trivial (add three pest rules, three
+AST variants, three evaluator cases — ~20 LOC). Trigger: first real use
+case blocked without them. Most likely trigger is `word_size >= 32`-style
+gating when a non-RISC-V target family lands.
+
+=== OQ-1.b: Error message quality
+
+The evaluator returns structured errors. Surface-level quality (source
+span highlighting, "did you mean?" suggestions, cross-reference to
+available facts) is a polish pass, not a design decision. Not blocking.
+
+=== OQ-1.c: List-valued facts
+
+Deferred to OQ-2. If OQ-2 decides `feature` is list-valued, Decision
+Language will need a `contains` operator (string `in` list test). That's a
+one-off addition, not a grammar-scale change.
+
+== References
+
+* ADR-0001 §OQ-1 (resolved by this document)
+* ADR-0001 §Decision 5 — pata-compilation as primary pathway
+* `docs/language/DESIGN-JTV-V2-REVERSIBILITY.md` — parallel ADR-shape
+  precedent (reversibility sublanguage design), whose relationship to
+  Decision is that both introduce new compile-time grammar rules but in
+  disjoint positions
+* Alfred Jarry, _Gestes et opinions du docteur Faustroll, pataphysicien_
+  (1911): 'pataphysics as the science of imaginary solutions; Decision is
+  the concrete grammar that lets JtV operate in that mode
+* Companion artefact: `.machine_readable/COPROC-TRAJECTORIES.a2ml` —
+  updated to mark OQ-1 resolved and record Decision Language as a first-
+  class sublanguage

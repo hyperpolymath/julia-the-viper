@@ -1,0 +1,264 @@
+;; SPDX-License-Identifier: PMPL-1.0-or-later
+;; (MPL-2.0 is automatic legal fallback until PMPL is formally recognised)
+;; Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+;;
+;; COPROC-TRAJECTORIES.a2ml — Authoritative trajectory status for JtV
+;; coprocessor support.  Companion to docs/design-decisions/0001-0006.
+;; Post-pivot: PataCL is the implementation vehicle for Trajectory E.
+
+(a2ml
+  (version                "0.2")
+  (kind                   "design-trajectories")
+  (subject                "jtv-coprocessor-support")
+  (authority              "docs/design-decisions/0006-patacl-pivot.adoc")
+  (pivot                  "2026-04-19 — Delta pivot; PataCL extracted to top-level patacl/")
+  (decided                "2026-04-19")
+  (author                 "Jonathan D.A. Jewell")
+  (author-email           "j.d.a.jewell@open.ac.uk")
+
+  (active-trajectory      "E")
+  (implementation-vehicle "PataCL — top-level monorepo at /var/mnt/eclipse/repos/patacl/")
+
+  (trajectories
+    ((id                  "A")
+     (headline            "Coproc-only syntactic island with string-literal slots")
+     (status              "REJECTED")
+     (status-reason       "superseded by E before landing; string-literal slots incompatible with pata-compilation")
+     (decided-at          "2026-04-19")
+     (notes               "RISC-V pilot; family/target/requires/encoding as opaque strings; no compile-time evaluation")
+     (supersession-event  "pata pathway adopted"))
+
+    ((id                  "B-C")
+     (headline            "General attributes + extern blocks + memory-space type modifiers in JtV")
+     (status              "CAPTURED")
+     (priority            "second")
+     (trigger             "estate-wide attribute cleanup demand from non-coprocessor constructs (interrupts, stack policy, MMIO, test harness, deprecation)")
+     (scope
+       ("#[attr(...)] syntax at every decl position"
+        "extern \"<abi>\" { ... } generic FFI block"
+        "@io / @code / @data as first-class type modifiers (not ad-hoc attributes)"
+        "coproc surface converges with other extern kinds"))
+     (dependency           "none; parallel to E")
+     (does-not-block       "E — pata (via PataCL) gives coproc support its decision substrate directly without needing B-C"))
+
+    ((id                  "D")
+     (headline            "Data-Language co-compiler split")
+     (status              "CAPTURED")
+     (priority            "third")
+     (trigger             "real coprocessor / FPGA / enclave / quantum-sim target appears with non-trivial Data-lane workload")
+     (rationale           "Harvard separation makes Data lane independently retargetable — totality is the precondition for compiling to fixed-function units (FPGA, ALU coprocessor, crypto enclave, quantum simulator, SPARK-verified backend)")
+     (mechanism
+       ("Data lane compiled by a specialist toolchain (candidates: SPARK, Coq/CompCert, Halide-style, QIR)"
+        "Control lane stays on host CPU (Cranelift / WASM / LLVM)"
+        "Grammar boundary IS the ABI boundary — no new separation needed"
+        "Extern coproc ops appear as primitives the Data co-compiler can emit"))
+     (composes-with        "E — the Data-lane co-compiler is the natural execution environment for PataCL-evaluated decisions at scale")
+     (reference-precedents ("Halide (image-processing host/kernel split)"
+                            "Futhark (Haskell host / Futhark kernel)"
+                            "Accelerate" "Dex" "SYCL")))
+
+    ((id                  "E")
+     (headline            "Pata-compilation via PataCL — compile-time self-oversight substrate as separate DSL")
+     (status              "ACTIVE")
+     (decided-at          "2026-04-19")
+     (implementation      "PataCL (PataCompiler Language) — standalone DSL at top-level patacl/")
+     (pivot-from          "Originally framed as Decision sublanguage embedded in JtV grammar (ADR-0002). Extracted to separate DSL via Delta pivot (ADR-0006).")
+     (rationale           "PataCL's totality + purity + no-IO guarantees make compile-time evaluation safe (terminating, deterministic, reproducible, composable) by construction; JtV thesis stays focused on runtime semantics")
+     (framing             "'pataphysics (Jarry): science of the particular, of exceptions, of imaginary solutions. PataCL is the DSL in which the patacompiler operates; each JtV program gets its particular compilation determined by imaginary-solution reasoning evaluated by PataCL")
+     (not-meta            "PataCL is lateral to JtV, not above it. Self-reference is disciplined (same meta-properties, disjoint grammar positions) rather than transcendental.")
+     (jtv-side-scope
+       ("grammar: one new construct — extern coproc <gate-name> { item* }"
+        "AST variant for the block"
+        "name-resolution invokes PataCL with gate-name"
+        "block-inclusion pass drops dead blocks"
+        "namespace registration for surviving decls"
+        "call-site type-check + purity-participation"
+        "phase-boundary error for unlowered extern coproc calls"))
+     (patacl-side-scope
+       ("grammar: factory form (==, !=, &&, ||, !, literals, identifiers, parens) + constrained form (Lit, Ident, Eq, And, Not)"
+        "reducer: factory → constrained (trivial rewrites)"
+        "fact environment construction from target config"
+        "forward-only evaluator with short-circuit && / ||"
+        "resource certificate emission (T_max, M_max, D_max)"
+        ".pata source + .pata.cert artefact file formats"
+        "strict failure semantics (ADR-0004 applied)"))
+     (open-questions      ("OQ-1 predicate sublanguage shape — RESOLVED 2026-04-19 (ADR-0002); extracted to PataCL (ADR-0006)"
+                           "OQ-2 compile-time fact vocabulary — RESOLVED 2026-04-19 (ADR-0003); facts consumed by PataCL"
+                           "OQ-3 pata-evaluation failure semantics — RESOLVED 2026-04-19 (ADR-0004); implemented in PataCL"
+                           "OQ-4 extern coproc call semantics in first pata commit — RESOLVED 2026-04-19 (ADR-0005); unchanged JtV-side")))
+
+    ((id                  "F")
+     (headline            "PataCL self-hosting")
+     (status              "CAPTURED")
+     (priority            "fourth")
+     (trigger             "PataCL Phase 4 (conformance corpus) stable AND desire to self-host surfaces")
+     (rationale           "Unlike JtV (which requires substantial standard library to self-host), PataCL is tiny — five AST variants, three non-trivial evaluator cases. Self-hosting is plausible in a single focused effort.")
+     (tractability        "genuinely tractable because the language is small, total, and has a well-specified constrained form")
+     (authority           "patacl/ROADMAP.adoc Phase 5")
+     (does-not-block      "E — PataCL Phase 1 / JtV Phase 2 integration proceeds on the Rust implementation; self-hosting is a separate future effort"))
+
+    ((id                  "G")
+     (headline            "Additional host-language adoption of PataCL")
+     (status              "CAPTURED")
+     (priority            "fifth")
+     (trigger             "external interest; at least one non-JtV host proposes adoption")
+     (rationale           "PataCL is designed as a reusable augment. External adoption is evidence that the design was right.")
+     (authority           "patacl/docs/WHEN-TO-USE.adoc + patacl/ROADMAP.adoc Phase 6")
+     (candidate-hosts
+       ("hyperpolymath-family languages with cross-target concerns (affinescript, my-lang dialects if they acquire multi-target semantics)"
+        "small DSLs embedded in host languages where #[cfg] gating is noisy or over-powered"
+        "research-language experiments wanting compile-time decisions without Zig-comptime or C-preprocessor complexity"))
+     (non-goal            "not forcing adoption — PataCL should be chosen, not imposed")))
+
+  (sublanguages-post-pivot
+    (jtv-control
+     (status              "unchanged")
+     (semantics           "Turing-complete, imperative, effectful")
+     (runtime-phase       "runtime")
+     (thesis              "orchestration lane — loops, conditionals, IO"))
+    (jtv-data
+     (status              "unchanged")
+     (semantics           "total, pure, addition-only, provably halting")
+     (runtime-phase       "runtime")
+     (thesis              "injection-impossible via Harvard separation; seven number systems"))
+    (jtv-decision-embedded
+     (status              "SUPERSEDED 2026-04-19 — extracted to PataCL")
+     (superseded-by       "PataCL (separate DSL)")
+     (note                "ADR-0002's Decision sublanguage was originally to be embedded in JtV grammar. Delta pivot (ADR-0006) extracted it to a standalone DSL; JtV Harvard remains binary (Control + Data)."))
+    (patacl
+     (status              "planned; Phase 1 pending")
+     (location            "top-level monorepo at /var/mnt/eclipse/repos/patacl/")
+     (semantics           "total, pure, no-IO; dual-form (factory + constrained) via MPR")
+     (runtime-phase       "compile-time only; evaluated by the patacompiler before JtV runtime")
+     (thesis              "compile-time decision substrate; reusable augment across host languages")
+     (factory-form        "full operator set — == != && || ! literals identifiers parens")
+     (constrained-form    "Lit, Ident, Eq, And, Not (five AST variants); != → Not∘Eq; || → De Morgan")
+     (mpr-heritage        "Maximum Principle Reduction inherited from Oblibeny — resource certificates per source, dual-form, reversibility discipline")))
+
+  (fact-vocabulary
+    (authority            "docs/design-decisions/0003-compile-time-fact-vocabulary.adoc")
+    (post-pivot-consumer  "PataCL — facts injected into PataCL's fact environment, not JtV's embedded evaluator")
+    (mvp
+      ((name              "arch")
+       (type              "String")
+       (examples          ("riscv64" "riscv32" "arm" "aarch64" "avr" "x86_64" "x86" "wasm32")))
+      ((name              "feature_<name>")
+       (type              "Bool")
+       (per-family        "true")
+       (closed-set        "per target-family feature table; UnknownFact on unknown name")
+       (examples          ("feature_v" "feature_zbb" "feature_mve" "feature_sse")))
+      ((name              "word_size")
+       (type              "Int")
+       (examples          (16 32 64)))
+      ((name              "endianness")
+       (type              "String")
+       (examples          ("little" "big")))
+      ((name              "os")
+       (type              "String")
+       (examples          ("linux" "windows" "macos" "none" "wasi" "freebsd")))
+      ((name              "target")
+       (type              "String")
+       (examples          ("riscv64-unknown-none-elf" "arm-none-eabi"))))
+    (naming-convention    "short names, no target_ prefix; values match binutils/LLVM verbatim")
+    (source-of-truth      "target triple + --target-feature CLI flags; no user-injectable facts")
+    (deferred
+      ("OQ-2.a pointer_width vs register_width split"
+       "OQ-2.b family convenience fact (riscv/arm/x86/avr/wasm)"
+       "OQ-2.c profile fact (debug/release/embedded)"
+       "OQ-2.d user-defined facts via manifest")))
+
+  (failure-semantics
+    (authority            "docs/design-decisions/0004-pata-eval-failure-semantics.adoc")
+    (post-pivot-site      "implemented by PataCL evaluator, not JtV embedded evaluator")
+    (policy               "strict everywhere; every evaluation error is a build error")
+    (no-warning-channel   "true")
+    (short-circuit        "true — && and || use standard short-circuit; left-operand false skips right")
+    (lazy-inner-eval      "true — if block gate evaluates false, inner predicates are skipped")
+    (eager-type-check     "true — gated-out blocks are still type-checked")
+    (error-kinds
+      ("ParseError — predicate syntactically malformed; parse-pass"
+       "TypeError — operator-arity / slot-type mismatch; type-check-pass; eager"
+       "UnknownFact-always-bound — typo of standard fact (arch/os/word_size/endianness/target); eval-time"
+       "UnknownFact-target-specific — feature_<name> not in target family; eval-time, gated-away or short-circuited"
+       "NonBoolAtPredicateSite — top-level eval result not Bool where Bool required"
+       "NonStringAtValueSite — top-level eval result not String where String required"))
+    (idiom                "arch facts first, feature facts second — short-circuit ordering")
+    (precedent-model      "Rust cfg attribute + C preprocessor #ifdef ordering conventions"))
+
+  (call-site-contract
+    (authority            "docs/design-decisions/0005-extern-coproc-call-semantics.adoc")
+    (post-pivot-site      "JtV-side; unchanged. Only the lookup mechanism changes: name-resolution now invokes PataCL with gate-name.")
+    (namespace            "flat — same function namespace as user-defined fns")
+    (collisions           "build error; no silent shadowing")
+    (typecheck            "standard — FunctionCall AST unchanged, signature match, purity rules")
+    (purity-participation "extern decls carry @pure / @total; v2 Pure-Function rules apply unchanged")
+    (phase-1-eval         "every backend hits ExternCoprocNotYetLowered at call site; informational phase-boundary error"))
+
+  (mpr-discipline
+    (authority            "developer-ecosystem/nextgen-languages/oblibeny/arcvix-turing-incomplete-constrained-form.tex §4-§5")
+    (applies-to           "PataCL (as host; JtV itself does not implement MPR)")
+    (dual-form
+      (factory            "richer authoring surface — full operator set")
+      (constrained        "minimal primitive set — five AST variants")
+      (reduction          "factory → constrained via mechanical rewrites; terminating by structural induction"))
+    (resource-certificate
+      (tuple              "(T_max, M_max, D_max)")
+      (computed-how       "structural induction on constrained form AST")
+      (artefact           ".pata.cert emitted alongside .pata source")
+      (reproducibility    "byte-stable across build hosts"))
+    (reversibility
+      (applicability      "conceptual-only for PataCL — evaluator is deterministic and re-runnable; no trace-assisted inversion needed")))
+
+  (pilot-target
+    (family               "riscv")
+    (rationale            "X-ext (custom instruction) path exercises Idris2 ABI + Zig emission + SPARK-optional end-to-end; .insn directive is authoritative assembler-parsed form; standard extensions (V/F/D/Zbb/Zk*) also covered via intrinsic form")
+    (scope
+      ("JtV: extern coproc <gate-name> { intrinsic … ; insn … encoding \"…\" ; }"
+       "PataCL: gate <name> when <predicate> family <string> in .pata file"
+       "intrinsic and insn item kinds"
+       "multiple requires per decl with implicit-AND")))
+
+  (decisions-summary
+    ;; Closed (status = CLOSED, decided = 2026-04-19)
+    ((id "D1")  (closed "coprocessor category = ISA-extension only; excludes GPU/NPU/FPGA"))
+    ((id "D2")  (closed "language stack = Idris2 ABI / Zig emission / SPARK-optional"))
+    ((id "D3")  (closed "first pilot = RISC-V"))
+    ((id "D4")  (closed "canary pathway rejected; pivot to pata"))
+    ((id "D5")  (closed "pata-compilation as primary pathway"))
+    ((id "D6")  (closed "grammar shape: extern coproc block at top level; post-pivot references PataCL gate by name"))
+    ((id "D7")  (closed "string-literal encoding is opaque to JtV; assembler is authoritative"))
+    ((id "D8")  (closed "family name = string (defined in .pata file post-pivot)"))
+    ((id "D9")  (closed "target-contingent compilation via PataCL when-predicate (post-pivot)"))
+    ((id "D10") (closed "multiple requires per decl; implicit-AND"))
+    ((id "D11") (closed "pata-native from first commit; no strict-parse-only canary"))
+    ((id "D12") (closed "design artefacts in docs/design-decisions/ (ADR-numbered) + A2ML companion"))
+    ((id "D13") (closed "Delta pivot: extract Decision sublanguage to PataCL standalone DSL — ADR-0006")))
+
+  (phase-status
+    (pre-pivot-phase-1-ready "was: all four OQs resolved 2026-04-19; post-pivot phase structure now tracks PataCL phases + JtV phases")
+    (jtv-current             "Phase 0 — design complete; awaiting PataCL Phase 1 to unblock JtV Phase 2 integration")
+    (patacl-current          "Phase 0 — design complete; Phase 1 (Rust MVP compiler) is the next implementation commit"))
+
+  (cross-repo-integration
+    (patacl-repo          "/var/mnt/eclipse/repos/patacl/")
+    (patacl-docs
+      (readme             "patacl/README.adoc")
+      (roadmap            "patacl/ROADMAP.adoc")
+      (rationale          "patacl/docs/RATIONALE.adoc")
+      (when-to-use        "patacl/docs/WHEN-TO-USE.adoc")
+      (language-spec      "patacl/docs/design-decisions/0001-patacl-language-spec.adoc (planned)"))
+    (coordination-points
+      ("PataCL Phase 1 release → JtV Phase 2 integration branch unblocked"
+       "PataCL fact-vocabulary change → JtV ADR-0003 update and re-evaluation"
+       "PataCL grammar evolution → JtV ADR-0005 call-site contract may need revision"
+       "JtV coproc use-case expansion → potentially unblocks deferred PataCL features (ordering, list-valued facts)")))
+
+  (related
+    (reversibility-adr    "docs/language/DESIGN-JTV-V2-REVERSIBILITY.md")
+    (pivot-adr            "docs/design-decisions/0006-patacl-pivot.adoc")
+    (grammar-canonical    "crates/jtv-core/src/grammar.pest")
+    (ebnf-spec            "spec/grammar.ebnf")
+    (ebnf-shared          "shared/grammar/jtv.ebnf")
+    (aspirational-corpus  "playground/jtv/samples/blink.jtv  playground/jtv/tests/corpus/valid/memory_spaces.jtv  playground/jtv/tests/corpus/valid/stack_constraint.jtv")
+    (patacl-repo          "/var/mnt/eclipse/repos/patacl/")
+    (oblibeny-mpr         "developer-ecosystem/nextgen-languages/oblibeny/arcvix-turing-incomplete-constrained-form.tex §4-§5")))

@@ -1,0 +1,354 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
+// (MPL-2.0 is automatic legal fallback until PMPL is formally recognised)
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+
+= ADR-0004: Pata-Evaluation Failure Semantics
+Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+:revdate: 2026-04-19
+:revnumber: 0.1
+:toc: left
+:sectnums:
+
+[.lead]
+Strict everywhere — every error in compile-time evaluation fails the build
+with a clear message.  Short-circuit evaluation of `&&`/`||` and lazy
+evaluation of inner predicates when a block's outer `target(...)` gate is
+false together make cross-target source ergonomic without any permissive
+fallback path.  Warnings are not used.
+
+== Status
+
+*Decided (2026-04-19).* Resolves ADR-0001 Open question OQ-3.
+
+[NOTE]
+====
+*Post-pivot clarification (2026-04-19):* Failure semantics unchanged.
+Implementation site changed — these semantics are now implemented by
+the *PataCL* evaluator, not by JtV's embedded evaluator. See
+`0006-patacl-pivot.adoc`. Strict-everywhere + short-circuit + lazy
+inner-eval + eager type-check apply verbatim to PataCL.
+====
+
+== Context
+
+ADR-0002 (Decision sublanguage) and ADR-0003 (fact vocabulary) together
+define *what gets evaluated* at compile time. This ADR defines *what
+happens when evaluation fails* — or more precisely, what counts as failure,
+and whether failures ever cascade into silent-exclusion rather than a
+build error.
+
+Three candidate policies were framed:
+
+* *OQ-3a — Fail the build with a clear error pointing to the site.* Strict.
+* *OQ-3b — Treat any failure as always-false.* Permissive.
+* *OQ-3c — Warn on failure and treat as always-false.* Hybrid.
+
+== Decision
+
+*Adopt OQ-3a — strict everywhere — with short-circuit evaluation and lazy
+inner-predicate evaluation gated by the block's `target(...)` clause.*
+
+Every evaluation error — parse error, type error, unknown fact, non-Bool
+at predicate site, non-String at value site — is a build error. There is
+no warning level, no silent-false fallback, no best-effort compilation.
+
+The ergonomics problem ("UnknownFact fires for cross-target feature refs")
+is solved not by permissiveness but by:
+
+. *Short-circuit evaluation* of `&&` and `||` means
+  `arch == "riscv64" && feature_v` never evaluates `feature_v` on a non-
+  RISC-V build — the left operand short-circuits to `false`
+. *Lazy inner-predicate evaluation*: if a block's outer `target(...)`
+  evaluates to `false`, no inner predicate is evaluated. The block is
+  dropped whole before any inner expression is touched.
+
+Combined, these let cross-target source reference target-specific feature
+facts freely, with the idiom *"guard from most-general to most-specific"*
+(identical to C preprocessor / Rust `cfg` ordering conventions).
+
+=== Error taxonomy and disposition
+
+[cols="2,3,2", options="header"]
+|===
+| Error kind                              | Trigger                                         | Disposition
+
+| *ParseError*                            | Predicate is syntactically malformed
+  (`arch ==`, unclosed paren, etc.)                                                         | Build error; reported
+  during the parse pass, before evaluation begins
+
+| *TypeError — operator-arity*            | `!5`, `"foo" && true`, `42 \|\| arch`,
+  `arch == 42`, `"foo" == word_size`                                                        | Build error; reported
+  during the type-check pass, regardless of whether the containing block is
+  gated off
+
+| *TypeError — wrong top-level type*      | `target(arch)` where `arch : String` but
+  slot requires `Bool`; `encoding 5` where slot requires `String`                           | Build error; reported
+  during the type-check pass, regardless of gate state
+
+| *UnknownFact — always-bound fact*       | Identifier references a typo of a standard
+  fact (`archz`, `feature_vv`, `word_sixe`)                                                 | Build error; reported
+  during evaluation of the predicate it appears in. Includes Levenshtein
+  suggestion (`did you mean 'arch'?`)
+
+| *UnknownFact — target-specific fact*    | `feature_v` on an AVR build, `feature_neon` on
+  a RISC-V build                                                                            | Build error *if* the
+  containing predicate is evaluated; silent *if* short-circuited or gated
+  away by an outer `target(...)`. Equivalent to Rust's cfg model.
+
+| *DivergenceError*                       | (not possible) Decision Language has no
+  looping or recursion construct; termination is guaranteed by grammar                      | Cannot occur
+|===
+
+=== Evaluation pipeline
+
+For each `extern coproc` block:
+
+. *Parse* — lex and parse all predicates into `DecisionExpr` AST.
+  ParseError → build fails.
+. *Type-check* — walk every Decision expression in every block, verify
+  operator types and top-level slot types. TypeError → build fails.
+  Type-check is eager: gated-out blocks are still type-checked.
+. *Evaluate `target(...)`* — run the Decision evaluator against the fact
+  environment. Short-circuit `&&`/`||` applies. UnknownFact → build fails.
+  If the predicate is absent, default to true (block is unconditionally
+  live on all targets).
+. *If `target` evaluated false — drop the block.* Skip steps 5 and 6.
+  No further evaluation of inner expressions.
+. *Evaluate block-level `requires`* — each `requires <predicate>;`
+  statement. Short-circuit applies. UnknownFact / TypeError → build fails.
+  If any evaluates false, the block is inactive on this target — drop it.
+. *Evaluate per-item predicates* — for each `intrinsic` / `insn` item,
+  evaluate its `requires` predicates (if any), the encoding expression
+  (for `insn`), and the family expression. UnknownFact / TypeError →
+  build fails. If any `requires` is false, drop that item but keep the
+  block.
+
+Surviving decls are registered in the function namespace for the next
+compilation phase (native lowering; deferred per ADR-0001 Decision 11).
+
+=== Why not permissive?
+
+*OQ-3b (always-false on failure)* makes typos catastrophic:
+
+[source]
+----
+extern coproc "riscv" target(arch == "riscv64") {
+    requires feature_vv ;                    // typo: user meant feature_v
+    intrinsic vadd_i32(a: Int, b: Int): Int @pure ;
+}
+----
+
+Under OQ-3b: `feature_vv` is UnknownFact → silently `false` → block
+excluded on every RISC-V build → `vadd_i32` undefined at call sites.
+Debugging requires reading every predicate and cross-referencing the
+per-target feature table. The error surface for the downstream user
+("why isn't my vector add emitted?") is far from the cause.
+
+Under OQ-3a: same source produces `error: unknown fact 'feature_vv' —
+did you mean 'feature_v'?` at the exact site, pointing to the typo.
+
+The security-thesis framing reinforces this: JtV presents grammar-enforced
+guarantees. Silent-compilation-result changes violate that ethos. If
+something is wrong, fail the build.
+
+=== Why not hybrid (warn + silent-false)?
+
+*OQ-3c (warn + treat as false)* preserves the typo problem one step
+removed — warnings rot (users learn to dismiss them; they don't fail CI
+unless configured to; they get buried in log noise). In a language whose
+compile-time decisions are load-bearing for which code actually exists at
+runtime, a warning is too weak.
+
+Estate standing rule (`feedback_merge_requirements.md`, hyperpolymath
+standards): errors over warnings in principle. No hybrid.
+
+=== Batched error reporting
+
+For developer ergonomics, errors are collected in passes rather than
+fail-fast:
+
+* Parse pass collects all ParseErrors before reporting.
+* Type-check pass collects all TypeErrors before reporting.
+* Evaluation pass fails on the first UnknownFact / TypeError at
+  evaluation time (since evaluation ordering affects which errors fire).
+
+Matches Rust/Clang conventions. Users see every parse/type error at once
+rather than one-at-a-time whack-a-mole.
+
+== Examples
+
+=== Idiomatic cross-target source (works under strict semantics)
+
+[source]
+----
+// Guard order: most-general (arch) first, then most-specific (feature).
+// Short-circuit skips feature_v evaluation on non-RISC-V builds.
+extern coproc "riscv-vec"
+    target(arch == "riscv64" && feature_v)
+{
+    intrinsic vadd_i32(a: Int, b: Int): Int @pure ;
+}
+
+// Explicit OR over RISC-V bitnesses; feature_v is only accessed on
+// targets where the first disjunct is true.
+extern coproc "riscv-vec-any"
+    target((arch == "riscv64" || arch == "riscv32") && feature_v)
+{
+    intrinsic vadd_i32(a: Int, b: Int): Int @pure ;
+}
+
+// Multiple requires (implicit AND, ADR-0001 D10) composes the same way.
+extern coproc "riscv-vz"
+    target(arch == "riscv64")
+{
+    requires feature_v ;
+    requires feature_zbb ;
+    intrinsic some_op(a: Int, b: Int): Int @pure ;
+}
+----
+
+=== Typo detection (strict build error)
+
+[source]
+----
+extern coproc "riscv" target(arch == "riscv64") {
+    requires feature_vv ;    // typo
+    intrinsic ...;
+}
+----
+
+[source]
+----
+error: unknown fact `feature_vv` at <file>:<line>:<col>
+  --> extern coproc block requires predicate
+  |
+  |     requires feature_vv ;
+  |              ^^^^^^^^^^
+  |
+  = note: did you mean `feature_v`?
+  = note: available RISC-V 64-bit features in this build:
+          feature_m, feature_a, feature_f, feature_d, feature_c,
+          feature_v, feature_zbb, feature_zba, feature_zbc, …
+----
+
+=== Wrong-target-family access (depends on ordering)
+
+[source]
+----
+// Bad: feature_neon is unknown on RISC-V builds; left operand doesn't
+// short-circuit because it evaluates second.
+extern coproc "arm-neon"
+    target(feature_neon && arch == "arm")    // ERROR on non-ARM builds
+{
+    intrinsic neon_op(...) @pure ;
+}
+
+// Good: short-circuit guards feature_neon behind the arch check.
+extern coproc "arm-neon"
+    target(arch == "arm" && feature_neon)    // OK on all targets
+{
+    intrinsic neon_op(...) @pure ;
+}
+----
+
+Rule of thumb: *architecture facts first, feature facts second.*
+Short-circuit semantics makes ordering load-bearing — same as C
+preprocessor `#if defined(__arm__) && __ARM_NEON` idiom.
+
+=== Gated-out blocks can reference target-specific facts
+
+[source]
+----
+// On non-RISC-V builds, the outer target evaluates false, so the inner
+// `requires feature_v` is never evaluated. No UnknownFact.
+extern coproc "riscv-vec"
+    target(arch == "riscv64")
+{
+    requires feature_v ;
+    intrinsic vadd_i32(...) @pure ;
+}
+----
+
+Block is dropped whole on AVR / x86 / ARM; inner predicates never touched.
+
+=== Type errors fire even in gated-out blocks
+
+[source]
+----
+// Even though arch == "avr" is false on a RISC-V build, the type error
+// `word_size + 5` (arithmetic forbidden in Decision Language) is still
+// reported — type-check is eager.
+extern coproc "broken"
+    target(arch == "avr")
+{
+    requires word_size + 5 ;              // TypeError — Decision has no +
+    intrinsic ...;
+}
+----
+
+[source]
+----
+error: type error in Decision expression at <file>:<line>:<col>
+  --> operator `+` is not defined in Decision Language
+      (Decision has no arithmetic — if you need numeric comparison, use
+      `==`, `!=`, or pending ordering operators)
+  |
+  |     requires word_size + 5 ;
+  |              ^^^^^^^^^^^^^
+----
+
+== Consequences
+
+. *Typo detection is automatic, precise, and always-on.* The per-target
+  fact set is closed (ADR-0003), so any feature-name typo is guaranteed
+  to surface as UnknownFact with a Levenshtein suggestion.
+. *Cross-target source is ergonomic without permissiveness.* Short-circuit
+  + lazy-inner-eval handles every cross-target case the conventional C
+  `#ifdef` / Rust `cfg` idiom handles.
+. *No warning channel for Decision Language evaluation.* Errors fail
+  builds; non-errors are silent. One less failure mode to drift.
+. *Type-check is an eager pass, independent of gates.* Gated-out blocks
+  still get type-checked. Rationale: type correctness is structural, not
+  configuration-dependent; catching it early prevents latent bugs that
+  surface when the gate condition changes.
+. *Evaluation order matters for short-circuit.* Documented idiom: arch
+  facts first, feature facts second. Recommend a lint in the linter
+  subsystem (deferred) that flags the opposite order.
+. *The v2 reversibility story is unaffected.* Pata-evaluation happens
+  before reverse-block snapshot capture and never at runtime; the two
+  subsystems are orthogonal.
+
+== Residual open questions
+
+=== OQ-3.a: Short-circuit ordering lint
+
+Should the linter flag `feature_neon && arch == "arm"` (wrong order) and
+suggest the safe form? Useful but not blocking. Defer until the linter
+subsystem is landed.
+
+=== OQ-3.b: Error cascade across blocks
+
+Current model: each block is evaluated independently. If two blocks share
+a predicate that fails, the error fires twice. Deferred — trivial to
+deduplicate in the diagnostic formatter later; no semantic decision
+needed.
+
+=== OQ-3.c: Partial-failure artefact emission
+
+If a build has `N` coproc blocks and 1 fails, do we emit the `N-1`
+surviving ones? No — build is atomic. One error fails the whole build.
+Matches standard Rust/Clang behaviour. Recorded here so it isn't
+relitigated.
+
+== References
+
+* ADR-0001 §OQ-3 (resolved by this document)
+* ADR-0002 — Decision sublanguage (errors here fire against Decision
+  expressions)
+* ADR-0003 — Fact vocabulary (per-target closed set drives UnknownFact
+  precision)
+* Rust `cfg` semantics reference:
+  https://doc.rust-lang.org/reference/conditional-compilation.html —
+  parallel model for short-circuit + lazy-inner-eval
+* Companion artefact: `.machine_readable/COPROC-TRAJECTORIES.a2ml` —
+  updated to mark OQ-3 resolved

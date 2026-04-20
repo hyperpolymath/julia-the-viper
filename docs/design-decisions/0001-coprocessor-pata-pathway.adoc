@@ -1,0 +1,638 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
+// (MPL-2.0 is automatic legal fallback until PMPL is formally recognised)
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+
+= ADR-0001: Coprocessor Support via the Pata-Compilation Pathway
+Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+:revdate: 2026-04-19
+:revnumber: 0.1
+:toc: left
+:sectnums:
+
+[.lead]
+How Julia the Viper (JtV) admits direct coprocessor access without growing a
+GPU-style kernel backend — framed through Alfred Jarry's 'pataphysics (the
+science of the particular, of exceptions, of imaginary solutions) rather than
+conventional meta-compilation.
+
+== Status
+
+*Decided (2026-04-19).* Active pathway: *Trajectory E (pata-compilation)*.
+
+Supersedes the mid-session Trajectory A canary (coproc-only syntactic island
+with string-literal slots), which was rejected before landing in favour of
+going directly to pata.
+
+[NOTE]
+====
+*Post-pivot clarification (2026-04-19):* The decisions in this ADR
+stand. The *implementation vehicle* changed from "embedded Decision
+sublanguage within JtV" to "separate DSL called *PataCL* living at
+top-level `patacl/`". See `0006-patacl-pivot.adoc` for the Delta
+pivot. The pata architecture is unchanged; only the substrate's
+location moved.
+====
+
+== Context
+
+JtV already exposes hardware-adjacent constructs in its aspirational playground
+corpus (`blink.jtv`, `memory_spaces.jtv`, `stack_constraint.jtv`): memory-space
+annotations (`@io`, `@code`, `@data`), raw MMIO pointers, `#[interrupt(…)]`
+attributes, `#[max_stack(N)]`, `#[no_heap]`. These are *parseable by design*
+but *not by the current pest grammar* — the production compiler accepts none
+of them today.
+
+A question was raised:
+
+[quote]
+____
+Look at the coprocessor support for JtV and revisit the use of the language we
+discussed to potentially allow direct access to coprocessor support without
+use of full backend/kernels.
+____
+
+The architectural constraint is explicit: *no full backend*, *no kernel-dispatch
+machinery*. This framing rules out GPU/NPU/FPGA-style coprocessors (where the
+kernel IS the unit of dispatch and you cannot avoid a backend) and rules in
+ISA-extension-style coprocessors (where the coprocessor instruction shares the
+main CPU's instruction stream and can be reached through an extern-declaration
+surface).
+
+== Design trail
+
+=== Decision 1: Coprocessor category — ISA-extension only (CLOSED)
+
+*Choice: ISA-extension / tightly-coupled-accelerator coprocessors only.*
+Excludes GPU, NPU, Edge TPU, FPGA-as-coprocessor from the design space.
+
+The three-layer sandwich (Idris2 ABI → Zig emission → SPARK-optional) works
+uniformly for:
+
+* SIMD (SSE/AVX, NEON/SVE, RISC-V V-ext) — Zig `@Vector(N, T)` + inline asm
+* FPU (VFP, RISC-V F/D, x87) — intrinsics or asm
+* DSP (ARM MVE/Helium, Hexagon, TI C6x) — mostly `asm volatile`
+* RISC-V X-ext / custom opcodes — `asm volatile` with `.insn` literals
+* MMIO-mapped accelerators (AES/SHA/CRC blocks, DMA, Cortex-M CryptoCell, TPM
+  command queues) — `extern` struct + volatile reads; JtV's existing `@io`
+  annotation carries the weight
+
+All are instruction- or register-level. JtV never grows a coprocessor codegen
+path — it emits extern calls at its existing backend boundary.
+
+*Rejected:*
+
+* *GPUs* (CUDA, SPIR-V, Metal, ROCm) — separate ISA, address spaces, SIMT
+  dispatch. Kernel launch with parameter marshaling cannot be skipped. Would
+  require a full backend, violating the stated constraint.
+* *NPUs / Edge TPUs* — graph-compiler mediated (TFLite delegate, ONNX runtime).
+  Not instruction-level. Closer to GPUs than MCU accelerators.
+* *FPGAs as coprocessors* — HDL synthesis toolchain, not instruction emission.
+  Completely separate conversation.
+
+=== Decision 2: Language stack — Idris2 ABI / Zig emission / SPARK-optional (CLOSED)
+
+*Choice: the standing hyperpolymath stack applies directly, unchanged.*
+
+* *Idris2* at the ABI layer — dependent types prove coprocessor preconditions
+  (alignment, operand widths, mode bits, target-feature availability)
+* *Zig* at the emission layer — `@Vector(N, T)` for SIMD, `asm volatile` for
+  inline asm and custom RISC-V X-ext opcodes, `extern` for MMIO-mapped
+  accelerator register blocks, comptime target branching via
+  `@import("builtin").cpu.arch` and `cpu.features`
+* *SPARK* optionally at the safety layer for safety-critical coprocessors —
+  formal contracts carrying preconditions across the JtV↔coproc boundary
+
+Estate standing rule "Rust means Rust/SPARK" and "Idris2 ABI, Zig FFI" applies
+verbatim here. No new language required. No JtV backend work beyond the
+language surface itself.
+
+=== Decision 3: First pilot target — RISC-V (CLOSED)
+
+*Choice: RISC-V — primarily because X-ext (custom instruction) support exercises
+all three layers of the stack end-to-end.*
+
+RISC-V specifically lets us prove out:
+
+* Standard extensions (V, F/D, Zbb, Zk*) — intrinsic-based lowering via Zig
+* Custom extensions (X-ext, RoCC, OpenHW CV-X-IF) — `asm volatile` with
+  `.insn` directive literals, opcode carried as an opaque string
+
+The `.insn` directive is load-bearing: the RISC-V toolchain (binutils, Clang,
+LLVM, GCC) already parses it authoritatively. JtV re-parsing the bit layout
+would be pure translation overhead with zero benefit — we treat encoding as an
+opaque string and let the assembler be the source of truth.
+
+*Rejected (for first pilot):*
+
+* *ARM Cortex-M DSP/FPU* — mainstream but doesn't exercise the custom-opcode
+  path; all ops have standard intrinsics
+* *AVR hardware multiplier* — smallest surface, matches existing `blink.jtv`,
+  but least generalisable
+* *x86 SIMD* — host-side, useful for desktop but least aligned with JtV's
+  embedded Harvard framing
+
+=== Decision 4: Canary pathway rejected — pivot to pata (CLOSED 2026-04-19)
+
+*Choice: skip the A canary entirely. Build toward pata-compilation (Trajectory
+E) as the first commit.*
+
+Earlier in the session, an A/B/C analysis was conducted:
+
+* *A* — coproc-only syntactic island with bespoke string-literal slots for
+  family, target, requires, encoding. Minimal grammar footprint, no
+  prerequisites, but throwaway syntax that would be refactored out later.
+* *B+C* — generic `#[attr(…)]` machinery + generic `extern "<abi>" { … }`
+  blocks + memory-space type modifiers, with coproc as a specialisation.
+  Cleaner steady-state; ~3× the grammar surface before coproc lands.
+* *C alone* — land the full aspirational MCU surface first, then coproc.
+  Biggest footprint; closest to existing playground samples.
+
+Initial recommendation was A as a quick canary. Subsequent architectural
+conversation exposed two deeper trajectories:
+
+* *D — Data-Language co-compiler split.* JtV's Harvard separation
+  (Data = total, pure, side-effect-free / Control = Turing-complete) admits a
+  specialist co-compiler in which the Data lane is compiled by a different
+  toolchain than the Control lane. Data's totality guarantee is precisely the
+  property that enables retargeting it independently (to an FPGA fabric, an
+  ALU coprocessor, a crypto enclave, a quantum simulator, a SPARK-verified
+  backend).
+* *E — Pata-compilation.* The Data Language is the natural substrate for
+  *compile-time self-oversight*. Total + pure + no-IO = safe to evaluate at
+  compile time, deterministic, reproducible across builds. The compiler
+  describes its own particular compilation choices — target matching,
+  encoding selection, reversibility transforms, coprocessor-block
+  live/dead-ness — as Data Language expressions, evaluated by the compiler
+  about itself, in the same substrate as the user's program. Not meta (no
+  jump to an outer layer) — lateral, self-referential, grounded in the same
+  guarantees the user's program enjoys.
+
+Once D and E are on the table, the A canary becomes a bespoke syntactic
+island with string-literal slots that pata-compilation will want as *Data
+expressions*. Landing A would commit us to a migration from
+string-in-slot to expression-in-slot across every coproc block — exactly the
+migration cost we wanted to avoid.
+
+Going direct to pata avoids the throwaway canary, lands a single coherent
+design, and embodies JtV's thesis (grammar-enforced totality) in the
+compiler's own decision layer rather than pasting bespoke string-literal
+predicates into the grammar.
+
+*Rejected:*
+
+* *A-canary-first-then-refactor* — sunk cost. Every `extern coproc` block
+  written against the string-slot surface would need rewriting when pata
+  lands. The user's standing rule "WIRE EVERYTHING, no stubs" reinforces this:
+  a canary that will be thrown away is a stub by another name.
+* *B+C refactor first, pata later* — B+C's work is largely orthogonal to
+  pata's. B+C unifies attribute surfaces; pata unifies compile-time decision
+  substrate. Doing B+C first doesn't unblock pata and delays the interesting
+  work.
+
+=== Decision 5: Pata-compilation as primary pathway (CLOSED 2026-04-19)
+
+*Choice: JtV's compile-time decision logic lives inside the language's own
+total sublanguage, evaluated by the compiler about itself. This is the
+defining architectural move.*
+
+Conceptually:
+
+* *Meta-compilation* (rejected framing) — the compiler reasons about the
+  program from an *outer layer* with different semantics (Lisp macros,
+  MetaOCaml stages, CompCert's Coq proofs). Two substrates, two security
+  surfaces, two sets of edge cases.
+* *Pata-compilation* (chosen framing) — the compiler reasons about the
+  program *laterally*, from within the same substrate. JtV's Data Language
+  (total, pure, no-IO, addition-only) is already the right substrate for
+  compile-time self-oversight — its guarantees are what make compile-time
+  evaluation safe (terminating, deterministic, reproducible, composable) by
+  construction, without the compiler having to prove those properties each
+  time.
+
+'Pataphysics is Jarry's science of the particular, of exceptions, of imaginary
+solutions. Each JtV program gets its *particular* compilation, determined by
+imaginary-solution reasoning (the decision points the compiler resolves) evaluated
+in the same sub-grammar the program itself uses. Exception-handling *is* the
+compilation.
+
+Consequences:
+
+* `target(…)`, `requires`, `encoding` and other compile-time decision slots
+  accept *arbitrary Data Language expressions* (subject to whatever sublanguage
+  proves sufficient for compile-time predicates — see Open question 1).
+* Compile-time facts (`arch`, `feature`, `endianness`, `word_size`, …) are
+  exposed as Data identifiers the pata layer can reference.
+* The compile-time evaluator is the same evaluator that runs Data expressions
+  at runtime (or a restricted variant of it) — one substrate, one evaluator,
+  one set of semantics.
+* Block inclusion/exclusion, encoding selection, `requires` gating, all flow
+  through pata evaluation.
+
+=== Decision 6: Grammar shape — `extern coproc` block at top level (CLOSED)
+
+Top-level construct:
+
+----
+extern coproc <family-expr> [target(<predicate-expr>)] {
+    [requires <predicate-expr>;]*
+    (intrinsic <decl> [requires <predicate-expr>]* ;
+    |insn <decl> [requires <predicate-expr>]* encoding <encoding-expr> ; )*
+}
+----
+
+Under the pata pathway, each of `<family-expr>`, `<predicate-expr>`,
+`<encoding-expr>` is a Data Language expression — not a raw string literal.
+The string-literal form (Decision 7) is a special case where the expression
+is a string constant.
+
+Conformance to the current pest grammar:
+
+* `extern` and `coproc` are new keywords *in the top-level alternative position
+  only* — pest PEG ordering disambiguates without adding them to the global
+  keyword table, so `extern`/`coproc` remain usable as identifiers inside
+  function bodies (backward-compatible).
+* `target`, `requires`, `intrinsic`, `insn`, `encoding` are context-local
+  keywords (only recognised inside `extern_coproc_block` / related inner
+  positions) and remain valid identifiers everywhere else.
+
+=== Decision 7: String-literal special case — opaque encoding strings (CLOSED)
+
+*Choice: when the encoding expression is a string literal, it is passed
+opaquely to the assembler without JtV-side parsing.*
+
+The `.insn` directive is already the authoritative structured form. Parsing
+it in JtV's grammar would be pure reimplementation with zero benefit — the
+assembler's error messages are the source of truth, and re-emitting a
+structured form back into `.insn` string syntax is translation overhead.
+
+Forward-compatible with pata: a Data expression that happens to evaluate to a
+string literal is indistinguishable from writing the string literal directly.
+The grammar need not distinguish the two cases.
+
+*Rejected:*
+
+* *Structured encoding forms* (`encoding { opcode: 0x0B, funct3: 0, funct7: 0,
+  format: R }`) — ISA-specific (R/I/S/B/U/J is RISC-V only; ARM and AVR
+  differ); reimplements work the assembler does; doesn't help the Idris2 ABI
+  (which reasons about operands, not bit layouts); scope-creep for a design
+  that hasn't validated the overall coproc story.
+
+=== Decision 8: Family name — string expression, with string-literal as common case (CLOSED)
+
+*Choice: `extern coproc "<family-name>"` in the common case. Under pata, any
+Data expression that evaluates to a string.*
+
+* Handles dotted/hyphenated ISA names natively (`"arm-cortex-m-mve"`,
+  `"riscv.zbb"`, `"riscv.xcustom.acme"`). JtV identifiers reject `-` and `.`;
+  bare-id form would require name-mangling divergent from binutils/LLVM/vendor
+  conventions.
+* Matches Rust's `extern "C"` / `extern "system"` precedent — language-familiar.
+* Matches the eventual B+C shape (`extern "<abi>" { … }`): one keyword drop
+  away from convergence, no breaking change.
+* Doesn't consume the identifier namespace — `riscv` remains usable as a local
+  variable name.
+
+*Rejected:*
+
+* *Bare identifier form* (`extern coproc riscv`) — forces name-mangling for
+  hyphenated/dotted families, breaking-change migration to B+C, grows keyword
+  table per ISA family.
+
+=== Decision 9: Target-contingent compilation — in-language predicate (CLOSED)
+
+*Choice: `target(<predicate>)` clause on the `extern coproc` block gates
+block-level inclusion by architecture and feature facts.*
+
+Architecture-contingent compilation is a load-bearing feature for any
+cross-target language. Under pata, the `target` predicate is an arbitrary Data
+expression evaluated at compile time against injected facts:
+
+----
+extern coproc "riscv" target(arch == "riscv64" || arch == "riscv32") { … }
+extern coproc "arm.mve" target(arch == "arm" && feature == "mve")       { … }
+----
+
+Block-level `requires "v";` carries feature-gate semantics (implicit-AND
+with multiple requires on a decl), likewise as a Data expression under pata.
+
+Each layer below has its own native target-branching primitive that composes:
+
+* *Zig*: `comptime` branching on `@import("builtin").cpu.arch` / `cpu.features`
+* *Idris2*: target-parameterised ABI modules, picked at build time
+* *SPARK*: generic target config + `pragma Restrictions` per architecture
+
+JtV's own `target(…)` predicate is the *source-level* gate; it composes with
+each layer's native branching below.
+
+*Rejected:*
+
+* *Target-silent canary* (option 1 in the mid-session analysis) — forces
+  users into Zig-side comptime workarounds for any multi-target build; makes
+  the canary largely useless for real MCU/embedded work.
+* *Defer target predicates to B+C* (option 3) — delays the canary's actual
+  utility; not defensible once pata is on the table anyway.
+
+=== Decision 10: Multiple `requires` per decl — implicit-AND (CLOSED)
+
+*Choice: a single decl may carry multiple `requires` predicates;
+semantics is conjunctive.*
+
+----
+intrinsic vadd_i32(a: Int, b: Int): Int @pure
+    requires feature == "v"
+    requires feature == "zbb";
+----
+
+Saves users from block-duplication for conjunctive feature gates (common for
+RISC-V ops that need multiple extensions simultaneously). Forward-compatible
+with pata: multiple conjunctive predicates are equivalent to a single
+conjunctive Data expression.
+
+*Rejected:*
+
+* *Single requires per decl* — forces users to duplicate a block for each
+  feature conjunction, which is awkward for common RISC-V patterns (V + Zbb,
+  V + Zk, etc.).
+
+=== Decision 11: Interpreter / typechecker integration — pata-native from the start (CLOSED 2026-04-19)
+
+*Choice: no strict-parse-only canary. The typechecker and evaluator are wired
+to pata from the first commit.*
+
+The earlier mid-session analysis considered a strict-parse-only canary where
+the grammar accepts `extern coproc` blocks but the typechecker/evaluator do
+nothing with them. That was sensible under the Trajectory A pathway; under
+the pata pivot it is no longer — pata *is* the typechecker/evaluator work, so
+separating "parse only" from "pata-eval" makes no sense.
+
+First-commit pata-eval minimum:
+
+. Compile-time fact injection — `arch`, `target`, `feature`, `word_size`,
+  `endianness` exposed as Data identifiers the evaluator pre-binds at
+  compile time
+. Compile-time evaluator for Data predicates — re-uses the existing Data
+  Language interpreter with an injected compile-time fact environment
+. Block/decl inclusion pass — evaluates `target` + `requires` predicates,
+  drops blocks/decls whose predicates evaluate false, retains the rest
+. Extern function registration in the function namespace — surviving decls
+  are callable; their bodies are left un-lowered (call-site reach triggers
+  the B+C / native-lowering work in later commits)
+
+Calls to extern coproc functions from JtV source still fail at evaluation
+time with a clear "pending lowering" error pointing to this ADR — that's not
+a stub, that's a real phase boundary where pata is done and native emission
+is the next phase.
+
+=== Decision 12: Design artefact location — `docs/design-decisions/` (CLOSED 2026-04-19)
+
+*Choice: numbered ADR-style AsciiDoc files in `docs/design-decisions/`, with
+A2ML companion at `.machine_readable/COPROC-TRAJECTORIES.a2ml`.*
+
+Matches estate convention "bot-primary design docs = A2ML authoritative +
+optional `.adoc` companion". The A2ML file is what agents consume; the adoc
+is the narrative-form for humans reading the decision trail.
+
+Numbered ADRs (this file is `0001-coprocessor-pata-pathway.adoc`) so future
+design decisions sit alongside it without renumbering.
+
+== Architecture shape post-pivot
+
+=== Source-level surface
+
+Extern coproc blocks live at module or program level and declare foreign
+coprocessor ops. Under pata, decision slots are Data expressions:
+
+----
+extern coproc "riscv"
+    target(arch == "riscv64" || arch == "riscv32")
+{
+    requires feature == "v";
+
+    intrinsic vadd_i32(a: Int, b: Int): Int @pure ;
+
+    intrinsic clz_i32(x: Int): Int @pure
+        requires feature == "zbb" ;
+
+    insn custom_op(a: Int, b: Int): Int @pure
+        requires feature == "xcustom"
+        encoding ".insn r 0x0B, 0, 0, rd, rs1, rs2" ;
+}
+----
+
+=== Compilation flow (pata mode)
+
+. *Parse* — grammar admits Data expressions in decision slots; AST carries
+  `ExternCoprocBlock { family: DataExpr, target: Option<DataExpr>, items:
+  Vec<CoprocItem> }`
+. *Inject compile-time facts* — the compiler binds a pre-populated Data
+  environment with `arch`, `target`, `feature`, `word_size`, `endianness`
+  based on build configuration
+. *Pata-evaluate decision slots* — run the Data evaluator against the
+  injected environment; evaluate `target(…)` on each block and `requires`
+  on each block/decl; drop blocks/decls whose predicates evaluate false
+. *Register surviving decls* — add them to the function namespace as
+  `ExternCoproc(family, decl-kind, encoding?)` so callers can reach them
+. *Lower (later commit)* — native emission via Zig FFI (SIMD/intrinsic/asm),
+  Idris2 ABI for preconditions, SPARK-optional for safety-critical paths.
+  Not part of the first pata commit.
+
+=== Stack layering
+
+----
+┌──────────────────────────────────────────┐
+│ JtV source (Harvard: Control + Data)     │
+│ extern coproc declarations with Data     │
+│ expressions in decision slots            │
+└────────────┬─────────────────────────────┘
+             │ pata-evaluate decision slots
+             │ against injected compile-time facts
+             ▼
+┌──────────────────────────────────────────┐
+│ Idris2 ABI (deferred; later commit)      │
+│ proves coprocessor preconditions         │
+│ (operand constraints, alignment, mode)   │
+└────────────┬─────────────────────────────┘
+             │ canonical C ABI
+             ▼
+┌──────────────────────────────────────────┐
+│ Zig FFI (deferred; later commit)         │
+│ emits @Vector / asm volatile / extern    │
+│ comptime branches on target facts        │
+└────────────┬─────────────────────────────┘
+             │ optional safety path
+             ▼
+┌──────────────────────────────────────────┐
+│ SPARK contracts (deferred; optional)     │
+│ for safety-critical coprocessors         │
+└──────────────────────────────────────────┘
+----
+
+== Consequences
+
+. *Grammar becomes pata-aware from the first commit.* Decision slots accept
+  Data expressions, not string literals. The grammar is larger than A-canary
+  would have been, but does not require a later refactor.
+. *Data Language acquires a compile-time evaluation mode.* Same AST, same
+  interpreter logic, different fact environment. Data becomes a substrate for
+  both runtime computation AND compile-time self-oversight.
+. *Compile-time facts are a first-class concept.* `arch`, `target`, `feature`,
+  `word_size`, `endianness` are injected identifiers the evaluator pre-binds.
+  Extensible as new facts become relevant (e.g., `profile == "embedded"`,
+  `optimisation == "size"`).
+. *String comparison operations enter the Data sublanguage* (or a dedicated
+  compile-time predicate sublanguage — see Open question 1). Required to
+  express `arch == "riscv64"`. This is the only genuinely new semantic.
+. *The canonical extern-coproc path is pata.* There is no pre-pata baseline
+  to migrate from. B+C (general attributes + extern blocks) becomes a later
+  convergence step for *other* use cases (interrupts, stack policy, MMIO,
+  memory-space modifiers); coprocessor support is already in the pata shape.
+
+== Trajectories
+
+The earlier A/B/C/D/E trajectory map is re-scoped post-pivot:
+
+|===
+| Trajectory | Headline | Status (2026-04-19)
+
+| *A*
+| Coproc-only syntactic island (string-literal slots)
+| REJECTED — superseded by E before landing
+
+| *B+C*
+| General `#[attr(…)]` + `extern "<abi>" { … }` + memory-space type
+  modifiers; converges coprocessor surface with interrupts/stack/MMIO
+| CAPTURED — second-priority, unblocks estate-wide attribute cleanup
+  (interrupts, stack bounds, heap policy, test harness, deprecation)
+
+| *D*
+| Data-Language co-compiler split — separate lowering pipeline for Data
+  lane (FPGA / ALU coprocessor / crypto enclave / quantum simulator /
+  SPARK-verified backend) while Control stays on host CPU. Grammar
+  boundary = ABI boundary.
+| CAPTURED — mechanism that makes pata practical at scale, but pata
+  itself works on single-target compilers
+
+| *E*
+| Pata-compilation — Data Language as compile-time self-oversight
+  substrate; decisions live in the same total sublanguage as the
+  program; compiler reasons about itself laterally, not at a meta level
+| *ACTIVE (primary path)* — first commit wires pata for `extern coproc`
+  blocks; subsequent commits extend pata to interrupt handlers, stack
+  policy, reversibility transforms, etc.
+|===
+
+Dependency edges:
+
+* E primary; no dependency on D for first application
+* D composes with E: at scale, the Data-lane co-compiler is the natural
+  execution environment for pata-evaluated decisions
+* B+C unblocks attribute-surface cleanup for non-coprocessor constructs
+  (interrupts, stack, MMIO); coprocessor support itself does not require
+  B+C because pata gives it the decision substrate directly
+
+== Open questions
+
+=== OQ-1: Compile-time predicate sublanguage shape — RESOLVED
+
+*Resolved 2026-04-19.* Adopted *OQ-1b* — sibling sublanguage with total /
+pure / no-IO meta-properties and minimum-viable predicate vocabulary
+(booleans, string/int literals, identifiers to compile-time facts,
+equality, boolean algebra).
+
+Full design in `docs/design-decisions/0002-decision-sublanguage.adoc`:
+
+* Sublanguage name: *Decision Language*
+* AST type: `DecisionExpr`; grammar rule prefix: `decision_`
+* Harvard separation becomes triadic — Control (Turing-complete, runtime) +
+  Data (total addition-only, runtime) + Decision (total predicate, compile-
+  time only)
+* Minimum vocabulary: bool / string / int literals, identifier references
+  to injected facts, `==` / `!=` / `&&` / `||` / `!`
+* Ordering operators, list-valued facts, string operations explicitly
+  deferred with named triggers
+* Data Language thesis (addition-only) unchanged
+* Security thesis strengthens: compile-time injection also grammatically
+  impossible
+
+=== OQ-2: Compile-time fact vocabulary — RESOLVED
+
+*Resolved 2026-04-19.* Full design in
+`docs/design-decisions/0003-compile-time-fact-vocabulary.adoc`.
+
+Summary:
+
+* *Individual boolean feature facts* (`feature_v: Bool`,
+  `feature_zbb: Bool`, …) — one fact per feature in the target family's
+  feature table. Rejects single-string and list-valued representations.
+* *Short names, no `target_` prefix* — `arch`, `feature_<name>`, `word_size`,
+  `endianness`, `os`, `target`.
+* *Six MVP fact kinds* — `arch`, `feature_<name>`, `word_size`,
+  `endianness`, `os`, `target`. `profile` and `family` deferred with named
+  triggers.
+* *Values align with binutils / LLVM* — `"riscv64"` not `"RiscV64"`; `"v"`
+  not `"VECTOR"`; `"linux"` / `"none"` / `"wasi"` for OS.
+* *Fact source-of-truth* — derived from target triple + explicit
+  `--target-feature` CLI flags; no user-injectable facts.
+* UnknownFact errors catch feature-name typos since the per-target
+  feature set is closed.
+
+=== OQ-3: Pata-evaluation failure semantics — RESOLVED
+
+*Resolved 2026-04-19.* Full design in
+`docs/design-decisions/0004-pata-eval-failure-semantics.adoc`.
+
+Summary:
+
+* *Strict everywhere* — every evaluation error is a build error. No
+  warning channel, no silent-false fallback.
+* *Short-circuit* `&&` / `||` — standard semantics; left-operand false
+  skips right-operand evaluation.
+* *Lazy inner-predicate evaluation* — if a block's outer `target(...)`
+  evaluates false, inner predicates are skipped entirely.
+* *Type-check is eager* — even gated-out blocks are type-checked. Gates
+  control fact-evaluation, not structural correctness.
+* *Idiom: arch facts first, feature facts second* — short-circuit
+  ordering. Matches C `#ifdef` and Rust `cfg` conventions.
+* Typos surface as precise errors with Levenshtein suggestions; the
+  per-target fact set is closed (ADR-0003) so every typo is caught.
+
+=== OQ-4: Extern coproc function call semantics in the first pata commit — RESOLVED
+
+*Resolved 2026-04-19.* Full design in
+`docs/design-decisions/0005-extern-coproc-call-semantics.adoc`.
+
+Summary:
+
+* *Flat namespace* — surviving extern coproc decls register into the same
+  function namespace as user-defined functions, keyed by name
+* *Name collision is a build error* — no silent shadowing
+* *Type-checking is standard* — call sites use existing `FunctionCall` AST;
+  signature matching and purity rules unchanged
+* *Purity participates identically* — `@pure` / `@total` on extern decls
+  flow into v2 Pure Function rules without new typechecker machinery
+* *Phase-boundary error at evaluation* — every backend (interpreter,
+  WASM, future Cranelift) hits a specific `ExternCoprocNotYetLowered`
+  error at call sites; message explicitly signposts Phase 2 (native
+  lowering) as the successor phase with concrete workarounds
+* *Phase 1 scope* (this ADR + OQ-1/2/3/4 resolutions) is end-to-end, not
+  partial: grammar + parser + pata-eval + typecheck + namespace + call
+  contract all land together in the first commit
+
+== References
+
+* This design trail is the record of a single session (2026-04-19) in which
+  the pata framing was introduced and selected over the A-canary pathway.
+* Alfred Jarry, _Gestes et opinions du docteur Faustroll, pataphysicien_
+  (1911, posthumous): 'pataphysics as "the science of imaginary solutions,
+  which symbolically attributes the properties of objects, described by
+  their virtuality, to their lineaments".
+* Existing JtV v2 design artefact: `docs/language/DESIGN-JTV-V2-REVERSIBILITY.md`
+  (companion ADR-shape for the reversibility work; not numbered but follows
+  the same "closed decisions" pattern adopted here).
+* Hyperpolymath standing stack: "Idris2 ABI, Zig FFI" and "Rust means
+  Rust/SPARK" estate rules (see estate-level memory / standards).
+* Grammar source: `crates/jtv-core/src/grammar.pest`; EBNF mirror:
+  `spec/grammar.ebnf` and `shared/grammar/jtv.ebnf`.
+* Companion artefact: `.machine_readable/COPROC-TRAJECTORIES.a2ml` — A2ML
+  authoritative form of the trajectory status table (Decisions 4, 11; the
+  Trajectories section).

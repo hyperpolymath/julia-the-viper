@@ -1,0 +1,373 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
+// (MPL-2.0 is automatic legal fallback until PMPL is formally recognised)
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+
+= ADR-0003: Compile-Time Fact Vocabulary
+Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+:revdate: 2026-04-19
+:revnumber: 0.1
+:toc: left
+:sectnums:
+
+[.lead]
+The canonical set of compile-time facts the pata evaluator binds before
+evaluating Decision Language expressions.  Six fact kinds for the MVP,
+short-name-no-prefix convention, values aligned with binutils/LLVM so that
+JtV stays interoperable with the assembler toolchain it ultimately emits
+against.
+
+== Status
+
+*Decided (2026-04-19).* Resolves ADR-0001 Open question OQ-2.
+
+[NOTE]
+====
+*Post-pivot clarification (2026-04-19):* Fact vocabulary unchanged.
+Consumer changed — facts are now injected into *PataCL's* fact
+environment (not JtV's embedded evaluator). See `0006-patacl-pivot.adoc`.
+Same facts, same types, same values; the mechanism now lives in the
+PataCL compiler rather than JtV's compile pipeline.
+====
+
+== Context
+
+ADR-0002 defined the Decision sublanguage (total, pure, no-IO, MVP
+vocabulary of booleans + string/int literals + identifier fact-refs + `==`
+/ `!=` / `&&` / `||` / `!`). Identifier references resolve against a fact
+environment the compiler populates *before* Decision expressions are
+evaluated.
+
+This ADR answers: *which facts?* and *with what types?* The earlier open
+question surfaced several design sub-questions:
+
+. Is `feature` a single-string fact, a list-valued fact, or a set of
+  individual boolean facts?
+. Do we adopt Rust's verbose naming (`target_arch`, `target_feature_*`,
+  `target_os`, `target_pointer_width`) or short names (`arch`, `feature_*`,
+  `os`, `word_size`)?
+. What other facts beyond arch and features?
+. Where does the compiler get fact values from?
+
+== Decision
+
+=== Decision 1: Individual boolean feature facts (not list-valued, not single-string) — CLOSED
+
+*Choice: each CPU feature is an individual fact `feature_<name>: Bool`.*
+
+Example: for a build targeting RISC-V 64-bit with V and Zbb extensions
+enabled, the injected environment contains `feature_v = true`,
+`feature_zbb = true`, plus `feature_m = true` / `feature_a = true` / etc.
+for each feature the target actually has.
+
+*Why:*
+
+* Fits the Decision MVP vocabulary (ADR-0002) exactly — no `contains`
+  operator needed, no list type needed, no string-membership semantics to
+  bake into `requires`
+* Predicates read naturally: `requires feature_v` (single), `requires
+  feature_v && feature_zbb` (conjunction), `requires feature_v ||
+  feature_zbb` (disjunction)
+* Matches the C-preprocessor tradition (`__riscv_v`, `__arm_neon`,
+  `__SSE4_2__`, …) that embedded firmware programmers already know
+* Typos caught early — `feature_vv` is an UnknownFact error, not a silent
+  never-matches predicate
+* Compiler can reflect the assembler's feature table directly —
+  one-fact-per-binutils-feature-name, no manual enumeration
+
+*Rejected:*
+
+* *Single-string feature fact* (`feature == "v"`) — one string value can
+  only equal one name at a time, so `feature == "v" && feature == "zbb"`
+  is *always false* because `feature` can't equal two different strings
+  simultaneously. Unfixable without contextual magic that breaks
+  compositionality.
+* *List-valued feature fact* (`"v" in features`) — requires `contains`
+  operator and `List<String>` type, both outside the Decision MVP. Cleaner
+  ergonomics for "any of these" patterns, but MVP doesn't have those
+  predicates. Upgrade path remains open if OQ-1.c (list-valued facts)
+  later demands them.
+
+=== Decision 2: Short names, no `target_` / `jtv_` prefix — CLOSED
+
+*Choice: `arch`, `feature_<name>`, `word_size`, `endianness`, `os`,
+`target`.*
+
+*Why:*
+
+* Shorter; predicates read more fluently: `arch == "riscv64"` vs
+  `target_arch == "riscv64"`
+* Collision risk is contained — Decision identifiers only appear in
+  compile-time decision slots; the fact environment is sealed; users
+  can't bind their own Decision identifiers (no let-bindings in Decision
+  MVP), so there is no shadow-of-user-intent risk
+* The identifier namespace for Decision is disjoint from Data/Control
+  namespaces at grammar level — a user variable named `arch` in a
+  function body is unaffected because that's a Control identifier, not a
+  Decision one
+
+*Rejected:*
+
+* *Rust-style `target_` prefix* (`target_arch`, `target_feature_v`,
+  `target_os`, `target_pointer_width`) — verbose, redundant in a context
+  where everything is compile-time-target-relative
+* *Hyperpolymath-style `jtv_` prefix* (`jtv_arch`, `jtv_feature_v`) — even
+  more verbose; the JtV context is implicit in any Decision expression
+
+=== Decision 3: Six MVP fact kinds — CLOSED
+
+*Choice: `arch`, `feature_<name>`, `word_size`, `endianness`, `os`,
+`target`.*
+
+Canonical table:
+
+[cols="1,1,1,2", options="header"]
+|===
+| Fact                | Type      | Example values                                              | Meaning
+| `arch`              | `String`  | `"riscv64"`, `"riscv32"`, `"arm"`, `"aarch64"`, `"avr"`, `"x86_64"`, `"x86"`, `"wasm32"` | First component of the target triple — CPU architecture family + bitness
+| `feature_<name>`    | `Bool`    | `true` / `false`                                            | Individual CPU feature enable bit; one fact per feature known to the assembler for the target family
+| `word_size`         | `Int`     | `16`, `32`, `64`                                            | Target pointer/register width, in bits (collapsed to a single dimension for MVP — see OQ-2.a)
+| `endianness`        | `String`  | `"little"`, `"big"`                                         | Target byte order
+| `os`                | `String`  | `"linux"`, `"windows"`, `"macos"`, `"none"`, `"wasi"`       | Target operating system; `"none"` for bare-metal embedded
+| `target`            | `String`  | `"riscv64-unknown-none-elf"`, `"arm-none-eabi"`             | Full target triple — reserved for exact-match gating where architectural components aren't specific enough
+|===
+
+This set is small enough to hold in a programmer's head, large enough to
+express the RISC-V pilot's gating needs, and aligned with every other
+modern compiler's vocabulary. Two mildly-advanced facts (`profile`,
+`family`) are deferred — see *Residual open questions* below.
+
+=== Decision 4: Values align with binutils / LLVM conventions — CLOSED
+
+*Choice: arch strings, OS strings, and feature names match the naming that
+binutils, Clang, and LLVM already use — verbatim, with no JtV-specific
+re-spelling.*
+
+Examples:
+
+* RISC-V arch: `"riscv64"` / `"riscv32"` (no hyphens, lowercase). Not
+  `"RISC-V-64"`, not `"riscv-64"`.
+* ARM arch: `"arm"` / `"aarch64"`. Not `"ARM"`, not `"arm64"` (which is
+  Apple's naming) — LLVM uses `aarch64` for 64-bit.
+* x86 arch: `"x86_64"` / `"x86"`. Not `"amd64"`, not `"i386"`.
+* Feature names: `"v"`, `"zbb"`, `"mve"`, `"sse"`, `"avx"`, `"avx2"`,
+  `"neon"`, `"sve"`, `"sve2"` — exactly as the assembler spells them.
+* OS: `"linux"`, `"windows"`, `"macos"`, `"none"`, `"wasi"`, `"freebsd"` —
+  standard lowercase forms.
+
+*Why:*
+
+* Interop: when JtV emits extern calls or ultimately lowers to Zig/asm,
+  the target vocabulary *is* the assembler's vocabulary. Using the same
+  names avoids translation layers and mismatched-convention bugs.
+* Discoverability: programmers coming from Rust/Zig/C will recognise the
+  values immediately.
+* No invention cost — the canonical spelling is already authoritative.
+
+*Rejected:*
+
+* *JtV-specific naming* (e.g., `"RiscV64"`, `"SpeciallyNamedArch"`) —
+  zero upside, guaranteed confusion.
+
+=== Decision 5: Fact source-of-truth — target triple + feature flags — CLOSED
+
+*Choice: the JtV compiler derives all facts from the invocation's target
+triple plus explicit `--target-feature` flags.*
+
+CLI shape (canary form, subject to refinement when full target-config
+parsing lands):
+
+----
+jtv build                                               # host triple as default
+jtv build --target=riscv64-unknown-none-elf             # explicit triple
+jtv build --target=riscv64-unknown-none-elf \           # triple + features
+          --target-feature=+v,+zbb
+jtv build --target=riscv64-unknown-none-elf --cpu=sifive-u74
+    # CPU-model expands to a preset feature set
+----
+
+Derivation rules (in order):
+
+. Parse the target triple into four components: `<arch>-<vendor>-<os>-<env>`
+. Bind `arch`, `os`, `target` facts from the triple
+. Derive `word_size` and `endianness` from arch (canonical per-arch table
+  maintained in the compiler)
+. For each feature in the target-feature set (either via explicit
+  `+<name>,-<name>` list or CPU-model preset), bind
+  `feature_<name> = true`
+. For each known feature in the target-family's feature table that is
+  *not* enabled, bind `feature_<name> = false`
+
+After step 5 the environment has a known closed set of `feature_<name>`
+facts per target family. An UnknownFact error for `feature_vfoo` means the
+user spelled a feature name the assembler doesn't recognise for this
+target — caught early.
+
+*Rejected:*
+
+* *Feature facts only bound when true, `feature_<name>` absent if
+  disabled.* Would mean a missing fact ambiguously signals either
+  "feature disabled" or "feature unknown". Strict binding (present-when-
+  known, value true-or-false) removes the ambiguity.
+* *User-injectable facts via CLI flags* (`--define-fact=my_fact=true`).
+  Scope creep and security hole — user-injected facts could alter
+  compilation choices opaquely. Defer; not needed for pata pilot.
+
+=== Decision 6: Rejected facts / non-facts — CLOSED
+
+Explicitly out of the MVP vocabulary:
+
+[cols="2,3", options="header"]
+|===
+| Not a fact in MVP                              | Why rejected
+
+| `compiler_version`                             | Encourages version-sniffing
+                                                   hacks; use feature probes instead
+
+| `source_file` / `line_number`                  | Not a target fact; if debug
+                                                   metadata is needed, separate mechanism
+
+| `build_host`                                   | Cross-compilation-hostile
+                                                   (predicates would bind to the wrong
+                                                   machine); `arch`/`target` cover what
+                                                   matters
+
+| `user_env_var(NAME)`                           | Non-deterministic; breaks
+                                                   reproducibility promise of Decision
+                                                   Language
+
+| `date`, `time`, `random`                       | Trivially breaks reproducibility
+                                                   and determinism
+
+| User-defined constants / macros                | No let-bindings in Decision MVP;
+                                                   all facts are compiler-owned
+
+| `cargo_feature` / package-manager features     | Not a JtV concept at this layer;
+                                                   if JtV acquires a package system,
+                                                   that's a separate ADR
+|===
+
+The line is: *facts reflect deterministic properties of the target or
+build configuration, decided before any source file is evaluated.* Anything
+non-deterministic, host-specific, or runtime-derived is not a fact.
+
+== Examples
+
+All valid, assuming a build targeting `riscv64-unknown-none-elf` with
+`+v,+zbb`:
+
+[source]
+----
+// Target-gate a block by architecture
+extern coproc "riscv" target(arch == "riscv64") {
+    requires feature_v;
+    intrinsic vadd_i32(a: Int, b: Int): Int @pure ;
+}
+
+// Either RISC-V bitness
+extern coproc "riscv-common" target(arch == "riscv64" || arch == "riscv32") {
+    intrinsic clz_i32(x: Int): Int @pure
+        requires feature_zbb ;
+}
+
+// Conjunction of features (single predicate form, preferred)
+extern coproc "riscv-vz" target(arch == "riscv64") {
+    requires feature_v && feature_zbb;
+    intrinsic some_op(a: Int, b: Int): Int @pure ;
+}
+
+// Conjunction via multiple `requires` (implicit-AND form, equivalent — ADR-0001 Decision 10)
+extern coproc "riscv-vz-alt" target(arch == "riscv64") {
+    requires feature_v;
+    requires feature_zbb;
+    intrinsic some_op(a: Int, b: Int): Int @pure ;
+}
+
+// Bare-metal embedded only
+extern coproc "avr-crypto" target(arch == "avr" && os == "none") {
+    requires feature_aes;
+    intrinsic aes_encrypt(block: Int): Int @pure ;
+}
+
+// 64-bit-only feature
+extern coproc "large-address" target(word_size == 64) {
+    intrinsic wide_compute(x: Int): Int @pure ;
+}
+----
+
+== Consequences
+
+. *Evaluator binds known facts at compile time.* The pata-eval pass
+  constructs `DecisionEnv` from target config before evaluating any
+  Decision expression. Roughly:
++
+[source,rust]
+----
+fn build_decision_env(target_config: &TargetConfig) -> DecisionEnv {
+    let mut env = DecisionEnv::new();
+    env.bind("arch",       DV::String(target_config.arch().into()));
+    env.bind("os",         DV::String(target_config.os().into()));
+    env.bind("target",     DV::String(target_config.triple().into()));
+    env.bind("word_size",  DV::Int(target_config.word_size()));
+    env.bind("endianness", DV::String(target_config.endianness().into()));
+    for (feature, enabled) in target_config.features() {
+        env.bind(&format!("feature_{}", feature), DV::Bool(enabled));
+    }
+    env
+}
+----
+. *UnknownFact failures double as typo detection.* Per-target the feature
+  set is closed; any `feature_<name>` not in the target family's table
+  triggers UnknownFact. OQ-3 decides the strict/permissive policy.
+. *Discoverability polish deferred to tooling.* The compiler should grow
+  a `jtv facts --target=riscv64-unknown-none-elf` command that lists every
+  fact name and current value for the given configuration. Not blocking;
+  implement when first user needs it.
+. *Error messages become specific.* UnknownFact on `feature_vv` says:
+  "unknown fact `feature_vv`; did you mean `feature_v`?"; Levenshtein
+  suggestion against the closed per-target fact set. Requires per-target
+  fact enumeration at error time, which the evaluator has access to.
+. *Cross-compilation works without ceremony.* `--target=` flag switches
+  the fact environment; Decision predicates adapt; blocks/decls
+  include/exclude accordingly. Same source compiles to many targets.
+
+== Residual open questions
+
+=== OQ-2.a: Pointer width vs register width
+
+MVP collapses `word_size` to cover both pointer width and register width
+(usually the same on mainstream ISAs). Separation matters for a few
+architectures where they differ (some DSPs, some historical ISAs). Trigger
+to split into `pointer_width: Int` and `register_width: Int` — first
+pilot where they diverge. Not blocking.
+
+=== OQ-2.b: `family` fact (derived from `arch`)
+
+Convenience fact: `family == "riscv"` instead of `arch == "riscv64" ||
+arch == "riscv32"`. Useful syntactic sugar but technically derivable.
+Deferred — trigger is first concrete use case where the OR-form becomes
+awkward (e.g., any-ARM-variant gates).
+
+=== OQ-2.c: `profile` fact (`"debug"` / `"release"` / `"embedded"`)
+
+Useful for gating reversibility tracing, assertion expansion, size-vs-
+speed optimisation hints. Deferred — trigger is first concrete need
+(reversibility tracing is a likely candidate, since v2 reverse blocks may
+want debug-only snapshot retention).
+
+=== OQ-2.d: User-defined facts via manifest file
+
+A stdlib or application manifest could declare project-level facts
+(`project_stage == "alpha"`, `deployment == "field-trial"`) to gate
+experimental features. Deferred — requires a JtV manifest format first,
+which is a separate initiative.
+
+== References
+
+* ADR-0001 §OQ-2 (resolved by this document)
+* ADR-0002 — Decision sublanguage (consumer of this fact vocabulary)
+* LLVM target triple reference:
+  https://llvm.org/doxygen/classllvm_1_1Triple.html
+* RISC-V extension naming (ISA manual, Chapter "Extensions"): canonical
+  `v`, `zbb`, `zba`, `zbs`, `zk*` lowercase-without-spaces convention
+* Companion artefact: `.machine_readable/COPROC-TRAJECTORIES.a2ml` —
+  updated to mark OQ-2 resolved

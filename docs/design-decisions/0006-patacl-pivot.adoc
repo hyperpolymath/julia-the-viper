@@ -1,0 +1,361 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
+// (MPL-2.0 is automatic legal fallback until PMPL is formally recognised)
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+
+= ADR-0006: Delta Pivot — PataCL as Separate DSL
+Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+:revdate: 2026-04-19
+:revnumber: 0.1
+:toc: left
+:sectnums:
+
+[.lead]
+The Decision sublanguage designed in ADR-0002 is *extracted* from JtV
+source into a standalone DSL.  The new DSL lives at
+`/var/mnt/eclipse/repos/patacl/` (top-level monorepo, elevated
+2026-04-19) and is named *PataCL — PataCompiler Language*.  JtV
+retains only a single new construct — `extern coproc <gate-name> { …
+}` — that references a PataCL gate by name.  All predicate syntax, fact
+environment semantics, failure semantics, and Maximum Principle
+Reduction discipline move into PataCL.
+
+== Status
+
+*Decided (2026-04-19).* This is the Delta pivot. Supersedes ADR-0002's
+*embedded* Decision sublanguage design (same semantics, different
+packaging).
+
+== Context
+
+ADR-0001 through ADR-0005 specified a pata pathway in which compile-
+time decisions live in a *Decision sublanguage* embedded directly in
+JtV source:
+
+[source,jtv]
+----
+extern coproc "riscv" target(arch == "riscv64" && feature_v) {
+    requires feature_zbb ;
+    intrinsic vadd_i32(a: Int, b: Int): Int @pure ;
+    insn custom_op(a: Int, b: Int): Int @pure
+        encoding ".insn r 0x0B, 0, 0, rd, rs1, rs2" ;
+}
+----
+
+During the design conversation, the question surfaced: *"should the
+patacompiler be embedded in JtV, or should it be a separate DSL?"*
+Four options were framed:
+
+* *Alpha* — Decision sublanguage embedded in JtV source (what ADR-0001
+  through ADR-0005 originally assumed)
+* *Beta* — Alpha + committed path to eventual JtV self-hosting
+* *Gamma* — Alpha + full metacompiler + self-hosting
+* *Delta* — extract the decision substrate into a separate reusable
+  DSL; JtV gains only a reference-by-name construct
+
+Delta was chosen because:
+
+. *JtV thesis stays clean.* Harvard-separation (Control + Data) is
+  the published thesis.  Adding a third embedded sublanguage dilutes
+  that thesis for users doing non-coprocessor work.
+. *Decision substrates recur across languages.* Building one reusable
+  one — rather than re-inventing per language — is better engineering.
+. *Formal discipline is easier in a small bespoke language.* Totality
+  + purity + no-IO + MPR are trivial by grammar construction in a small
+  purpose-built DSL; harder to retrofit in a Turing-complete host.
+. *MPR inheritance from Oblibeny composes naturally* with a separate
+  DSL.  An embedded sublanguage would have to either re-prove MPR
+  inside JtV's grammar or forego it.
+
+== Decision
+
+=== Decision 1: Extract the Decision sublanguage into PataCL — CLOSED
+
+*Choice: ADR-0002's Decision sublanguage is extracted into a standalone
+DSL living at top-level `patacl/`.*
+
+The semantic content of ADR-0002 (bool/string/int literals, identifier
+fact-refs, `==`/`!=`/`&&`/`||`/`!`, parens) survives verbatim.  What
+changes is *where it lives*: no longer embedded in JtV grammar, no
+longer using JtV parser, no longer flowing through JtV AST.  Instead
+it is a separate language with its own grammar, parser, evaluator,
+and file format (`.pata`).
+
+See `patacl/README.adoc` for the PataCL overview.
+
+=== Decision 2: Name the DSL *PataCL — PataCompiler Language* — CLOSED
+
+*Choice: PataCL (acronym) / "PataCompiler Language" (full form).*
+
+* *Pata* — from Alfred Jarry's 'pataphysics.  Not *meta*.
+* *Compiler* — PataCL compiles decisions.  It is not a configuration
+  DSL or a template engine.
+* *Language* — it has its own grammar, parser, semantics, file format.
+
+Preferred shorthand: `PataCL`.  Preferred file-name: `patacl`
+(lowercase).  `.pata` is the source file extension.  `.pata.cert` is
+the resource-certificate artefact per MPR.
+
+Earlier in this session, I incorrectly guessed "Paralanguage
+Compiler Language" as the expansion.  That was wrong: the root is
+*pata* (Jarry), not *para* (alongside).  Corrected 2026-04-19.
+
+See `patacl/docs/RATIONALE.adoc` §Naming for the full naming logic.
+
+=== Decision 3: Top-level monorepo elevation — CLOSED
+
+*Choice: PataCL lives at `/var/mnt/eclipse/repos/patacl/` as a top-
+level monorepo.*
+
+Matches precedent set 2026-04-19 for `quandledb` (elevated from
+`nextgen-databases/`) and `invariant-path` (elevated from
+`verification-ecosystem/`).  PataCL is a reusable augment, not
+specific to JtV or to any other single language, so it lives at the
+top level rather than nested inside a host-language ecosystem.
+
+Memory updated to reflect the elevation.
+
+=== Decision 4: JtV integration — reference-by-name only — CLOSED
+
+*Choice: JtV grammar gains one new construct — `extern coproc
+<gate-name> { … }` — where `<gate-name>` is an identifier resolving to
+a PataCL gate defined in a `.pata` file.*
+
+JtV source post-pivot:
+
+[source,jtv]
+----
+extern coproc riscv_vec {
+    intrinsic vadd_i32(a: Int, b: Int): Int @pure ;
+    insn clz_i32(x: Int): Int @pure
+        encoding ".insn r 0x0B, 0, 0, rd, rs1, rs2" ;
+}
+----
+
+Companion `.pata` file (e.g., `coproc/riscv.pata`):
+
+[source,pata]
+----
+pata v1
+gate riscv_vec when arch == "riscv64" && feature_v
+family riscv_vec = "riscv"
+----
+
+At compile time:
+
+. JtV parser reads the extern coproc block, captures the gate-name
+  `riscv_vec` as an identifier (no predicate syntax to parse on the
+  JtV side).
+. JtV compiler invokes PataCL for gate `riscv_vec`, passing the
+  target-configuration fact environment.
+. PataCL evaluates the gate's `when` predicate and returns `(live:
+  bool, family: String)`.
+. JtV compiler drops the block if `live == false`; otherwise
+  registers the declarations in the function namespace with the
+  returned family string for downstream emission.
+
+*What lives in JtV grammar:*
+
+* The `extern_coproc_block` construct itself
+* Function signatures inside the block (`intrinsic <name>(<params>):
+  <ret> @<purity>`, `insn <name>(<params>): <ret> @<purity> encoding
+  <string>`)
+* The `encoding` string — opaque, assembler-authoritative per
+  ADR-0005 Decision 7
+
+*What lives in `.pata` files (handled by PataCL):*
+
+* The `when` predicate — all boolean/equality logic
+* The `family` string expression
+* The fact environment construction
+* The resource certificate emission
+
+*Rejected:*
+
+* *Embed PataCL predicates directly in JtV grammar (Alpha).* Already
+  covered under "Context" above.  Primary rejection reason: dilutes
+  JtV thesis.
+* *Reference PataCL by file path or URL rather than identifier.*
+  Identifier reference is simpler and makes the integration contract
+  crisper.  File-path resolution can be a build-system concern, not a
+  language concern.
+
+=== Decision 5: Supersede ADR-0002 — CLOSED
+
+*Choice: ADR-0002 (Decision sublanguage) is marked SUPERSEDED.  Its
+semantic content moves to `patacl/docs/design-decisions/` (when
+written — planned).  JtV-side ADRs 0001, 0003, 0004, 0005 retain
+their decisions, annotated with pivot notes.*
+
+Detailed superseded-how of ADR-0002:
+
+* *Grammar of Decision expressions:* was JtV pest rules.  Now: PataCL
+  pest rules.  Same vocabulary, different host.
+* *Evaluator semantics:* was JtV evaluator with Decision mode.  Now:
+  PataCL evaluator, a separate Rust crate.
+* *"Triadic Harvard" framing:* was JtV Control + Data + Decision
+  sublanguages.  Now: *JtV* Harvard separation (Control + Data)
+  remains binary — PataCL is not a sublanguage of JtV, it is a sibling
+  language consulted at compile time.  JtV stays grammatically
+  focused on runtime semantics; PataCL owns compile-time decisions
+  across the language family.
+
+ADR-0001 §Decision 5 (pata-compilation as primary pathway) still
+stands: pata is still the architectural mode.  The implementation
+vehicle just changed from "embedded sublanguage" to "separate DSL".
+
+=== Decision 6: Fact vocabulary (ADR-0003) moves to PataCL unchanged — CLOSED
+
+*Choice: the fact vocabulary defined in ADR-0003 (arch,
+feature_<name>, word_size, endianness, os, target) becomes PataCL's
+fact vocabulary verbatim.*
+
+ADR-0003 is re-homed conceptually: the JtV-side document still
+describes the facts, but they are now consumed by PataCL rather than
+by JtV's own Decision evaluator.  The fact *values* and *types* are
+unchanged.  The mechanism injecting facts shifts from JtV compiler
+internals to PataCL's `DecisionEnv` population step driven by target
+configuration.
+
+=== Decision 7: Failure semantics (ADR-0004) apply to PataCL — CLOSED
+
+*Choice: the strict failure semantics defined in ADR-0004 (every
+evaluation error is a build error; short-circuit `&&`/`||`; lazy inner
+evaluation gated by outer target; eager type-check) apply verbatim to
+PataCL.*
+
+These are language-level semantic decisions, independent of whether
+the substrate is embedded in JtV or standalone.  PataCL implements
+them as documented.
+
+=== Decision 8: Call-site contract (ADR-0005) remains JtV-side — CLOSED
+
+*Choice: ADR-0005's call-site contract (flat namespace registration,
+type-checking, purity participation, phase-boundary error for
+unlowered extern coproc calls) is JtV-side and applies unchanged
+after the pivot.*
+
+What changes: the lookup path for resolving a gate-name.  Before
+pivot: walk JtV's AST for `extern_coproc_block`, evaluate predicates
+locally.  After pivot: invoke PataCL with the gate-name, receive
+evaluation result, proceed.
+
+=== Decision 9: Maximum Principle Reduction (MPR) adopted in PataCL — CLOSED
+
+*Choice: PataCL adopts Oblibeny's MPR discipline — dual-form
+(factory + constrained) + resource certificates (T_max, M_max,
+D_max) + reversibility discipline.*
+
+This is a PataCL-internal decision, not a JtV-side decision.
+Recorded here because it was discussed in this session and the ADR
+trail needs the reference point.
+
+Full specification lives in PataCL's upcoming
+`docs/design-decisions/0001-patacl-language-spec.adoc`.  Key points:
+
+* Factory form: what users write (full operator set — `==`, `!=`,
+  `&&`, `||`, `!`, literals, identifiers, parens).
+* Constrained form: what the evaluator runs — five AST variants
+  (`Lit`, `Ident`, `Eq`, `And`, `Not`).
+* Reduction rules: `a != b` → `Not(Eq(a, b))`; `a || b` → `Not(And(
+  Not(a), Not(b)))` (De Morgan).
+* Resource certificates emitted per `.pata` source, byte-stable,
+  structurally-induction-computable.
+* Evaluator: forward-only for MVP; bidirectional deferred.
+
+== Consequences
+
+. *JtV grammar change is minimal.*  One new top-level construct —
+  `extern coproc <gate-name> { item* }`.  No predicate syntax in
+  JtV.  Harvard separation unchanged.  Router Visualisation
+  teaching story unchanged.
+. *JtV implementation work is smaller than Alpha would have been.*
+  No Decision evaluator inside JtV.  No fact-environment construction
+  code inside JtV.  No MPR implementation inside JtV.  The only
+  new JtV code is (a) one grammar rule, (b) a PataCL invocation
+  client in name resolution, (c) block-inclusion in the compile
+  pipeline.
+. *PataCL work becomes a separate deliverable track.* See
+  `patacl/ROADMAP.adoc` for phase plan.  PataCL Phase 1 (MVP
+  compiler in Rust) blocks JtV Phase 2 (integration).
+. *Trajectory F — PataCL self-hosting — becomes tractable.* Because
+  PataCL is tiny, self-hosting it is realistic in a single focused
+  effort, unlike self-hosting JtV (which would require much more
+  expressiveness in its standard library).  Captured as a long-
+  horizon trajectory, not blocking.
+. *ADR trail consolidation.* ADR-0001 through ADR-0005 have pivot
+  notes added pointing to this ADR-0006 for the current truth.
+  ADR-0002 is marked SUPERSEDED but retained for the decision
+  history.
+. *Cross-repo coordination introduced.*  Before pivot, JtV owned the
+  full pata story internally.  After pivot, changes in PataCL
+  grammar/semantics may require JtV integration updates (and vice
+  versa).  Coordination points documented in both repos'
+  `.machine_readable/6a2/PLAYBOOK.a2ml`.
+
+== Residual open questions
+
+=== OQ-6.a: PataCL version compatibility matrix
+
+When PataCL releases version N and JtV targets version M, compatibility
+rules need to be explicit.  Deferred until PataCL has a concrete
+version to pin against (PataCL Phase 1 release).
+
+=== OQ-6.b: Cross-file gate references
+
+Can a `.pata` file reference a gate defined in another `.pata` file?
+Useful for fact-library-style reuse (e.g., a shared
+`riscv-common.pata` that other `.pata` files `include` / `import`).
+Deferred until a concrete use case emerges — Phase 1 MVP is single-
+file-only.
+
+=== OQ-6.c: Memory-residence of the PataCL invocation
+
+During JtV compilation, does JtV spawn a PataCL subprocess, or
+link PataCL as a library and call into it in-process?  Both are
+viable.  Library-linkage is cheaper for incremental compilation;
+subprocess-spawn is cleaner for sandboxing.  Implementation detail;
+deferred.
+
+== Trajectory log update
+
+Post-pivot trajectory layout (updating the one in ADR-0001
+§Trajectories):
+
+[cols="1,2,1", options="header"]
+|===
+| Trajectory | Headline                                                              | Status 2026-04-19
+
+| *A*        | Coproc-only syntactic island with string-literal slots                | REJECTED (pre-pivot)
+
+| *B+C*      | General attributes + extern blocks + memory-space modifiers in JtV    | CAPTURED (unblocks non-coproc attribute cleanup)
+
+| *D*        | Data-Language co-compiler split                                       | CAPTURED (mechanism at scale)
+
+| *E*        | Pata-compilation                                                      | ACTIVE — implementation vehicle is PataCL (per this ADR)
+
+| *F*        | PataCL self-hosting (Phase 5 in PataCL ROADMAP)                       | CAPTURED (small-language tractability)
+
+| *G*        | Additional host-language adoption of PataCL (PataCL Phase 6)          | CAPTURED (speculative; external demand)
+|===
+
+Full trajectory state in `.machine_readable/COPROC-TRAJECTORIES.a2ml`.
+
+== References
+
+* `patacl/README.adoc` — PataCL conceptual overview
+* `patacl/ROADMAP.adoc` — phase-by-phase implementation plan
+* `patacl/docs/RATIONALE.adoc` — naming, design logic, inspiration
+  lineage
+* `patacl/docs/WHEN-TO-USE.adoc` — adoption guidance for other hosts
+* `patacl/docs/design-decisions/0001-patacl-language-spec.adoc`
+  (planned) — formal PataCL language specification
+* ADR-0001 §Decision 4 (canary rejection), §Decision 5 (pata
+  pathway), §Trajectories
+* ADR-0002 (Decision sublanguage) — SUPERSEDED by this pivot
+* ADR-0003 (fact vocabulary) — facts consumed by PataCL post-pivot
+* ADR-0004 (failure semantics) — applies verbatim to PataCL
+* ADR-0005 (call-site contract) — JtV-side, unchanged
+* `developer-ecosystem/nextgen-languages/oblibeny/arcvix-turing-incomplete-constrained-form.tex`
+  §4–§5 — MPR + reversibility source material
+* Companion artefact: `.machine_readable/COPROC-TRAJECTORIES.a2ml`
+  — updated with post-pivot state

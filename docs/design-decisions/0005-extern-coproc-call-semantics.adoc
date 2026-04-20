@@ -1,0 +1,401 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
+// (MPL-2.0 is automatic legal fallback until PMPL is formally recognised)
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+
+= ADR-0005: Extern Coproc Call Semantics in the First Pata Commit
+Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+:revdate: 2026-04-19
+:revnumber: 0.1
+:toc: left
+:sectnums:
+
+[.lead]
+Extern coproc functions are registered in the flat function namespace after
+pata-evaluation, call sites type-check normally, and the backend hits a
+clean phase-boundary error at evaluation time — not a stub but an explicit
+"pata done, native lowering next" signpost.  Purity annotations on extern
+decls participate in the existing Data-callability rules unchanged.
+
+== Status
+
+*Decided (2026-04-19).* Resolves ADR-0001 Open question OQ-4.
+
+[NOTE]
+====
+*Post-pivot clarification (2026-04-19):* Call-site contract unchanged
+— flat namespace, collision errors, purity participation, phase-
+boundary error at evaluation all still apply. What changed: the
+*name-resolution mechanism* now invokes *PataCL* with the gate-name
+to determine block liveness and family string, rather than walking
+embedded Decision expressions in JtV's AST. See
+`0006-patacl-pivot.adoc`. Everything downstream of name-resolution is
+unchanged.
+====
+
+== Context
+
+With ADR-0002 (Decision sublanguage), ADR-0003 (fact vocabulary), and
+ADR-0004 (failure semantics) resolved, the first pata commit has a clear
+compile-time story: blocks parse, predicates type-check and evaluate,
+surviving decls are available to the rest of the compiler.
+
+Open: what happens *at call sites* of those extern-coproc decls in the
+first commit — before native lowering via Zig FFI / Idris2 ABI / SPARK
+lands? The call-site contract must be sharp because it's the visible
+boundary between "pata worked" and "the rest of the stack is deferred".
+
+== Decision
+
+The first pata commit implements the following contract at extern coproc
+call sites:
+
+=== Decision 1: Flat namespace integration — CLOSED
+
+*Choice: extern coproc decls register into the same function namespace as
+user-defined functions.*
+
+After pata-evaluation drops non-matching blocks and decls, every
+*surviving* `intrinsic` and `insn` decl is added to the program's function
+namespace as an entry keyed by the decl's identifier, with metadata
+distinguishing it from user-defined functions:
+
+[source,rust]
+----
+pub enum FunctionEntry {
+    UserDefined(FunctionDecl),
+    ExternCoproc {
+        family:   String,     // decl's evaluated family-expression value
+        kind:     CoprocKind, // Intrinsic | Insn
+        encoding: Option<String>, // Some for Insn, None for Intrinsic
+        decl:     CoprocDecl, // signature: params, return_type, purity, requires
+        origin:   SourceSpan, // location of the extern coproc block
+    },
+}
+
+pub enum CoprocKind { Intrinsic, Insn }
+----
+
+Call sites use the existing `FunctionCall` AST unchanged — no new variant.
+The function resolver's only new responsibility is returning either
+`UserDefined` or `ExternCoproc` to downstream passes.
+
+*Rejected:*
+
+* *Segregated namespace (`coproc::vadd_i32(1, 2)`)* — Would force users to
+  prefix every coproc call, making coproc usage syntactically distinct
+  from normal function usage. No value added; defeats one of the key
+  interop goals (coproc ops being normal JtV call syntax).
+* *New `ExternCoprocCall` AST variant at call site* — Redundant. The
+  information lives naturally on the decl side; call-site AST doesn't need
+  to carry the distinction.
+
+=== Decision 2: Name collision handling — CLOSED
+
+*Choice: a collision between an extern coproc decl and a user-defined
+function with the same name is a build error.*
+
+Rationale:
+
+* Silent shadowing is a footgun — the user might think they called the
+  coproc op but actually called their own function, or vice versa
+* The collision is always resolvable (rename one of them); no legitimate
+  reason to accept ambiguity
+* Same rule already applies between user-defined functions; extending it
+  to extern coproc is consistent
+
+Error wording:
+
+----
+error: function name collision
+  --> extern coproc decl
+  |     intrinsic vadd_i32(a: Int, b: Int): Int @pure ;
+  |               ^^^^^^^^
+  = note: also defined as user function at <file>:<line>:<col>
+  = help: rename one of them
+----
+
+=== Decision 3: Type-checking at call sites — CLOSED
+
+*Choice: call sites of extern coproc decls type-check using the decl's
+signature exactly as written, with no special rules.*
+
+A call `vadd_i32(a, b)` where `vadd_i32` resolves to an `ExternCoproc`
+entry with signature `(a: Int, b: Int): Int @pure`:
+
+* Arguments `a` and `b` must be expressions of type `Int` (same rule as
+  calling a user-defined function with that signature)
+* Call expression's type is `Int`
+* Call is allowed in Data context iff decl's purity is `@pure` or
+  `@total` (existing rule from v2 Pure Function enforcement,
+  unchanged — extern coproc decls participate identically)
+
+Purity rule flows straight through: if a user writes
+
+[source]
+----
+@pure fn compute(x: Int, y: Int): Int {
+    return vadd_i32(x, y)       // OK: vadd_i32 is @pure
+}
+----
+
+...the typechecker's existing Pure-Function-can-only-call-Pure-Function
+rule validates the call because the extern coproc decl carries `@pure`.
+
+=== Decision 4: Call-site behaviour at evaluation — CLOSED
+
+*Choice: every runtime path (interpreter, WASM backend, Cranelift (future))
+hits a specific `ExternCoprocNotYetLowered` error at the call site in
+the first pata commit.*
+
+The error is *not* a stub — it's the explicit phase boundary between
+compile-time work (pata-evaluation, namespace registration, type-
+checking, which *are* complete) and native emission (which is the
+explicit next phase).
+
+Error message:
+
+----
+error: extern coproc function `vadd_i32` not yet executable
+  --> call site
+  |     result = vadd_i32(x, y)
+  |              ^^^^^^^^^^^^^
+  = note: declared at <file>:<line>:<col> in extern coproc "riscv" block
+  = note: native lowering is the next phase in the pata pathway
+  = note: see docs/design-decisions/0001-coprocessor-pata-pathway.adoc
+          §Architecture shape post-pivot (compilation flow step 5)
+  = help: to proceed in the first pata commit, either
+          - comment out the call site while native lowering is landed, or
+          - implement a stub user-defined fn `vadd_i32` with the same signature
+            and gate it behind a Decision predicate that excludes it once
+            native lowering lands
+----
+
+The message is deliberately specific: names the function, names the block,
+points to the ADR, explains the phase boundary, offers two concrete
+workarounds. This is an *informational* build error — not an
+"implementation-missing" stub error — that marks progress rather than
+failure.
+
+=== Decision 5: Pata work that IS complete in first commit — CLOSED
+
+The following are DONE in the first pata commit (not deferred, not
+stubbed):
+
+* Grammar admits `extern coproc` blocks with Decision-expression decision
+  slots
+* Parser produces full AST including `ExternCoprocBlock` and per-item
+  structures
+* Decision Language grammar + evaluator + type-check (ADR-0002)
+* Compile-time fact environment construction (ADR-0003)
+* Pata-evaluation pipeline (ADR-0004): target → block-requires →
+  per-item — with short-circuit + lazy inner eval
+* Type-checking of Decision expressions (eager, independent of gates)
+* Block/decl inclusion pass dropping non-matching blocks
+* Function-namespace registration of surviving decls with `FunctionEntry::
+  ExternCoproc` metadata
+* Call-site type-checking and purity-participation
+* Conformance corpus: valid + invalid predicates, valid + invalid extern
+  coproc blocks, cross-target source with short-circuit idiom
+
+The following is DEFERRED (explicitly future work, not stubbed):
+
+* Zig FFI emission for `intrinsic` items (maps to `@Vector` / standard
+  intrinsics)
+* Zig FFI emission for `insn` items (maps to `asm volatile (".insn ...")`)
+* Idris2 ABI layer for precondition proofs
+* SPARK contracts for safety-critical paths
+* Cranelift backend extern-coproc lowering
+* WASM backend extern-coproc lowering
+
+All deferred items are tracked in
+`.machine_readable/COPROC-TRAJECTORIES.a2ml` as phase-2+ work.
+
+=== Decision 6: Phase transition trigger — CLOSED
+
+*Choice: Phase 1 (this ADR's scope) → Phase 2 (native lowering) transition
+is triggered when the first user-visible `extern coproc` block is ready
+to be emitted for a real target.*
+
+Phase 2 does not require B+C refactor, does not require D
+(co-compiler split), does not require any of the other captured
+trajectories. It is a direct successor to Phase 1, executed as a separate
+commit when the lowering infrastructure is ready.
+
+Phase-boundary success criteria for transitioning Phase 1 → Phase 2:
+
+. Phase 1 commit merged; conformance corpus green on CI
+. At least one concrete target (RISC-V 64-bit, `+v,+zbb` canary) has a
+  declared `extern coproc` block with pata-evaluation producing live
+  decls under a known target configuration
+. The Zig FFI surface for the target is ready to accept extern calls
+  (i.e., `ffi/zig/src/` has a stub that can be replaced with real
+  intrinsic / asm emission)
+
+None of these are immediate; Phase 1 is the first commit, Phase 2 follows
+separately.
+
+== Call-site examples
+
+=== Standard call (works under Phase 1)
+
+[source]
+----
+extern coproc "riscv" target(arch == "riscv64" && feature_v) {
+    intrinsic vadd_i32(a: Int, b: Int): Int @pure ;
+}
+
+@pure fn compute(x: Int, y: Int): Int {
+    return vadd_i32(x, y)      // typechecks; evaluates → phase-boundary error
+}
+----
+
+Build-time behaviour on a RISC-V 64-bit target with `+v`:
+
+. Pata-eval: target true, feature_v true → block live
+. Namespace registration: `vadd_i32` added as `FunctionEntry::ExternCoproc`
+. `compute()` typechecks: pure-calls-pure rule satisfied because decl is
+  `@pure`
+. At evaluation / WASM codegen, `vadd_i32` call → ExternCoprocNotYetLowered
+  error with specific message
+
+On a non-RISC-V target:
+
+. Pata-eval: target false → block dropped whole
+. `vadd_i32` is *not* registered in namespace
+. `compute()` typechecks: `vadd_i32` undefined → existing "unknown
+  function" error (not a coproc-specific error; user wrote a call to a
+  non-existent function on this target)
+
+=== Collision with user-defined function (build error)
+
+[source]
+----
+fn vadd_i32(a: Int, b: Int): Int {
+    return a + b
+}
+
+extern coproc "riscv" target(arch == "riscv64") {
+    intrinsic vadd_i32(a: Int, b: Int): Int @pure ;   // ERROR: collision
+}
+----
+
+=== Purity mismatch (build error, existing rule)
+
+[source]
+----
+extern coproc "riscv" target(arch == "riscv64") {
+    intrinsic vadd_i32(a: Int, b: Int): Int ;    // no purity = impure
+}
+
+@pure fn compute(x: Int, y: Int): Int {
+    return vadd_i32(x, y)      // ERROR: pure cannot call impure
+}
+----
+
+Existing v2 Pure Function rule; extern coproc decls participate without
+new machinery.
+
+=== Call in gated-out code (no issue)
+
+[source]
+----
+extern coproc "riscv" target(arch == "riscv64") {
+    intrinsic vadd_i32(a: Int, b: Int): Int @pure ;
+}
+
+// Users gate their own code behind the same fact-expressions by writing
+// alternative implementations — but the language doesn't yet have a
+// general cfg mechanism (that's B+C).  For now:
+
+@pure fn compute(x: Int, y: Int): Int {
+    return vadd_i32(x, y)
+}
+----
+
+On non-RISC-V targets, `compute()` fails to typecheck because
+`vadd_i32` isn't registered. Users needing cross-target compute must write
+a user-defined fallback outside this scope for now — full `cfg`-gated
+alternate-implementations come with B+C.
+
+== Purity and @total interaction
+
+Purity markers on extern coproc decls participate in JtV's existing v2
+Pure Function rules exactly as user-defined functions do:
+
+[cols="1,2", options="header"]
+|===
+| Purity on extern decl  | Callable from
+
+| (none, default impure) | Control Language only (impure context)
+| `@pure`                | Control Language, Data Language, `@pure` fn bodies
+| `@total`               | Control Language, Data Language, `@pure` fn bodies,
+                           `@total` fn bodies
+|===
+
+This is not new policy — it is the existing v2 typechecker rule applied
+uniformly to the new function-entry kind. No new machinery, no new flags.
+
+An extern coproc decl marked `@pure` is an *assertion by the programmer*
+that the underlying coprocessor operation has no side effects. The
+language cannot prove this (Zig asm emission could in principle violate
+the assertion). Responsibility for correctness of the purity annotation
+rests with the extern author — same as with `extern "C"` in Rust. The
+Idris2 ABI layer (Phase 4) is the eventual enforcement point.
+
+== Consequences
+
+. *Grammar + AST + parser + pata-eval + typechecker + call-site contract
+  land together in one commit.* No partial implementations. First pata
+  commit is a complete, end-to-end phase.
+. *Namespace is flat; name collisions fail the build.* Uniform with
+  user-defined functions.
+. *Purity participates unchanged.* Extern decls carry `@pure` / `@total`
+  markers; typechecker applies existing rules.
+. *Phase-boundary error is informational, not a failure stub.* Message
+  explicitly explains what's done (pata) and what's next (native
+  lowering), with concrete workarounds.
+. *Cross-target source relies on gated decls rather than gated call sites
+  in Phase 1.* Until B+C lands with general `cfg`-style gates on
+  user-defined code, users cannot provide alternate implementations that
+  kick in when a coproc decl is excluded. This is a genuine Phase 1
+  limitation, documented.
+. *First commit is testable on CI.* Parse, type-check, and pata-eval
+  outcomes are deterministic given the target configuration. Conformance
+  corpus covers valid, invalid, cross-target, and collision cases.
+
+== Residual open questions
+
+=== OQ-4.a: `--target=` / `--target-feature=` CLI plumbing in jtv-cli
+
+The pata evaluator needs a `TargetConfig` input to build the fact
+environment. jtv-cli must accept `--target=<triple>` and
+`--target-feature=<list>` flags and pipe them into compilation. Scope:
+~50 LOC in jtv-cli/src/main.rs. Not design work; implementation detail
+of Phase 1.
+
+=== OQ-4.b: Default target when no `--target` specified
+
+Options: host triple via `rustc --print target-triple` at build time; a
+baked-in default (e.g., `riscv64-unknown-none-elf` as the pilot target);
+error if not specified. Defer to implementation; lean toward host-triple
+default with deprecation warning on CI cross-compiles that omit it.
+
+=== OQ-4.c: Phase 2 kickoff threshold
+
+Earliest moment Phase 2 (native lowering) makes sense to land: after Phase
+1's conformance corpus ships green, AND after `ffi/zig/src/` grows a real
+intrinsic emission stub. Probably a separate ADR once Phase 1 lands.
+
+== References
+
+* ADR-0001 §OQ-4 (resolved by this document)
+* ADR-0001 §Decision 11 — pata-native from the start (established the
+  phase boundary being formalised here)
+* ADR-0002 — Decision sublanguage (drives predicate evaluation)
+* ADR-0003 — Fact vocabulary (drives the fact environment)
+* ADR-0004 — Failure semantics (drives pata-eval pipeline)
+* `docs/language/DESIGN-JTV-V2-REVERSIBILITY.md` — parallel precedent for
+  purity rules extending to a new function kind without new typechecker
+  machinery
+* Companion artefact: `.machine_readable/COPROC-TRAJECTORIES.a2ml` —
+  updated to mark OQ-4 resolved, Phase 1 ready to implement
