@@ -548,11 +548,11 @@ mod tests {
     #[test]
     fn test_simple_addition() {
         let code = "x = 5 + 3";
-        let program = parse_program(code).expect("TODO: handle error");
+        let program = parse_program(code).unwrap();
         let mut interpreter = Interpreter::new();
-        interpreter.run(&program).expect("TODO: handle error");
+        interpreter.run(&program).unwrap();
 
-        let x = interpreter.get_variable("x").expect("TODO: handle error");
+        let x = interpreter.get_variable("x").unwrap();
         assert_eq!(x, Value::Int(8));
     }
 
@@ -566,11 +566,11 @@ fn add(a: Int, b: Int): Int {
 result = add(5, 3)
         "#;
 
-        let program = parse_program(code).expect("TODO: handle error");
+        let program = parse_program(code).unwrap();
         let mut interpreter = Interpreter::new();
-        interpreter.run(&program).expect("TODO: handle error");
+        interpreter.run(&program).unwrap();
 
-        let result = interpreter.get_variable("result").expect("TODO: handle error");
+        let result = interpreter.get_variable("result").unwrap();
         assert_eq!(result, Value::Int(8));
     }
 
@@ -583,10 +583,10 @@ fn double(x: Int): Int {
 }
         "#;
 
-        let program = parse_program(code).expect("TODO: handle error");
+        let program = parse_program(code).unwrap();
         let mut interpreter = Interpreter::new();
         // Just test that it parses and runs without calling
-        interpreter.run(&program).expect("TODO: handle error");
+        interpreter.run(&program).unwrap();
     }
 
     #[test]
@@ -598,11 +598,11 @@ fn double(x: Int): Int {
             }
         "#;
 
-        let program = parse_program(code).expect("TODO: handle error");
+        let program = parse_program(code).unwrap();
         let mut interpreter = Interpreter::new();
-        interpreter.run(&program).expect("TODO: handle error");
+        interpreter.run(&program).unwrap();
 
-        let sum = interpreter.get_variable("sum").expect("TODO: handle error");
+        let sum = interpreter.get_variable("sum").unwrap();
         assert_eq!(sum, Value::Int(15)); // 1+2+3+4+5
     }
 }

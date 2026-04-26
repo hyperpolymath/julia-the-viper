@@ -298,7 +298,7 @@ mod tests {
                 return a + b
             }
         "#;
-        let program = parse_program(code).expect("TODO: handle error");
+        let program = parse_program(code).unwrap();
         let mut checker = PurityChecker::new();
         assert!(checker.check_program(&program).is_ok());
     }
@@ -315,7 +315,7 @@ mod tests {
                 return x
             }
         "#;
-        let program = parse_program(code).expect("TODO: handle error");
+        let program = parse_program(code).unwrap();
         let mut checker = PurityChecker::new();
         // For loops make function non-total
         assert!(checker.check_program(&program).is_err());
@@ -332,7 +332,7 @@ mod tests {
                 return sum
             }
         "#;
-        let program = parse_program(code).expect("TODO: handle error");
+        let program = parse_program(code).unwrap();
         let mut checker = PurityChecker::new();
         // Pure allows loops
         assert!(checker.check_program(&program).is_ok());
@@ -346,7 +346,7 @@ mod tests {
                 return x
             }
         "#;
-        let program = parse_program(code).expect("TODO: handle error");
+        let program = parse_program(code).unwrap();
         let mut checker = PurityChecker::new();
         assert!(checker.check_program(&program).is_err());
     }
@@ -362,7 +362,7 @@ mod tests {
                 return n
             }
         "#;
-        let program = parse_program(code).expect("TODO: handle error");
+        let program = parse_program(code).unwrap();
         let mut checker = PurityChecker::new();
         assert!(checker.check_program(&program).is_ok());
     }
@@ -377,7 +377,7 @@ mod tests {
                 return x
             }
         "#;
-        let program = parse_program(code).expect("TODO: handle error");
+        let program = parse_program(code).unwrap();
         let mut checker = PurityChecker::new();
         // Total functions cannot have IO
         assert!(checker.check_program(&program).is_err());

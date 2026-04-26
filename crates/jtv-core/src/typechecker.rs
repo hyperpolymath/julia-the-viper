@@ -553,7 +553,7 @@ mod tests {
     #[test]
     fn test_simple_type_check() {
         let code = "x = 5 + 3";
-        let program = parse_program(code).expect("TODO: handle error");
+        let program = parse_program(code).unwrap();
         let mut checker = TypeChecker::new();
         assert!(checker.check_program(&program).is_ok());
     }
@@ -565,7 +565,7 @@ mod tests {
             x = 5
             y = 3.14
         "#;
-        let program = parse_program(code).expect("TODO: handle error");
+        let program = parse_program(code).unwrap();
         let mut checker = TypeChecker::new();
         // This should succeed - different variables can have different types
         assert!(checker.check_program(&program).is_ok());
@@ -578,7 +578,7 @@ mod tests {
                 return a + b
             }
         "#;
-        let program = parse_program(code).expect("TODO: handle error");
+        let program = parse_program(code).unwrap();
         let mut checker = TypeChecker::new();
         assert!(checker.check_program(&program).is_ok());
     }
@@ -590,7 +590,7 @@ mod tests {
             y = 3.14
             z = x + y
         "#;
-        let program = parse_program(code).expect("TODO: handle error");
+        let program = parse_program(code).unwrap();
         let mut checker = TypeChecker::new();
         // Int + Float should coerce to Float
         assert!(checker.check_program(&program).is_ok());

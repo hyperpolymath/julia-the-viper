@@ -274,7 +274,7 @@ mod tests {
     fn test_int_addition() {
         let a = Value::Int(5);
         let b = Value::Int(3);
-        let result = a.add(&b).expect("TODO: handle error");
+        let result = a.add(&b).unwrap();
         assert_eq!(result, Value::Int(8));
     }
 
@@ -282,7 +282,7 @@ mod tests {
     fn test_float_addition() {
         let a = Value::Float(5.5);
         let b = Value::Float(3.2);
-        let result = a.add(&b).expect("TODO: handle error");
+        let result = a.add(&b).unwrap();
         assert!(matches!(result, Value::Float(_)));
     }
 
@@ -290,7 +290,7 @@ mod tests {
     fn test_rational_addition() {
         let a = Value::Rational(Ratio::new(1, 2));
         let b = Value::Rational(Ratio::new(1, 3));
-        let result = a.add(&b).expect("TODO: handle error");
+        let result = a.add(&b).unwrap();
         assert_eq!(result, Value::Rational(Ratio::new(5, 6)));
     }
 
@@ -298,7 +298,7 @@ mod tests {
     fn test_complex_addition() {
         let a = Value::Complex(Complex64::new(1.0, 2.0));
         let b = Value::Complex(Complex64::new(3.0, 4.0));
-        let result = a.add(&b).expect("TODO: handle error");
+        let result = a.add(&b).unwrap();
         assert_eq!(result, Value::Complex(Complex64::new(4.0, 6.0)));
     }
 
@@ -306,7 +306,7 @@ mod tests {
     fn test_hex_addition() {
         let a = Value::Hex(0x10);
         let b = Value::Hex(0x20);
-        let result = a.add(&b).expect("TODO: handle error");
+        let result = a.add(&b).unwrap();
         assert_eq!(result, Value::Hex(0x30));
     }
 
@@ -314,7 +314,7 @@ mod tests {
     fn test_binary_addition() {
         let a = Value::Binary(0b1010);
         let b = Value::Binary(0b0101);
-        let result = a.add(&b).expect("TODO: handle error");
+        let result = a.add(&b).unwrap();
         assert_eq!(result, Value::Binary(0b1111));
     }
 
@@ -322,7 +322,7 @@ mod tests {
     fn test_symbolic_addition() {
         let a = Value::Symbolic("x".to_string());
         let b = Value::Symbolic("y".to_string());
-        let result = a.add(&b).expect("TODO: handle error");
+        let result = a.add(&b).unwrap();
         assert_eq!(result, Value::Symbolic("x + y".to_string()));
     }
 
@@ -330,7 +330,7 @@ mod tests {
     fn test_type_coercion() {
         let a = Value::Int(5);
         let b = Value::Float(3.5);
-        let result = a.add(&b).expect("TODO: handle error");
+        let result = a.add(&b).unwrap();
         assert!(matches!(result, Value::Float(_)));
     }
 }

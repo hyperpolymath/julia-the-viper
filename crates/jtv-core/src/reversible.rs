@@ -412,7 +412,7 @@ mod tests {
             )],
         };
 
-        interp.execute_forward(&block).expect("TODO: handle error");
+        interp.execute_forward(&block).unwrap();
         assert_eq!(interp.get("x"), Some(&Value::Int(15)));
     }
 
@@ -428,10 +428,10 @@ mod tests {
             )],
         };
 
-        interp.execute_forward(&block).expect("TODO: handle error");
+        interp.execute_forward(&block).unwrap();
         assert_eq!(interp.get("x"), Some(&Value::Int(15)));
 
-        interp.execute_reverse().expect("TODO: handle error");
+        interp.execute_reverse().unwrap();
         assert_eq!(interp.get("x"), Some(&Value::Int(10))); // Back to original!
     }
 
@@ -452,12 +452,12 @@ mod tests {
         let original_x = interp.get("x").cloned();
         let original_y = interp.get("y").cloned();
 
-        interp.execute_forward(&block).expect("TODO: handle error");
+        interp.execute_forward(&block).unwrap();
         // x = 10 + 5 = 15, y = 20 - 3 = 17, x = 15 + 17 = 32
         assert_eq!(interp.get("x"), Some(&Value::Int(32)));
         assert_eq!(interp.get("y"), Some(&Value::Int(17)));
 
-        interp.execute_reverse().expect("TODO: handle error");
+        interp.execute_reverse().unwrap();
         // Should be back to original
         assert_eq!(interp.get("x"), original_x.as_ref());
         assert_eq!(interp.get("y"), original_y.as_ref());
@@ -504,7 +504,7 @@ mod tests {
             ],
         };
 
-        interp.execute_and_reverse(&block).expect("TODO: handle error");
+        interp.execute_and_reverse(&block).unwrap();
 
         // State should be identical to original
         assert_eq!(interp.get_state(), &original_state);

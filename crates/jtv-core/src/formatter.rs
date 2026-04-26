@@ -536,14 +536,14 @@ mod tests {
     #[test]
     fn test_format_simple_assignment() {
         let code = "x=5+3";
-        let formatted = format_code(code).expect("TODO: handle error");
+        let formatted = format_code(code).unwrap();
         assert_eq!(formatted, "x = 5 + 3\n");
     }
 
     #[test]
     fn test_format_function() {
         let code = "fn add(a:Int,b:Int):Int{return a+b}";
-        let formatted = format_code(code).expect("TODO: handle error");
+        let formatted = format_code(code).unwrap();
         assert!(formatted.contains("fn add(a: Int, b: Int): Int {"));
         assert!(formatted.contains("return a + b"));
     }
@@ -551,7 +551,7 @@ mod tests {
     #[test]
     fn test_format_if_statement() {
         let code = "if x>0{y=1}";
-        let formatted = format_code(code).expect("TODO: handle error");
+        let formatted = format_code(code).unwrap();
         assert!(formatted.contains("if x > 0 {"));
         assert!(formatted.contains("y = 1"));
     }
@@ -559,14 +559,14 @@ mod tests {
     #[test]
     fn test_format_pure_function() {
         let code = "@pure fn double(x:Int):Int{return x+x}";
-        let formatted = format_code(code).expect("TODO: handle error");
+        let formatted = format_code(code).unwrap();
         assert!(formatted.contains("@pure fn double"));
     }
 
     #[test]
     fn test_format_reverse_block() {
         let code = "reverse{x+=5}";
-        let formatted = format_code(code).expect("TODO: handle error");
+        let formatted = format_code(code).unwrap();
         assert!(formatted.contains("reverse {"));
         assert!(formatted.contains("x += 5"));
     }
@@ -574,14 +574,14 @@ mod tests {
     #[test]
     fn test_format_list() {
         let code = "nums=[1,2,3,4,5]";
-        let formatted = format_code(code).expect("TODO: handle error");
+        let formatted = format_code(code).unwrap();
         assert_eq!(formatted, "nums = [1, 2, 3, 4, 5]\n");
     }
 
     #[test]
     fn test_format_for_loop() {
         let code = "for i in 0..10{x=x+i}";
-        let formatted = format_code(code).expect("TODO: handle error");
+        let formatted = format_code(code).unwrap();
         assert!(formatted.contains("for i in 0..10 {"));
     }
 
@@ -592,14 +592,14 @@ mod tests {
             spaces_around_operators: false,
             ..Default::default()
         };
-        let formatted = format_code_with_config(code, config).expect("TODO: handle error");
+        let formatted = format_code_with_config(code, config).unwrap();
         assert_eq!(formatted, "x=5+3\n");
     }
 
     #[test]
     fn test_format_while_loop() {
         let code = "while x>0{x=x+-1}";
-        let formatted = format_code(code).expect("TODO: handle error");
+        let formatted = format_code(code).unwrap();
         assert!(formatted.contains("while x > 0 {"));
         assert!(formatted.contains("x = x + -1"));
     }

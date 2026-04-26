@@ -454,10 +454,10 @@ mod tests {
             print(42)
             print(1 + 2)
         "#;
-        let program = crate::parse_program(code).expect("TODO: handle error");
+        let program = crate::parse_program(code).unwrap();
         let mut interp = Interpreter::new();
         interp.enable_output_capture();
-        interp.run(&program).expect("TODO: handle error");
+        interp.run(&program).unwrap();
 
         let output = interp.take_output();
         assert_eq!(output.len(), 2);
@@ -468,9 +468,9 @@ mod tests {
     #[test]
     fn test_interpreter_reset() {
         let code = "x = 10";
-        let program = crate::parse_program(code).expect("TODO: handle error");
+        let program = crate::parse_program(code).unwrap();
         let mut interp = Interpreter::new();
-        interp.run(&program).expect("TODO: handle error");
+        interp.run(&program).unwrap();
         assert!(interp.get_variable("x").is_ok());
 
         interp.reset();
@@ -512,13 +512,13 @@ mod tests {
         assert_eq!(report.parse, "ok");
         assert_eq!(report.type_check, Some("ok".to_string()));
         // Purity check should fail: @total with print is a violation
-        assert!(report.purity_check.as_ref().expect("TODO: handle error") != "ok");
+        assert!(report.purity_check.as_ref().unwrap() != "ok");
     }
 
     #[test]
     fn test_format_via_wasm_api() {
         let code = "x=5+3";
-        let formatted = format_code(code).expect("TODO: handle error");
+        let formatted = format_code(code).unwrap();
         assert_eq!(formatted, "x = 5 + 3\n");
     }
 
@@ -529,10 +529,10 @@ mod tests {
                 print(i)
             }
         "#;
-        let program = crate::parse_program(code).expect("TODO: handle error");
+        let program = crate::parse_program(code).unwrap();
         let mut interp = Interpreter::new();
         interp.enable_output_capture();
-        interp.run(&program).expect("TODO: handle error");
+        interp.run(&program).unwrap();
 
         let output = interp.take_output();
         assert_eq!(output, vec!["0", "1", "2"]);
@@ -545,9 +545,9 @@ mod tests {
             y = 20
             z = x + y
         "#;
-        let program = crate::parse_program(code).expect("TODO: handle error");
+        let program = crate::parse_program(code).unwrap();
         let mut interp = Interpreter::new();
-        interp.run(&program).expect("TODO: handle error");
+        interp.run(&program).unwrap();
 
         let vars = interp.get_variables();
         let var_names: Vec<&str> = vars.iter().map(|(k, _)| k.as_str()).collect();
@@ -559,30 +559,30 @@ mod tests {
     #[test]
     fn test_last_result() {
         let code = "result = 42";
-        let program = crate::parse_program(code).expect("TODO: handle error");
+        let program = crate::parse_program(code).unwrap();
         let mut interp = Interpreter::new();
-        interp.run(&program).expect("TODO: handle error");
+        interp.run(&program).unwrap();
 
         let last = interp.get_last_result();
         assert!(last.is_some());
-        assert_eq!(format!("{}", last.expect("TODO: handle error")), "42");
+        assert_eq!(format!("{}", last.unwrap()), "42");
     }
 
     #[test]
     fn test_output_buffer_drain_on_take() {
         let code1 = "print(1)";
         let code2 = "print(2)";
-        let program1 = crate::parse_program(code1).expect("TODO: handle error");
-        let program2 = crate::parse_program(code2).expect("TODO: handle error");
+        let program1 = crate::parse_program(code1).unwrap();
+        let program2 = crate::parse_program(code2).unwrap();
 
         let mut interp = Interpreter::new();
         interp.enable_output_capture();
 
-        interp.run(&program1).expect("TODO: handle error");
+        interp.run(&program1).unwrap();
         let out1 = interp.take_output();
         assert_eq!(out1, vec!["1"]);
 
-        interp.run(&program2).expect("TODO: handle error");
+        interp.run(&program2).unwrap();
         let out2 = interp.take_output();
         assert_eq!(out2, vec!["2"]);
         // Buffer drained: second take should not include "1"
