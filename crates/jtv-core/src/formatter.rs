@@ -73,6 +73,14 @@ impl Formatter {
                 self.format_control_stmt(stmt);
                 self.output.push('\n');
             }
+            TopLevel::ExternCoproc(block) => {
+                self.write_indent();
+                self.output.push_str(&format!(
+                    "extern coproc {} {{ /* {} item(s) */ }}\n",
+                    block.gate_name,
+                    block.items.len()
+                ));
+            }
         }
     }
 

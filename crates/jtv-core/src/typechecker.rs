@@ -271,6 +271,11 @@ impl TypeChecker {
                 self.check_control_stmt(stmt)?;
                 Ok(())
             }
+            // ExternCoproc blocks have no JtV-side type-checking obligation
+            // here; PataCL resolution happens before the type-checker runs,
+            // and dead blocks are already dropped. Live blocks are registered
+            // in the CoprocNamespace, not in the JtV type environment.
+            TopLevel::ExternCoproc(_) => Ok(()),
         }
     }
 

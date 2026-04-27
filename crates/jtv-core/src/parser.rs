@@ -23,6 +23,9 @@ pub fn parse_program(input: &str) -> Result<Program> {
         match pair.as_rule() {
             Rule::module_decl => statements.push(parse_module(pair)?),
             Rule::import_stmt => statements.push(parse_import(pair)?),
+            Rule::extern_coproc_block => {
+                statements.push(TopLevel::ExternCoproc(parse_extern_coproc_block(pair)?))
+            }
             Rule::function_decl => statements.push(parse_function(pair)?),
             Rule::control_stmt => statements.push(TopLevel::Control(parse_control_stmt(pair)?)),
             Rule::EOI => break,
@@ -679,6 +682,140 @@ fn parse_type_annotation(pair: pest::iterators::Pair<Rule>) -> Result<TypeAnnota
             inner.as_rule()
         ))),
     }
+}
+
+// ──────────────────────────────────────────────
+// extern coproc block parser
+// ──────────────────────────────────────────────
+
+fn parse_extern_coproc_block(pair: pest::iterators::Pair<Rule>) -> Result<ExternCoprocBlock> {
+    let mut inner = pair.into_inner();
+    let gate_name = inner
+        .next()
+        .ok_or_else(|| JtvError::ParseError("expected gate name in extern coproc".into()))?
+        .as_str()
+        .to_string();
+
+    let mut items = Vec::new();
+    for item_pair in inner {
+        if item_pair.as_rule() == Rule::coproc_item {
+            items.push(parse_coproc_item(item_pair)?);
+        }
+    }
+
+    Ok(ExternCoprocBlock { gate_name, items, resolved: None })
+}
+
+fn parse_coproc_item(pair: pest::iterators::Pair<Rule>) -> Result<CoprocItem> {
+    let inner = pair
+        .into_inner()
+        .next()
+        .ok_or_else(|| JtvError::ParseError("expected coproc item".into()))?;
+    match inner.as_rule() {
+        Rule::intrinsic_decl => Ok(CoprocItem::Intrinsic(parse_intrinsic_decl(inner)?)),
+        Rule::insn_decl => Ok(CoprocItem::Insn(parse_insn_decl(inner)?)),
+        r => Err(JtvError::ParseError(format!("unexpected coproc item rule: {r:?}"))),
+    }
+}
+
+fn parse_intrinsic_decl(pair: pest::iterators::Pair<Rule>) -> Result<CoprocIntrinsic> {
+    let mut inner = pair.into_inner();
+    let mut purity = Purity::Pure; // intrinsics default to pure
+    let mut first = inner
+        .next()
+        .ok_or_else(|| JtvError::ParseError("expected intrinsic declaration".into()))?;
+
+    if first.as_rule() == Rule::purity_marker {
+        purity = match first.as_str() {
+            "@pure" => Purity::Pure,
+            "@total" => Purity::Total,
+            _ => Purity::Impure,
+        };
+        first = inner
+            .next()
+            .ok_or_else(|| JtvError::ParseError("expected intrinsic name after purity marker".into()))?;
+    }
+
+    let name = first.as_str().to_string();
+    let mut params = Vec::new();
+    let mut return_type = TypeAnnotation::Basic(BasicType::Int);
+
+    for pair in inner {
+        match pair.as_rule() {
+            Rule::param_list => {
+                for p in pair.into_inner() {
+                    params.push(parse_param(p)?);
+                }
+            }
+            Rule::return_type => {
+                return_type = parse_type_annotation(
+                    pair.into_inner()
+                        .next()
+                        .ok_or_else(|| JtvError::ParseError("expected return type".into()))?,
+                )?;
+            }
+            _ => {}
+        }
+    }
+
+    Ok(CoprocIntrinsic { name, params, return_type, purity })
+}
+
+fn parse_insn_decl(pair: pest::iterators::Pair<Rule>) -> Result<CoprocInsn> {
+    let mut inner = pair.into_inner();
+    let mut purity = Purity::Pure;
+    let mut first = inner
+        .next()
+        .ok_or_else(|| JtvError::ParseError("expected insn declaration".into()))?;
+
+    if first.as_rule() == Rule::purity_marker {
+        purity = match first.as_str() {
+            "@pure" => Purity::Pure,
+            "@total" => Purity::Total,
+            _ => Purity::Impure,
+        };
+        first = inner
+            .next()
+            .ok_or_else(|| JtvError::ParseError("expected insn name after purity marker".into()))?;
+    }
+
+    let name = first.as_str().to_string();
+    let mut params = Vec::new();
+    let mut return_type = TypeAnnotation::Basic(BasicType::Int);
+    let mut encoding: Option<String> = None;
+
+    for pair in inner {
+        match pair.as_rule() {
+            Rule::param_list => {
+                for p in pair.into_inner() {
+                    params.push(parse_param(p)?);
+                }
+            }
+            Rule::return_type => {
+                return_type = parse_type_annotation(
+                    pair.into_inner()
+                        .next()
+                        .ok_or_else(|| JtvError::ParseError("expected return type".into()))?,
+                )?;
+            }
+            Rule::encoding_clause => {
+                let enc_pair = pair
+                    .into_inner()
+                    .next()
+                    .ok_or_else(|| JtvError::ParseError("expected encoding string".into()))?;
+                // String literal — strip quotes via the inner string_inner rule.
+                let raw = enc_pair
+                    .into_inner()
+                    .next()
+                    .map(|p| p.as_str().to_string())
+                    .unwrap_or_default();
+                encoding = Some(raw);
+            }
+            _ => {}
+        }
+    }
+
+    Ok(CoprocInsn { name, params, return_type, purity, encoding })
 }
 
 #[cfg(test)]

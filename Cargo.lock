@@ -836,6 +836,7 @@ dependencies = [
  "num-complex",
  "num-rational",
  "num-traits",
+ "patacl-core",
  "pest",
  "pest_derive",
  "proptest",
@@ -1065,6 +1066,17 @@ dependencies = [
  "redox_syscall",
  "smallvec",
  "windows-link",
+]
+
+[[package]]
+name = "patacl-core"
+version = "0.1.0"
+dependencies = [
+ "pest",
+ "pest_derive",
+ "serde",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]

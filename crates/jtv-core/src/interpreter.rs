@@ -1,5 +1,6 @@
 // Interpreter for Julia the Viper
 use crate::ast::*;
+use crate::coproc::CoprocNamespace;
 use crate::error::{JtvError, Result};
 use crate::number::Value;
 use serde::{Serialize, Deserialize};
@@ -11,6 +12,9 @@ pub struct Interpreter {
     globals: HashMap<String, Value>,
     /// Functions stored by qualified name (e.g., "Math::add" or just "add")
     functions: HashMap<String, FunctionDecl>,
+    /// Extern coproc functions registered after PataCL resolution.
+    /// Call-site evaluation returns ExternCoprocNotYetLowered (per ADR-0005).
+    coproc_ns: CoprocNamespace,
     /// Module definitions: module_name -> list of function names
     modules: HashMap<String, Vec<String>>,
     /// Imported modules (module_name -> optional alias)
@@ -38,6 +42,7 @@ impl Interpreter {
         Interpreter {
             globals: HashMap::new(),
             functions: HashMap::new(),
+            coproc_ns: CoprocNamespace::default(),
             modules: HashMap::new(),
             imports: HashMap::new(),
             call_stack: vec![],
@@ -48,6 +53,12 @@ impl Interpreter {
             output_buffer: Vec::new(),
             capture_output: false,
         }
+    }
+
+    /// Register a PataCL-resolved coproc namespace so the interpreter
+    /// can return the correct phase-boundary error at call sites.
+    pub fn register_coproc_namespace(&mut self, ns: CoprocNamespace) {
+        self.coproc_ns = ns;
     }
 
     pub fn enable_trace(&mut self) {
@@ -88,6 +99,7 @@ impl Interpreter {
     pub fn reset(&mut self) {
         self.globals.clear();
         self.functions.clear();
+        self.coproc_ns = CoprocNamespace::default();
         self.modules.clear();
         self.imports.clear();
         self.call_stack.clear();
@@ -196,6 +208,11 @@ impl Interpreter {
                 self.eval_control_stmt(stmt)?;
                 Ok(())
             }
+            // ExternCoproc blocks are handled before evaluation by the
+            // coproc resolution pass (coproc::resolve_coproc_blocks).
+            // Any surviving blocks have already been registered in
+            // self.coproc_ns; nothing more to do here at execution time.
+            TopLevel::ExternCoproc(_) => Ok(()),
         }
     }
 
@@ -458,7 +475,20 @@ impl Interpreter {
         let func = self
             .functions
             .get(&qualified)
-            .or_else(|| self.functions.get(&call.name))
+            .or_else(|| self.functions.get(&call.name));
+
+        // Phase-boundary error: function is a live extern coproc entry but
+        // native lowering is not yet implemented (per JtV ADR-0005).
+        if func.is_none() {
+            if let Some(entry) = self.coproc_ns.get(&call.name) {
+                return Err(JtvError::ExternCoprocNotYetLowered {
+                    gate: entry.gate_name.clone(),
+                    name: call.name.clone(),
+                });
+            }
+        }
+
+        let func = func
             .ok_or_else(|| JtvError::UndefinedFunction(qualified.clone()))?
             .clone();
 

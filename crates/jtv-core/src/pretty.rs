@@ -135,6 +135,16 @@ impl PrettyPrinter {
             TopLevel::Import(import) => self.print_import(import, depth),
             TopLevel::Function(func) => self.print_function(func, depth),
             TopLevel::Control(stmt) => self.print_control_stmt(stmt, depth),
+            TopLevel::ExternCoproc(block) => {
+                let indent = self.indent(depth);
+                let status = match &block.resolved {
+                    Some(r) if r.live => format!(" /* live, family: {} */", r.family),
+                    Some(_) => " /* dead */".into(),
+                    None => " /* unresolved */".into(),
+                };
+                format!("{}extern coproc {}{} {{ /* {} item(s) */ }}\n",
+                    indent, block.gate_name, status, block.items.len())
+            }
         }
     }
 

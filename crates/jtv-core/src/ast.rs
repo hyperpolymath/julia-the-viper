@@ -10,6 +10,7 @@ pub struct Program {
 pub enum TopLevel {
     Module(ModuleDecl),
     Import(ImportStmt),
+    ExternCoproc(ExternCoprocBlock),
     Function(FunctionDecl),
     Control(ControlStmt),
 }
@@ -24,6 +25,56 @@ pub struct ModuleDecl {
 pub struct ImportStmt {
     pub path: Vec<String>,
     pub alias: Option<String>,
+}
+
+// ===== COPROCESSOR DECLARATIONS =====
+
+/// A top-level `extern coproc <gate-name> { ... }` block.
+///
+/// `gate_name` is the name of a gate in a companion `.pata` file.
+/// PataCL evaluates the gate at compile time; if dead, this block is
+/// dropped entirely. If live, `items` are registered in the function
+/// namespace as `ExternCoproc` entries.
+///
+/// `resolved` is `None` until the PataCL resolution pass runs.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ExternCoprocBlock {
+    pub gate_name: String,
+    pub items: Vec<CoprocItem>,
+    pub resolved: Option<CoprocResolution>,
+}
+
+/// Outcome of PataCL gate evaluation for one `extern coproc` block.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CoprocResolution {
+    pub live: bool,
+    pub family: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum CoprocItem {
+    Intrinsic(CoprocIntrinsic),
+    Insn(CoprocInsn),
+}
+
+/// A coprocessor intrinsic — a named builtin with no encoding literal.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CoprocIntrinsic {
+    pub name: String,
+    pub params: Vec<Param>,
+    pub return_type: TypeAnnotation,
+    pub purity: Purity,
+}
+
+/// A custom instruction with an optional opaque encoding string.
+/// The encoding is passed verbatim to the assembler backend.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CoprocInsn {
+    pub name: String,
+    pub params: Vec<Param>,
+    pub return_type: TypeAnnotation,
+    pub purity: Purity,
+    pub encoding: Option<String>,
 }
 
 // ===== CONTROL LANGUAGE (Turing-complete) =====

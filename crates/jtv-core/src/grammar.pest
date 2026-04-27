@@ -7,7 +7,7 @@ line_comment = { "//" ~ (!"\n" ~ ANY)* }
 block_comment = { "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
 
 // ===== PROGRAM STRUCTURE =====
-program = { SOI ~ (module_decl | import_stmt | function_decl | control_stmt)* ~ EOI }
+program = { SOI ~ (module_decl | import_stmt | extern_coproc_block | function_decl | control_stmt)* ~ EOI }
 
 module_decl = { "module" ~ identifier ~ "{" ~ (function_decl | control_stmt)* ~ "}" }
 
@@ -79,6 +79,32 @@ logical_expr = { logical_term ~ ("||" ~ logical_term)* }
 logical_term = { logical_factor ~ ("&&" ~ logical_factor)* }
 logical_factor = { "!" ~ logical_factor | comparison_expr | data_expr | "(" ~ control_expr ~ ")" }
 
+// ===== COPROCESSOR DECLARATIONS =====
+// extern coproc <gate-name> { <items> }
+// gate-name references a gate declared in a companion .pata file;
+// PataCL evaluates the gate at compile time to decide if this block is live.
+extern_coproc_block = {
+    "extern" ~ "coproc" ~ identifier ~ "{" ~ coproc_item* ~ "}"
+}
+
+coproc_item = { intrinsic_decl | insn_decl }
+
+// intrinsic: a coprocessor builtin (no encoding literal needed)
+intrinsic_decl = {
+    purity_marker? ~ "intrinsic" ~ identifier
+    ~ "(" ~ param_list? ~ ")" ~ ":" ~ return_type ~ ";"
+}
+
+// insn: a custom instruction with an optional opaque encoding string
+insn_decl = {
+    purity_marker? ~ "insn" ~ identifier
+    ~ "(" ~ param_list? ~ ")" ~ ":" ~ return_type
+    ~ encoding_clause? ~ ";"
+}
+
+// encoding is an opaque string passed to the assembler (e.g., ".insn r 0x0B, ...")
+encoding_clause = { "encoding" ~ string }
+
 // ===== FUNCTIONS =====
 function_decl = {
     purity_marker? ~ "fn" ~ identifier ~ "(" ~ param_list? ~ ")" ~ (":" ~ return_type)? ~ block
@@ -147,6 +173,7 @@ identifier = @{ !keyword ~ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 
 keyword = {
     "module" | "import" | "as" | "fn" | "return" | "if" | "else" | "while" | "for" | "in"
-    | "print" | "reverse" | "Int" | "Float" | "Rational" | "Complex" | "Hex" | "Binary"
+    | "print" | "reverse" | "extern" | "coproc" | "intrinsic" | "insn" | "encoding"
+    | "Int" | "Float" | "Rational" | "Complex" | "Hex" | "Binary"
     | "Symbolic" | "Bool" | "String" | "List" | "Fn" | "true" | "false"
 }

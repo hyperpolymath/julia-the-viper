@@ -13,6 +13,7 @@
 
 #![forbid(unsafe_code)]
 pub mod ast;
+pub mod coproc;
 pub mod error;
 pub mod formatter;
 pub mod interpreter;

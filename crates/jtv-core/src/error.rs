@@ -46,6 +46,21 @@ pub enum JtvError {
 
     #[error("IO error: {0}")]
     IoError(String),
+
+    /// Phase-boundary error: the PataCL gate evaluated to live, the decl was
+    /// registered, but native lowering (Zig FFI / Idris2 ABI / SPARK) is not
+    /// yet implemented. Informational — marks the exact boundary between
+    /// "pata done" and "emission pending" (per JtV ADR-0005).
+    #[error(
+        "extern coproc `{gate}` function `{name}` is live on this target \
+         but native lowering is not yet implemented (Phase 2 boundary — \
+         Zig FFI / Idris2 ABI / SPARK emission pending)"
+    )]
+    ExternCoprocNotYetLowered { gate: String, name: String },
+
+    /// PataCL gate resolution error surfaced during compile-time pass.
+    #[error("PataCL gate resolution failed for `{gate}`: {detail}")]
+    CoprocResolutionFailed { gate: String, detail: String },
 }
 
 impl From<std::io::Error> for JtvError {

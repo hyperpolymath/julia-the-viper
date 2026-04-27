@@ -60,3 +60,6 @@ tower-lsp = "0.20"
 
 # Internal crates
 jtv-core = { path = "crates/jtv-core" }
+
+# PataCL — compile-time decision layer
+patacl-core = { path = "../patacl/crates/patacl-core" }
