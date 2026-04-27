@@ -7,7 +7,7 @@ project = "julia-the-viper"
 version = "0.0.1"
 last-updated = "2026-04-27"
 status = "active"
-session = "2026-04-27 — C2 reversibility complete; all three session tasks (A/C/B) landed"
+session = "2026-04-27 — WASM extern-coproc bridge complete; all roadmap items done"
 
 [project-context]
 name = "Julia The Viper"
@@ -30,16 +30,15 @@ milestones = [
   "coprocessor support design — DONE (ADRs 0001-0006, 13 decisions closed 2026-04-19)",
   "coprocessor support implementation — DONE (Phase 2+4, 2026-04-27)",
   "v2 reversibility C1 Phase 1 — COMPLETE (2026-04-27): execute_inverse added; reverse { x += v } = subtraction; 7 RV tests",
-  "v2 reversibility C2 — COMPLETE (2026-04-27): reversible { } -> tok / reverse tok / abandon tok; ReversalToken(u64) opaque ID; token linearity enforced; 5 C2 tests; typechecker + cli sexpr both updated"
+  "v2 reversibility C2 — COMPLETE (2026-04-27): reversible { } -> tok / reverse tok / abandon tok; ReversalToken(u64) opaque ID; token linearity enforced; 5 C2 tests; typechecker + cli sexpr both updated",
+  "WASM extern-coproc bridge — COMPLETE (2026-04-27): list_coproc_decls() on Interpreter + JtvWasm; register_coproc_impl(fn, js_sys::Function) with unsafe Send+Sync wasm32 wrapper; Value<->JsValue helpers; 4 new tests; commit 75be523"
 ]
 
 [blockers-and-issues]
 issues = []
 
 [critical-next-actions]
-actions = [
-  "Review WASM backend for extern-coproc lowering (ExternCoprocNotYetLowered at call sites — coproc_lower.rs generates stubs but WASM path untested)"
-]
+actions = []
 
 [maintenance-status]
 last-run-utc = "2026-04-19T00:00:00Z"
@@ -52,7 +51,8 @@ sessions = [
   { date = "2026-04-19", subject = "coprocessor pata pathway designed — ADRs 0001-0005 + 0006 (Delta pivot to PataCL)" },
   { date = "2026-04-27", subject = "PataCL Phases 1-4 complete; JtV Phase 2 landed (extern coproc grammar, CoprocNamespace, phase-boundary error, 12/12 coproc_tests.rs); conformance corpus CC1-CC7 (7/7); jtv-cli ExternCoproc fix" },
   { date = "2026-04-27", subject = "Phase A: Zig FFI + Idris2 ABI lowering (coproc_lower.rs, 6 CL tests); Phase C: PataCL self-hosting (conformance/patacl-self.pata, 8 SH tests in patacl); Phase B: v2 reversibility C1 (execute_inverse added, reverse { } = subtraction, 7 RV tests)" },
-  { date = "2026-04-27", subject = "C2 reversibility: reversible { } -> tok / reverse tok / abandon tok; ReversalToken(u64) opaque-ID token store; token linearity; typechecker + cli sexpr arms; 5 C2 tests green; commit a6b9e83" }
+  { date = "2026-04-27", subject = "C2 reversibility: reversible { } -> tok / reverse tok / abandon tok; ReversalToken(u64) opaque-ID token store; token linearity; typechecker + cli sexpr arms; 5 C2 tests green; commit a6b9e83" },
+  { date = "2026-04-27", subject = "WASM extern-coproc bridge: list_coproc_decls on Interpreter + JtvWasm; register_coproc_impl wraps js_sys::Function via unsafe Send+Sync; Value<->JsValue helpers; 4 tests; commit 75be523 — all roadmap items complete" }
 ]
 
 [design-artefact-locations]
