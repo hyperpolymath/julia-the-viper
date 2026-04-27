@@ -431,6 +431,38 @@ fn control_to_sexpr(stmt: &jtv_core::ControlStmt, out: &mut String, indent: usiz
             }
             out.push(')');
         }
+        jtv_core::ControlStmt::ReversibleBlock(rb) => {
+            out.push_str("(reversible");
+            for s in &rb.body {
+                out.push('\n');
+                out.push_str(&" ".repeat(indent + 2));
+                match s {
+                    jtv_core::ReversibleStmt::AddAssign(v, e) => {
+                        out.push_str(&format!("(+= \"{}\" ", v));
+                        data_to_sexpr(e, out);
+                        out.push(')');
+                    }
+                    jtv_core::ReversibleStmt::SubAssign(v, e) => {
+                        out.push_str(&format!("(-= \"{}\" ", v));
+                        data_to_sexpr(e, out);
+                        out.push(')');
+                    }
+                    jtv_core::ReversibleStmt::If(i) => {
+                        control_to_sexpr(&jtv_core::ControlStmt::If(i.clone()), out, indent + 2);
+                    }
+                }
+            }
+            if let Some(tok) = &rb.token_binding {
+                out.push_str(&format!(" -> \"{}\"", tok));
+            }
+            out.push(')');
+        }
+        jtv_core::ControlStmt::ReverseToken(tok) => {
+            out.push_str(&format!("(reverse-token \"{}\")", tok));
+        }
+        jtv_core::ControlStmt::AbandonToken(tok) => {
+            out.push_str(&format!("(abandon-token \"{}\")", tok));
+        }
         jtv_core::ControlStmt::Block(stmts) => {
             out.push_str("(block");
             for s in stmts {

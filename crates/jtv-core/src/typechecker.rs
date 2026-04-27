@@ -373,6 +373,23 @@ impl TypeChecker {
                 }
                 Ok(())
             }
+            ControlStmt::ReversibleBlock(rb) => {
+                for stmt in &rb.body {
+                    self.check_reversible_stmt(stmt)?;
+                }
+                // token binding is a runtime opaque value; no type to check statically
+                Ok(())
+            }
+            ControlStmt::ReverseToken(tok) => {
+                // tok must be bound; we can't verify it's a ReversalToken statically
+                // (the variable may be assigned at runtime). Accept unconditionally.
+                let _ = tok;
+                Ok(())
+            }
+            ControlStmt::AbandonToken(tok) => {
+                let _ = tok;
+                Ok(())
+            }
             ControlStmt::Block(stmts) => {
                 for stmt in stmts {
                     self.check_control_stmt(stmt)?;
