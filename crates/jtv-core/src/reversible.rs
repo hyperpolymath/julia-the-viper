@@ -120,10 +120,70 @@ impl ReversibleInterpreter {
         Ok(())
     }
 
-    /// Execute forward then reverse (should return to original state)
+    /// Execute forward then reverse (should return to original state).
+    /// This is the CNO (Certified Null Operation) pattern — the net effect
+    /// on state is identity.  Used when you want to prove reversibility.
     pub fn execute_and_reverse(&mut self, block: &ReverseBlock) -> Result<()> {
         self.execute_forward(block)?;
         self.execute_reverse()
+    }
+
+    /// Apply the INVERSE of each operation in `block`, in reverse declaration order.
+    ///
+    /// This implements JtV v2's core claim: `reverse { x += v }` IS subtraction.
+    /// The inverse of `AddAssign` is `SubAssign`, and vice versa.  Operations are
+    /// applied in reverse order so that multi-step blocks invert correctly.
+    ///
+    /// Expressions are evaluated against the state as it evolves through the
+    /// inversion (same semantics as the forward pass, but in reverse).
+    pub fn execute_inverse(&mut self, block: &ReverseBlock) -> Result<()> {
+        for stmt in block.body.iter().rev() {
+            self.execute_inverted_stmt(stmt)?;
+        }
+        Ok(())
+    }
+
+    fn execute_inverted_stmt(&mut self, stmt: &ReversibleStmt) -> Result<()> {
+        match stmt {
+            ReversibleStmt::AddAssign(target, expr) => {
+                // Inverse of x += v is x -= v
+                let value = self.eval_data_expr(expr)?;
+                let current = self.get_variable(target)?;
+                let neg_value = value.negate()?;
+                let result = current.add(&neg_value)?;
+                self.variables.insert(target.clone(), result);
+                Ok(())
+            }
+            ReversibleStmt::SubAssign(target, expr) => {
+                // Inverse of x -= v is x += v
+                let value = self.eval_data_expr(expr)?;
+                let current = self.get_variable(target)?;
+                let result = current.add(&value)?;
+                self.variables.insert(target.clone(), result);
+                Ok(())
+            }
+            ReversibleStmt::If(if_stmt) => {
+                // Re-evaluate the condition on current state (Janus requirement:
+                // the condition must hold in the same direction when reversing).
+                let cond = self.eval_control_expr(&if_stmt.condition)?;
+                if cond.is_truthy() {
+                    for ctrl_stmt in if_stmt.then_branch.iter().rev() {
+                        if let crate::ast::ControlStmt::ReverseBlock(inner) = ctrl_stmt {
+                            self.execute_inverse(inner)?;
+                        }
+                        // Non-reverse stmts in reverse-block if branches are
+                        // rejected by check_reversibility before we get here.
+                    }
+                } else if let Some(else_branch) = &if_stmt.else_branch {
+                    for ctrl_stmt in else_branch.iter().rev() {
+                        if let crate::ast::ControlStmt::ReverseBlock(inner) = ctrl_stmt {
+                            self.execute_inverse(inner)?;
+                        }
+                    }
+                }
+                Ok(())
+            }
+        }
     }
 
     fn execute_reversible_stmt(&mut self, stmt: &ReversibleStmt) -> Result<()> {

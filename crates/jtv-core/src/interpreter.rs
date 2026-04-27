@@ -378,35 +378,33 @@ impl Interpreter {
     }
 
     fn eval_reverse_block(&mut self, block: &ReverseBlock) -> Result<()> {
-        // Delegate to ReversibleInterpreter which properly records and
-        // reverses operations. This implements JTV v2 semantics:
-        //   1. Execute forward (recording operations)
-        //   2. Execute reverse (inverting and reversing operations)
-        //   3. Net effect: identity (CNO by construction)
+        // JtV v2 semantics: `reverse { x += v }` IS subtraction.
+        // Subtraction is not a grammar primitive; it arises from reversing addition.
         //
-        // The forward pass modifies state. The reverse pass undoes it.
-        // After execute_and_reverse, state returns to its original value.
+        // `execute_inverse` applies the INVERSE of each operation in reverse
+        // declaration order.  For simple single-op blocks:
+        //   reverse { x += 5 }  →  x = x - 5
+        //   reverse { x -= 5 }  →  x = x + 5
         //
-        // This is the core of the JTV v2 reversibility vision:
-        //   - Subtraction is NOT in the grammar
-        //   - Subtraction arises from reversing addition
-        //   - reverse { x += 5 } produces x -= 5 automatically
-        //   - forward ; reverse = CNO (Certified Null Operation)
+        // For multi-op blocks, inversion happens in reverse order so that
+        // the combined effect is the mathematical inverse of the forward block.
+        //
+        // The CNO (Certified Null Operation) pattern uses a SEPARATE `reversible`
+        // block (Phase 2 — not yet in the grammar) for the forward pass, then
+        // `reverse` to undo.  The current `reverse { }` construct applies
+        // inverses directly (no forward pass).
         use crate::reversible::ReversibleInterpreter;
 
         let mut rev_interp = ReversibleInterpreter::with_state(self.globals.clone());
+        rev_interp.execute_inverse(block)?;
 
-        // Forward execution (records operations for later reversal)
-        rev_interp.execute_forward(block)?;
-
-        // Copy forward results back to main interpreter
         for (name, value) in rev_interp.get_state() {
             self.set_variable(name.clone(), value.clone());
         }
 
-        // Record trace for instrumentation (if enabled)
         if self.trace_enabled {
-            self.add_trace("reverse_block_forward", &format!("executed {} reversible operations", block.body.len()));
+            self.add_trace("reverse_block",
+                &format!("applied inverse of {} operations", block.body.len()));
         }
 
         Ok(())

@@ -29,7 +29,7 @@ milestones = [
   "LSP server — DONE (tower-lsp integration)",
   "coprocessor support design — DONE (ADRs 0001-0006, 13 decisions closed 2026-04-19)",
   "coprocessor support implementation — DONE (Phase 2+4, 2026-04-27)",
-  "v2 reversibility implementation — PENDING (5 decisions closed, C1 Phase 1 impl pending)"
+  "v2 reversibility C1 Phase 1 — COMPLETE (2026-04-27): execute_inverse added; reverse { x += v } = subtraction; 7 RV tests"
 ]
 
 [blockers-and-issues]
@@ -40,7 +40,7 @@ issues = [
 [critical-next-actions]
 actions = [
   "Zig FFI + Idris2 ABI lowering for live coproc decls (unblocks ExternCoprocNotYetLowered at call sites)",
-  "Start v2 reversibility C1 Phase 1 implementation (7-step plan in 007-jtv-v2-design-decisions memory)",
+  "v2 reversibility C2: add `reversible { } -> tok` / `reverse tok` / `abandon tok` grammar + ReversalToken value",
   "Review WASM backend for extern-coproc lowering (now unblocked)"
 ]
 
@@ -53,7 +53,8 @@ sessions = [
   { date = "2026-04-11", subject = "6a2 files converted from scheme to A2ML" },
   { date = "2026-04-12", subject = "v2 reversibility design — 5 decisions closed" },
   { date = "2026-04-19", subject = "coprocessor pata pathway designed — ADRs 0001-0005 + 0006 (Delta pivot to PataCL)" },
-  { date = "2026-04-27", subject = "PataCL Phases 1-4 complete; JtV Phase 2 landed (extern coproc grammar, CoprocNamespace, phase-boundary error, 12/12 coproc_tests.rs); conformance corpus CC1-CC7 (7/7); jtv-cli ExternCoproc fix" }
+  { date = "2026-04-27", subject = "PataCL Phases 1-4 complete; JtV Phase 2 landed (extern coproc grammar, CoprocNamespace, phase-boundary error, 12/12 coproc_tests.rs); conformance corpus CC1-CC7 (7/7); jtv-cli ExternCoproc fix" },
+  { date = "2026-04-27", subject = "Phase A: Zig FFI + Idris2 ABI lowering (coproc_lower.rs, 6 CL tests); Phase C: PataCL self-hosting (conformance/patacl-self.pata, 8 SH tests in patacl); Phase B: v2 reversibility C1 (execute_inverse added, reverse { } = subtraction, 7 RV tests)" }
 ]
 
 [design-artefact-locations]
