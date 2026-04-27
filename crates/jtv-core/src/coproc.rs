@@ -67,6 +67,8 @@ impl CoprocEnv {
 /// An extern coproc function registered in the function namespace.
 /// The interpreter uses this to return `ExternCoprocNotYetLowered` at
 /// call sites (per ADR-0005 call-site contract).
+/// `param_types` and `return_type` are propagated from the AST for use
+/// by the Zig FFI / Idris2 ABI lowering pass.
 #[derive(Debug, Clone)]
 pub struct CoprocEntry {
     /// Gate name this decl came from (for the phase-boundary error message).
@@ -75,6 +77,10 @@ pub struct CoprocEntry {
     pub family: String,
     pub kind: CoprocKind,
     pub param_count: usize,
+    /// Parameter types in declaration order.
+    /// Missing annotations (`Option::None` in the AST) default to `Int`.
+    pub param_types: Vec<crate::ast::TypeAnnotation>,
+    pub return_type: crate::ast::TypeAnnotation,
 }
 
 #[derive(Debug, Clone)]
@@ -202,22 +208,37 @@ fn register_block_decls(
     family: &str,
     ns: &mut CoprocNamespace,
 ) {
+    use crate::ast::{BasicType, TypeAnnotation};
+
+    // Fall-back type when a param has no annotation: JtV default is Int.
+    let default_ty = || TypeAnnotation::Basic(BasicType::Int);
+
     for item in &block.items {
         match item {
             CoprocItem::Intrinsic(i) => {
+                let param_types = i.params.iter()
+                    .map(|p| p.type_annotation.clone().unwrap_or_else(default_ty))
+                    .collect();
                 ns.entries.insert(i.name.clone(), CoprocEntry {
                     gate_name: block.gate_name.clone(),
                     family: family.to_string(),
                     kind: CoprocKind::Intrinsic,
                     param_count: i.params.len(),
+                    param_types,
+                    return_type: i.return_type.clone(),
                 });
             }
             CoprocItem::Insn(i) => {
+                let param_types = i.params.iter()
+                    .map(|p| p.type_annotation.clone().unwrap_or_else(default_ty))
+                    .collect();
                 ns.entries.insert(i.name.clone(), CoprocEntry {
                     gate_name: block.gate_name.clone(),
                     family: family.to_string(),
                     kind: CoprocKind::Insn { encoding: i.encoding.clone() },
                     param_count: i.params.len(),
+                    param_types,
+                    return_type: i.return_type.clone(),
                 });
             }
         }

@@ -13,10 +13,12 @@
 
 use clap::{Parser, Subcommand};
 use colored::*;
+use jtv_core::coproc::{CoprocEnv, resolve_coproc_blocks};
+use jtv_core::coproc_lower::{lower_namespace, write_lowered};
 use jtv_core::{format_code, parse_program, Interpreter, PurityChecker, TypeChecker};
 use std::fs;
 use std::io::{self, Read};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 mod repl;
 mod rsr_check;
@@ -82,6 +84,28 @@ enum Commands {
 
     /// Start the interactive REPL
     Repl,
+
+    /// Lower live extern coproc decls to Zig FFI + Idris2 ABI + C headers
+    Lower {
+        /// Path to the .jtv source file
+        file: String,
+
+        /// Path to the .pata gate-decision file
+        #[arg(long)]
+        pata: String,
+
+        /// Target triple (e.g. riscv64gc-unknown-none-elf)
+        #[arg(long)]
+        target: String,
+
+        /// Comma-separated ISA feature flags (e.g. v,zbb)
+        #[arg(long, default_value = "")]
+        features: String,
+
+        /// Root directory for generated artefacts (default: current dir)
+        #[arg(long, default_value = ".")]
+        output_dir: String,
+    },
 }
 
 fn main() {
@@ -128,6 +152,17 @@ fn main() {
         Commands::Repl => {
             let mut repl = Repl::new();
             if let Err(e) = repl.run() {
+                eprintln!("{} {}", "Error:".red().bold(), e);
+                std::process::exit(1);
+            }
+        }
+        Commands::Lower { file, pata, target, features, output_dir } => {
+            let feats: Vec<&str> = if features.is_empty() {
+                vec![]
+            } else {
+                features.split(',').map(|s| s.trim()).collect()
+            };
+            if let Err(e) = lower_files(&file, &pata, &target, &feats, &output_dir) {
                 eprintln!("{} {}", "Error:".red().bold(), e);
                 std::process::exit(1);
             }
@@ -516,4 +551,40 @@ fn print_version() {
     println!();
     println!("Repository: https://github.com/Hyperpolymath/julia-the-viper");
     println!("Documentation: https://docs.julia-viper.dev");
+}
+
+/// Lower live extern coproc decls to Zig FFI + Idris2 ABI + C headers.
+fn lower_files(
+    jtv_path: &str,
+    pata_path: &str,
+    target: &str,
+    features: &[&str],
+    output_dir: &str,
+) -> Result<(), String> {
+    let src = fs::read_to_string(jtv_path)
+        .map_err(|e| format!("cannot read {}: {}", jtv_path, e))?;
+    let pata_src = fs::read_to_string(pata_path)
+        .map_err(|e| format!("cannot read {}: {}", pata_path, e))?;
+
+    let prog = parse_program(&src).map_err(|e| e.to_string())?;
+    let env = CoprocEnv::from_triple(target, features);
+    let (_, ns) = resolve_coproc_blocks(prog, &env, Some(&pata_src))
+        .map_err(|e| e.to_string())?;
+
+    let gates = lower_namespace(&ns);
+    if gates.is_empty() {
+        println!("{} no live extern coproc gates — nothing to lower", "note:".yellow());
+        return Ok(());
+    }
+
+    let root = Path::new(output_dir);
+    write_lowered(&gates, root).map_err(|e| format!("write error: {}", e))?;
+
+    for gate in &gates {
+        println!("{} {}", "lowered".green().bold(), gate.gate_name);
+        println!("  zig   → {}/{}", output_dir, gate.zig_path());
+        println!("  idris → {}/{}", output_dir, gate.idris2_path());
+        println!("  C     → {}/{}", output_dir, gate.c_header_path());
+    }
+    Ok(())
 }

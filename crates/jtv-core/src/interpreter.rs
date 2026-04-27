@@ -5,8 +5,14 @@ use crate::error::{JtvError, Result};
 use crate::number::Value;
 use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
+use std::sync::Arc;
 
 const MAX_ITERATIONS: usize = 1_000_000; // Safety limit for loops
+
+/// Callable registered for a live coproc function.
+/// When present, the interpreter dispatches directly instead of returning
+/// `ExternCoprocNotYetLowered`.  Used in tests and embedding contexts.
+pub type NativeImpl = Arc<dyn Fn(&[Value]) -> Result<Value> + Send + Sync>;
 
 pub struct Interpreter {
     globals: HashMap<String, Value>,
@@ -15,6 +21,9 @@ pub struct Interpreter {
     /// Extern coproc functions registered after PataCL resolution.
     /// Call-site evaluation returns ExternCoprocNotYetLowered (per ADR-0005).
     coproc_ns: CoprocNamespace,
+    /// Native (Rust) implementations registered for lowered coproc functions.
+    /// Keyed by unqualified function name, same as `coproc_ns`.
+    native_impls: HashMap<String, NativeImpl>,
     /// Module definitions: module_name -> list of function names
     modules: HashMap<String, Vec<String>>,
     /// Imported modules (module_name -> optional alias)
@@ -43,6 +52,7 @@ impl Interpreter {
             globals: HashMap::new(),
             functions: HashMap::new(),
             coproc_ns: CoprocNamespace::default(),
+            native_impls: HashMap::new(),
             modules: HashMap::new(),
             imports: HashMap::new(),
             call_stack: vec![],
@@ -59,6 +69,19 @@ impl Interpreter {
     /// can return the correct phase-boundary error at call sites.
     pub fn register_coproc_namespace(&mut self, ns: CoprocNamespace) {
         self.coproc_ns = ns;
+    }
+
+    /// Register a native (Rust) implementation for a lowered coproc function.
+    ///
+    /// When `name` is called and a native impl is registered, the interpreter
+    /// dispatches to `f` instead of returning `ExternCoprocNotYetLowered`.
+    /// This is the embedding hook used after Zig FFI lowering completes.
+    pub fn register_coproc_impl(
+        &mut self,
+        name: impl Into<String>,
+        f: impl Fn(&[Value]) -> Result<Value> + Send + Sync + 'static,
+    ) {
+        self.native_impls.insert(name.into(), Arc::new(f));
     }
 
     pub fn enable_trace(&mut self) {
@@ -100,6 +123,7 @@ impl Interpreter {
         self.globals.clear();
         self.functions.clear();
         self.coproc_ns = CoprocNamespace::default();
+        self.native_impls.clear();
         self.modules.clear();
         self.imports.clear();
         self.call_stack.clear();
@@ -476,6 +500,17 @@ impl Interpreter {
             .functions
             .get(&qualified)
             .or_else(|| self.functions.get(&call.name));
+
+        // Native impl registered (lowering complete): dispatch directly.
+        if func.is_none() {
+            if let Some(native) = self.native_impls.get(&call.name).cloned() {
+                let mut arg_values = Vec::with_capacity(call.args.len());
+                for arg in &call.args {
+                    arg_values.push(self.eval_data_expr(arg)?);
+                }
+                return native(&arg_values);
+            }
+        }
 
         // Phase-boundary error: function is a live extern coproc entry but
         // native lowering is not yet implemented (per JtV ADR-0005).
