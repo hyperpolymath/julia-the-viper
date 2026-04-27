@@ -1,0 +1,10 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+//
+// Companion pata for unknown_gate.jtv.
+// Intentionally does NOT define "mystery_ext" — only an unrelated gate.
+
+pata v1
+
+gate some_other_gate when arch == "riscv64"
+family some_other_gate = "riscv"

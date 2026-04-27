@@ -1,0 +1,18 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+//
+// JtV coproc conformance: selective block survival across two gates.
+//
+// Companion pata: riscv.pata
+// Target:         riscv64gc-unknown-none-elf  +feature_v  (no feature_zbb)
+// Expected:       riscv_vec block retained (vadd_i32 in namespace),
+//                 zbb block dropped (clz + cpop NOT in namespace).
+
+extern coproc riscv_vec {
+    @pure intrinsic vadd_i32(a: Int, b: Int): Int ;
+}
+
+extern coproc zbb {
+    @pure intrinsic clz(a: Int): Int ;
+    @pure intrinsic cpop(a: Int): Int ;
+}

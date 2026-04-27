@@ -1,0 +1,14 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+//
+// JtV coproc conformance: insn variant with encoding clause.
+//
+// Companion pata: riscv.pata
+// Target:         riscv64gc-unknown-none-elf  +feature_v
+// Expected:       block retained, packed_add in namespace as CoprocKind::Insn,
+//                 encoding contains "0x0B".
+
+extern coproc riscv_vec {
+    @pure insn packed_add(a: Int, b: Int): Int
+        encoding ".insn r 0x0B, 0, 0, rd, rs1, rs2" ;
+}

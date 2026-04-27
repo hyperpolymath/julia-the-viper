@@ -299,6 +299,9 @@ fn top_level_to_sexpr(tl: &jtv_core::TopLevel, out: &mut String, indent: usize) 
         jtv_core::TopLevel::Control(s) => {
             control_to_sexpr(s, out, indent);
         }
+        jtv_core::TopLevel::ExternCoproc(b) => {
+            out.push_str(&format!("(extern-coproc \"{}\")", b.gate_name));
+        }
     }
 }
 

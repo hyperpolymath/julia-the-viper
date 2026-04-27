@@ -1,0 +1,15 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+//
+// JtV coproc conformance: dev mode — no pata source, all blocks survive.
+//
+// Companion pata: none (pata_source = None)
+// Target:         aarch64-unknown-linux-gnu  (would normally kill this gate)
+// Expected:       ExternCoproc block retained unconditionally,
+//                 custom_op in namespace with no CoprocResolution annotation.
+
+extern coproc custom_ext {
+    @pure intrinsic custom_op(a: Int, b: Int): Int ;
+    @pure insn custom_load(ptr: Int): Int
+        encoding ".insn i 0x03, 0, rd, rs1, 0" ;
+}

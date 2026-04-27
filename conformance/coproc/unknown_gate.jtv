@@ -1,0 +1,12 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+//
+// JtV coproc conformance: gate name absent from pata → build error.
+//
+// Companion pata: unknown_gate.pata  (defines "some_other_gate", not "mystery_ext")
+// Target:         riscv64gc-unknown-none-elf
+// Expected:       CoprocResolutionFailed { gate: "mystery_ext" }
+
+extern coproc mystery_ext {
+    @pure intrinsic do_magic(a: Int): Int ;
+}

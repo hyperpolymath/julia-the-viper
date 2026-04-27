@@ -1,0 +1,18 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+//
+// JtV coproc conformance: live gate — two intrinsic decls retained.
+//
+// Companion pata: riscv.pata
+// Target:         riscv64gc-unknown-none-elf  +feature_v
+// Expected:       1 ExternCoproc block (live), vadd_i32 + vsub_i32 in namespace,
+//                 family = "riscv"
+
+extern coproc riscv_vec {
+    @pure intrinsic vadd_i32(a: Int, b: Int): Int ;
+    @pure intrinsic vsub_i32(a: Int, b: Int): Int ;
+}
+
+@pure fn scalar_add(a: Int, b: Int): Int {
+    return a + b
+}

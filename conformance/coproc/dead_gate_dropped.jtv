@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+//
+// JtV coproc conformance: dead gate — block silently dropped.
+//
+// Companion pata: riscv.pata
+// Target:         aarch64-unknown-linux-gnu  (no RISC-V features)
+// Expected:       ExternCoproc block absent from resolved program,
+//                 vadd_i32 NOT in namespace, fallback fn still present.
+
+extern coproc riscv_vec {
+    @pure intrinsic vadd_i32(a: Int, b: Int): Int ;
+}
+
+@pure fn fallback_add(a: Int, b: Int): Int {
+    return a + b
+}

@@ -1,0 +1,16 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+//
+// Companion PataCL source for JtV coproc conformance fixtures.
+// Mirrors the RISC-V gates from patacl/conformance/riscv.pata.
+
+pata v1
+
+gate riscv_vec  when arch == "riscv64" && feature_v
+family riscv_vec = "riscv"
+
+gate zbb        when arch == "riscv64" && feature_zbb
+family zbb = "riscv"
+
+gate riscv_any  when arch == "riscv64" || arch == "riscv32"
+family riscv_any = "riscv"
