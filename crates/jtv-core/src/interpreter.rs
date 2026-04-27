@@ -3,6 +3,7 @@ use crate::ast::*;
 use crate::coproc::CoprocNamespace;
 use crate::error::{JtvError, Result};
 use crate::number::Value;
+use crate::reversible::RecordedOp;
 use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -24,6 +25,10 @@ pub struct Interpreter {
     /// Native (Rust) implementations registered for lowered coproc functions.
     /// Keyed by unqualified function name, same as `coproc_ns`.
     native_impls: HashMap<String, NativeImpl>,
+    /// v2 reversal token store: token_id → operation log.
+    /// Tokens are linear; each is removed on `reverse tok` or `abandon tok`.
+    token_store: HashMap<u64, Vec<RecordedOp>>,
+    next_token_id: u64,
     /// Module definitions: module_name -> list of function names
     modules: HashMap<String, Vec<String>>,
     /// Imported modules (module_name -> optional alias)
@@ -53,6 +58,8 @@ impl Interpreter {
             functions: HashMap::new(),
             coproc_ns: CoprocNamespace::default(),
             native_impls: HashMap::new(),
+            token_store: HashMap::new(),
+            next_token_id: 0,
             modules: HashMap::new(),
             imports: HashMap::new(),
             call_stack: vec![],
@@ -124,6 +131,8 @@ impl Interpreter {
         self.functions.clear();
         self.coproc_ns = CoprocNamespace::default();
         self.native_impls.clear();
+        self.token_store.clear();
+        self.next_token_id = 0;
         self.modules.clear();
         self.imports.clear();
         self.call_stack.clear();
@@ -142,6 +151,17 @@ impl Interpreter {
 
     pub fn get_last_result(&self) -> Option<&Value> {
         self.last_result.as_ref()
+    }
+
+    /// Return the names of all extern coproc functions registered in the
+    /// current namespace, paired with their gate name.  Used by WASM bindings
+    /// so the JS host knows which callback slots to fill.
+    pub fn list_coproc_decls(&self) -> Vec<(String, String)> {
+        self.coproc_ns
+            .entries
+            .iter()
+            .map(|(fn_name, entry)| (entry.gate_name.clone(), fn_name.clone()))
+            .collect()
     }
 
     fn add_trace(&mut self, stmt_type: &str, line: &str) {
@@ -366,6 +386,18 @@ impl Interpreter {
                 self.eval_reverse_block(block)?;
                 Ok(None)
             }
+            ControlStmt::ReversibleBlock(stmt) => {
+                self.eval_reversible_block(stmt)?;
+                Ok(None)
+            }
+            ControlStmt::ReverseToken(tok_name) => {
+                self.eval_reverse_token(tok_name)?;
+                Ok(None)
+            }
+            ControlStmt::AbandonToken(tok_name) => {
+                self.eval_abandon_token(tok_name)?;
+                Ok(None)
+            }
             ControlStmt::Block(stmts) => {
                 for stmt in stmts {
                     if let Some(val) = self.eval_control_stmt(stmt)? {
@@ -407,6 +439,101 @@ impl Interpreter {
                 &format!("applied inverse of {} operations", block.body.len()));
         }
 
+        Ok(())
+    }
+
+    /// v2 — `reversible { stmts } -> tok`
+    ///
+    /// Runs the block forward using `execute_forward`, which records concrete
+    /// `RecordedOp` values.  The log is stored in `token_store` and the token
+    /// variable (if any) is bound to `Value::ReversalToken(id)`.
+    fn eval_reversible_block(&mut self, stmt: &ReversibleBlockStmt) -> Result<()> {
+        use crate::reversible::ReversibleInterpreter;
+
+        let mut rev = ReversibleInterpreter::with_state(self.globals.clone());
+        rev.execute_forward(&crate::ast::ReverseBlock { body: stmt.body.clone() })?;
+
+        // Sync the forward-pass state back to globals.
+        for (name, value) in rev.get_state() {
+            self.set_variable(name.clone(), value.clone());
+        }
+
+        // Store the log and optionally bind the token.
+        let id = self.next_token_id;
+        self.next_token_id += 1;
+        self.token_store.insert(id, rev.take_recorded_ops());
+
+        if let Some(tok_name) = &stmt.token_binding {
+            self.set_variable(tok_name.clone(), Value::ReversalToken(id));
+        }
+        // If no binding, the log is in the store but inaccessible — effectively abandoned.
+
+        if self.trace_enabled {
+            self.add_trace("reversible_block",
+                &format!("forward pass; token #{}", id));
+        }
+        Ok(())
+    }
+
+    /// v2 — `reverse tok`
+    ///
+    /// Looks up the token, retrieves the operation log, applies the inverses
+    /// in reverse order to the current state, then removes the token (linear
+    /// consumption guarantees no double-reversal).
+    fn eval_reverse_token(&mut self, tok_name: &str) -> Result<()> {
+        use crate::reversible::ReversibleInterpreter;
+
+        let tok_val = self.get_variable(tok_name)?;
+        let id = match tok_val {
+            Value::ReversalToken(id) => id,
+            other => return Err(JtvError::TypeError(
+                format!("`reverse` requires a ReversalToken, got {}", other)
+            )),
+        };
+
+        let ops = self.token_store.remove(&id).ok_or_else(|| {
+            JtvError::RuntimeError(format!(
+                "reversal token #{} already consumed or not found", id
+            ))
+        })?;
+
+        // Remove the token variable (it's been consumed).
+        self.globals.remove(tok_name);
+
+        // Apply inverses: build a ReverseTrace from the recorded ops and replay.
+        let mut rev = ReversibleInterpreter::with_state(self.globals.clone());
+        rev.apply_inverse_ops(&ops)?;
+
+        for (name, value) in rev.get_state() {
+            self.set_variable(name.clone(), value.clone());
+        }
+
+        if self.trace_enabled {
+            self.add_trace("reverse_token", &format!("consumed token #{}", id));
+        }
+        Ok(())
+    }
+
+    /// v2 — `abandon tok`
+    ///
+    /// Discards the operation log without applying inverses.  The forward state
+    /// is already in globals (committed during `reversible { }`).
+    /// Removes the token variable (linear consumption).
+    fn eval_abandon_token(&mut self, tok_name: &str) -> Result<()> {
+        let tok_val = self.get_variable(tok_name)?;
+        let id = match tok_val {
+            Value::ReversalToken(id) => id,
+            other => return Err(JtvError::TypeError(
+                format!("`abandon` requires a ReversalToken, got {}", other)
+            )),
+        };
+
+        self.token_store.remove(&id);
+        self.globals.remove(tok_name);
+
+        if self.trace_enabled {
+            self.add_trace("abandon_token", &format!("discarded token #{}", id));
+        }
         Ok(())
     }
 

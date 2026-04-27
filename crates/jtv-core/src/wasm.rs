@@ -23,9 +23,13 @@ use crate::typechecker::TypeChecker;
 #[cfg(target_arch = "wasm32")]
 use crate::formatter::format_code;
 #[cfg(target_arch = "wasm32")]
+use crate::number::Value;
+#[cfg(target_arch = "wasm32")]
 use crate::Interpreter;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
+#[cfg(target_arch = "wasm32")]
+use js_sys::{Array, Function};
 
 // ---------------------------------------------------------------------------
 // Stateful WASM interface: JtvWasm
@@ -311,6 +315,97 @@ impl JtvWasm {
     pub fn reset(&mut self) {
         self.interpreter.reset();
     }
+
+    // =======================================================================
+    // Coprocessor (extern coproc) — JS callback registration
+    // =======================================================================
+
+    /// Return a JSON array describing extern coproc functions the program
+    /// declared, so the JS host knows which callbacks to register.
+    ///
+    /// Each element has shape `{ "gate": "<gate>", "fn": "<fn_name>" }`.
+    /// The host must call `register_coproc_impl` for each listed function
+    /// before executing code that calls it, or execution will throw
+    /// `ExternCoprocNotYetLowered`.
+    #[wasm_bindgen]
+    pub fn list_coproc_decls(&self) -> Result<String, JsValue> {
+        let decls: Vec<serde_json::Value> = self
+            .interpreter
+            .list_coproc_decls()
+            .into_iter()
+            .map(|(gate, fn_name)| {
+                serde_json::json!({ "gate": gate, "fn": fn_name })
+            })
+            .collect();
+        serde_json::to_string(&decls)
+            .map_err(|e| JsValue::from_str(&format!("{}", e)))
+    }
+
+    /// Register a JavaScript function as the implementation for an extern
+    /// coproc function named `fn_name`.
+    ///
+    /// The JS callback receives each JtV argument as a JS number or string
+    /// and must return a number (interpreted as `Int`) or a string.
+    ///
+    /// Once registered, calls to `fn_name` inside JtV programs will dispatch
+    /// to the JS callback instead of raising `ExternCoprocNotYetLowered`.
+    #[wasm_bindgen]
+    pub fn register_coproc_impl(&mut self, fn_name: &str, callback: Function) {
+        // SAFETY: wasm32 is single-threaded; no thread boundary is crossed.
+        struct JsCallback(Function);
+        unsafe impl Send for JsCallback {}
+        unsafe impl Sync for JsCallback {}
+
+        let cb = JsCallback(callback);
+        self.interpreter.register_coproc_impl(fn_name, move |args| {
+            let js_args = Array::new();
+            for arg in args {
+                js_args.push(&jtv_value_to_js(arg));
+            }
+            let result = cb
+                .0
+                .apply(&JsValue::NULL, &js_args)
+                .map_err(|e| crate::error::JtvError::RuntimeError(
+                    format!("JS coproc callback error: {:?}", e),
+                ))?;
+            js_to_jtv_value(&result)
+        });
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Value ↔ JsValue helpers (WASM only)
+// ---------------------------------------------------------------------------
+
+/// Convert a JtV Value to a JavaScript value for passing into a JS callback.
+#[cfg(target_arch = "wasm32")]
+fn jtv_value_to_js(v: &Value) -> JsValue {
+    match v {
+        Value::Int(n) => JsValue::from_f64(*n as f64),
+        Value::Float(f) => JsValue::from_f64(*f),
+        Value::String(s) => JsValue::from_str(s),
+        Value::Bool(b) => JsValue::from_bool(*b),
+        other => JsValue::from_str(&format!("{}", other)),
+    }
+}
+
+/// Convert a JavaScript return value into a JtV Value.
+///
+/// Numbers become `Value::Int` (truncated).  Strings become `Value::String`.
+/// Everything else is stringified.
+#[cfg(target_arch = "wasm32")]
+fn js_to_jtv_value(v: &JsValue) -> crate::error::Result<Value> {
+    if let Some(n) = v.as_f64() {
+        return Ok(Value::Int(n as i64));
+    }
+    if let Some(s) = v.as_string() {
+        return Ok(Value::String(s));
+    }
+    if let Some(b) = v.as_bool() {
+        return Ok(Value::Bool(b));
+    }
+    // Fallback: convert to string representation
+    Ok(Value::String(format!("{:?}", v)))
 }
 
 // ---------------------------------------------------------------------------
@@ -566,6 +661,89 @@ mod tests {
         let last = interp.get_last_result();
         assert!(last.is_some());
         assert_eq!(format!("{}", last.unwrap()), "42");
+    }
+
+    // =======================================================================
+    // Coprocessor / native impl tests (exercises the same code path that
+    // the WASM JS registration uses, without requiring a wasm32 target)
+    // =======================================================================
+
+    #[test]
+    fn test_list_coproc_decls_empty_when_no_extern() {
+        let code = "x = 1";
+        let program = crate::parse_program(code).unwrap();
+        let mut interp = Interpreter::new();
+        interp.run(&program).unwrap();
+        assert!(interp.list_coproc_decls().is_empty());
+    }
+
+    #[test]
+    fn test_native_impl_registered_and_called() {
+        // Register a native impl for "add_one", then call it from JtV.
+        let code = r#"
+extern coproc math_gate {
+    @pure intrinsic add_one(n: Int): Int ;
+}
+result = add_one(41)
+"#;
+        let program = crate::parse_program(code).unwrap();
+        let mut interp = Interpreter::new();
+        // Resolve coproc blocks without PataCL (None env = all live)
+        let env = crate::coproc::CoprocEnv::from_triple("x86_64-unknown-linux-gnu", &[]);
+        let (program, ns) = crate::coproc::resolve_coproc_blocks(program, &env, None).unwrap();
+        interp.register_coproc_namespace(ns);
+        // Register native impl: add_one(n) = n + 1
+        interp.register_coproc_impl("add_one", |args| {
+            if let crate::number::Value::Int(n) = args[0] {
+                Ok(crate::number::Value::Int(n + 1))
+            } else {
+                Err(crate::error::JtvError::RuntimeError("expected Int".into()))
+            }
+        });
+        interp.run(&program).unwrap();
+        let result = interp.get_variable("result").unwrap();
+        assert_eq!(result, crate::number::Value::Int(42));
+    }
+
+    #[test]
+    fn test_list_coproc_decls_reports_registered_fns() {
+        let code = r#"
+extern coproc math_gate {
+    @pure intrinsic add_one(n: Int): Int ;
+    @pure intrinsic double(n: Int): Int ;
+}
+"#;
+        let program = crate::parse_program(code).unwrap();
+        let env = crate::coproc::CoprocEnv::from_triple("x86_64-unknown-linux-gnu", &[]);
+        let (_program, ns) = crate::coproc::resolve_coproc_blocks(program, &env, None).unwrap();
+        let mut interp = Interpreter::new();
+        interp.register_coproc_namespace(ns);
+        let decls = interp.list_coproc_decls();
+        let fn_names: Vec<&str> = decls.iter().map(|(_, f)| f.as_str()).collect();
+        assert!(fn_names.contains(&"add_one"), "expected add_one in {:?}", fn_names);
+        assert!(fn_names.contains(&"double"), "expected double in {:?}", fn_names);
+        // Both should have gate name "math_gate"
+        for (gate, _) in &decls {
+            assert_eq!(gate, "math_gate");
+        }
+    }
+
+    #[test]
+    fn test_unregistered_coproc_fn_errors() {
+        let code = r#"
+extern coproc math_gate {
+    @pure intrinsic add_one(n: Int): Int ;
+}
+result = add_one(1)
+"#;
+        let program = crate::parse_program(code).unwrap();
+        let env = crate::coproc::CoprocEnv::from_triple("x86_64-unknown-linux-gnu", &[]);
+        let (program, ns) = crate::coproc::resolve_coproc_blocks(program, &env, None).unwrap();
+        let mut interp = Interpreter::new();
+        interp.register_coproc_namespace(ns);
+        // No native impl registered — should error
+        let result = interp.run(&program);
+        assert!(result.is_err(), "Expected ExternCoprocNotYetLowered error");
     }
 
     #[test]
