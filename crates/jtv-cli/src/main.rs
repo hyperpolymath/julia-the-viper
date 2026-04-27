@@ -85,6 +85,20 @@ enum Commands {
     /// Start the interactive REPL
     Repl,
 
+    /// Format a JtV source file (prints to stdout; use shell redirection to overwrite)
+    Fmt {
+        /// Path to the .jtv file (use '-' for stdin)
+        file: String,
+
+        /// Write result back to the file instead of stdout
+        #[arg(short, long)]
+        write: bool,
+
+        /// Exit with non-zero status if the file would change (check mode)
+        #[arg(long)]
+        check: bool,
+    },
+
     /// Lower live extern coproc decls to Zig FFI + Idris2 ABI + C headers
     Lower {
         /// Path to the .jtv source file
@@ -152,6 +166,12 @@ fn main() {
         Commands::Repl => {
             let mut repl = Repl::new();
             if let Err(e) = repl.run() {
+                eprintln!("{} {}", "Error:".red().bold(), e);
+                std::process::exit(1);
+            }
+        }
+        Commands::Fmt { file, write, check } => {
+            if let Err(e) = fmt_file(&file, write, check) {
                 eprintln!("{} {}", "Error:".red().bold(), e);
                 std::process::exit(1);
             }
@@ -268,6 +288,33 @@ fn check_file(file_path: &str) -> Result<(), String> {
     purity_checker
         .check_program(&program)
         .map_err(|e| format!("Purity error: {}", e))?;
+
+    Ok(())
+}
+
+fn fmt_file(file_path: &str, write: bool, check: bool) -> Result<(), String> {
+    let original = read_file(file_path)?;
+    let formatted = format_code(&original).map_err(|e| format!("Format error: {}", e))?;
+
+    if check {
+        if formatted == original {
+            println!("{} {}", "✓".green().bold(), file_path);
+        } else {
+            eprintln!("{} {} would be reformatted", "✗".red().bold(), file_path);
+            std::process::exit(1);
+        }
+        return Ok(());
+    }
+
+    if write {
+        if file_path == "-" {
+            return Err("--write cannot be used with stdin input".into());
+        }
+        fs::write(file_path, &formatted).map_err(|e| format!("Write error: {}", e))?;
+        println!("{} {}", "✓".green().bold(), file_path);
+    } else {
+        print!("{}", formatted);
+    }
 
     Ok(())
 }
