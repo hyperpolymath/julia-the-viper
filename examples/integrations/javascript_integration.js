@@ -159,7 +159,7 @@ async function parallelExecutionExample() {
   console.log("\n=== Example 4: Parallel Execution ===\n");
 
   // Pure functions can be executed in parallel safely
-  const tasks = [1, 2, 3, 4, 5].map(async (n) => {
+  const tasks = [1, 2, 3, 4, 5].map((n) => {
     const jtv = new JtvWasm();
 
     const code = `
