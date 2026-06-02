@@ -91,6 +91,18 @@ Note: termination is per-input, not bounded.
 
 == 8. Echo System
 
+The Echo system tracks *structured loss (non-total erasure)*. Its canonical
+formal model is the `echo-types` Agda library (`hyperpolymath/echo-types`),
+where the echo of `f` at `y` is the fibre `Echo f y := Σ x, f x ≡ y`; the finite
+executable companion is `EchoTypes.jl`. JtV's three classes correspond to:
+
+* `EchoSafe`     — injective `f` (singleton fibre): no loss, reversible.
+* `EchoNeutral`  — non-injective, residue retained: structured loss.
+* `EchoBreaking` — total erasure: information destroyed.
+
+Mechanized model: `jtv_proofs/JtvEcho.lean` (`verified`).
+Implementation: `crates/jtv-core/src/echo.rs` (lattice + reverse-block gate).
+
 Echo ::= EchoSafe | EchoNeutral | EchoBreaking
 
 Join:
