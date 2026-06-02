@@ -89,6 +89,13 @@ Note: termination is per-input, not bounded.
 @impure:
 - unrestricted
 
+Echo annotations (orthogonal to purity):
+
+@echo(safe|neutral|breaking):
+- checked declaration/override of an operation's loss class
+- inferred from operation shape when absent
+- required at boundaries, foreign calls, and audited APIs (not inferred there)
+
 == 8. Echo System
 
 The Echo system tracks *structured loss (non-total erasure)*. Its canonical
@@ -171,7 +178,10 @@ Future:
 - Safe fragment termination holds
 - Halting boundary is syntactic
 - Echo does not affect value typing (Echo is a separate effect dimension)
-- Lossy widening (e.g. Float→Int) raises echo to EchoNeutral; lossless widening
-  stays EchoSafe. (Revises the earlier "widening independent of echo": widening
-  may raise the echo dimension, though it still never changes the value type.)
+- Numeric conversions carry echo (revises "widening independent of echo"):
+  * exact / injective representation-preserving conversion ⇒ EchoSafe
+  * lossy but residue-retained conversion ⇒ EchoNeutral
+  * lossy without usable residue ⇒ EchoBreaking
+  (e.g. Float→Int is EchoNeutral or EchoBreaking per residue retention.)
+  The conversion still never changes the *value* type — echo is separate.
 

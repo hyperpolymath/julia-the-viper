@@ -94,6 +94,10 @@ induction. Corrected as part of the Phase-1 doc-truthing pass.
 The Rust gate (`TypeChecker::check_echo_admissible`) raises
 `JtvError::EchoViolation` exactly when `blockEcho_admissible` returns `false`.
 
+*Authority:* `JtvEcho.lean` is authoritative for JtV implementation semantics;
+the `echo-types` Agda library is the conceptual source/reference. The Agda↔Lean
+bridge is deferred to Phase 4 — grammar v2 is not blocked on a cross-prover bridge.
+
 == Outstanding proof work (sequenced in ALIGNMENT-AFFINESCRIPT.adoc)
 
 * PROOF-1 `parser_correctness` (High) — `absent`.

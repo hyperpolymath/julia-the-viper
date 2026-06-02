@@ -117,19 +117,32 @@ truthing discipline, because a mechanized proof cannot lie.
 
 ==== Design decisions (2026-06-02)
 
-. *Echo is effect-only (value type later)* — a static dimension alongside
-  `Purity`, not a value type (spec §12). A first-class `Echo<T>` value type is
-  deferred; the AST/`Type` are to be designed so it can be added *without
-  rework*.
+Echo's semantic object is *retained-loss lineage* — proof-relevant provenance of
+collapsed/weakened/sampled/projected/degraded information. It is **not** a
+generic wrapper, a generic Σ-type, or a decorative effect.
+
+. *Echo is effect-only (value type later)* — for grammar v2, Echo is an effect
+  *classification dimension* alongside `Purity`, not a first-class runtime
+  residue type. The AST/grammar shape is reserved so a value-level `Echo<T>`
+  (carrying the residue) can be added later *without redesign*.
 . *Safe-only reversal* — reverse blocks accept only `EchoSafe`; `Neutral` and
-  `Breaking` are rejected (see §9 implementation note).
-. *Echo source = inference only (no annotation)* — echo is inferred from
-  operation shape; there is no `@echo` annotation. *Lossy numeric widening*
-  (e.g. `Float→Int`) carries `EchoNeutral`, which revises spec §12's "widening
-  independent of echo" (the value type is still unaffected — echo is a separate
-  dimension). [Phase-2 implementation: wire echo through `infer_data_expr`.]
-. *Agda↔Lean proof bridge: independent* — `JtvEcho.lean` re-mechanizes the
-  model; `echo-types` remains the sibling Agda source of truth, cited not linked.
+  `Breaking` are rejected (see §9 implementation note). This is stricter than the
+  earlier spec but matches current interpreter reality. Later, `EchoNeutral` may
+  be admitted *only* with an explicit carried Bennett residue / residue inversion.
+. *Echo source = infer + `@echo` annotations* — inferred from operation shape by
+  default, with `@echo(safe|neutral|breaking)` accepted as *checked*
+  declarations/overrides. Not infer-only (boundaries, foreign calls, and audited
+  APIs need declarations) and not annotation-everywhere. [Phase-2: wire echo
+  through `infer_data_expr` + parse `@echo`.]
+. *Numeric conversions carry echo* (revises spec §12 "independent of echo"):
+  exact/injective representation-preserving ⇒ `EchoSafe`; lossy but
+  residue-retained ⇒ `EchoNeutral`; lossy without usable residue ⇒ `EchoBreaking`.
+  `Float→Int` is `Neutral` or `Breaking` per residue retention. The *value* type
+  is still unaffected — echo is a separate dimension.
+. *Formal layer: independent Lean for Phase 2* — `JtvEcho.lean` is authoritative
+  for JtV implementation semantics now; `echo-types` Agda remains the conceptual
+  source/reference. The Agda↔Lean bridge is deferred to Phase 4; grammar v2 is
+  *not* blocked on a cross-prover bridge.
 
 === Phase 2 — Echo Types in the checker (commenced here)
 

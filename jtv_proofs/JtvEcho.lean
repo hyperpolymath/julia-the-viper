@@ -5,15 +5,19 @@
   with the `echo-types` Agda library (hyperpolymath/echo-types) and its
   executable companion `EchoTypes.jl`.
 
-  An **Echo** classifies the information-loss behaviour of an operation:
+  PRINCIPLE: Echo is about *structured, proof-relevant loss* — information may
+  be collapsed, weakened, sampled, projected, or degraded, but the
+  residue / provenance / lineage of that loss is still representable. The fibre
+  `Echo f y := Σ x, f x = y` is used not as a generic Σ-type but as the carrier
+  of *retained-loss lineage*: it records which inputs were collapsed into `y`.
 
-    * `safe`     — no loss. The operation is injective / reversible
-                   (its fibre over any output is a subsingleton).
-    * `neutral`  — *structured loss* (non-total erasure). Information is lost,
-                   but a residue witness is retained: the fibre
-                   `Echo f y := Σ x, f x = y` is non-trivial yet bounded.
-    * `breaking` — *total erasure*. Information is destroyed and cannot be
-                   recovered or inverted.
+  An **Echo** classifies the loss behaviour of an operation:
+
+    * `safe`     — no loss. The operation is injective / reversible; its fibre
+                   over any output is a subsingleton, so lineage is trivial.
+    * `neutral`  — *structured loss*. Information is collapsed, but the fibre
+                   retains the loss lineage (non-trivial yet bounded).
+    * `breaking` — *total erasure*. Lineage is destroyed; cannot be inverted.
 
   Lattice order:  `safe ⊑ neutral ⊑ breaking`  (join moves rightward, losing
   guarantees — mirroring the effect lattice `Total ⊑ Pure ⊑ Impure`).

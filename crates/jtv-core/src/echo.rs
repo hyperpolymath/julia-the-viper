@@ -6,13 +6,20 @@
 // This implements the type-checker side of JtV's Echo system (spec v2 §8–9,
 // §12) and is the executable counterpart of the formal model in
 // `jtv_proofs/JtvEcho.lean`. The taxonomy aligns with the `echo-types` Agda
-// library (hyperpolymath/echo-types) and its companion `EchoTypes.jl`:
+// library (hyperpolymath/echo-types) and its companion `EchoTypes.jl`.
+//
+// PRINCIPLE: Echo is about *structured, proof-relevant loss* — information may
+// be collapsed, weakened, sampled, projected, or degraded, but the
+// residue / provenance / lineage of that loss is still representable. Echo is
+// NOT a generic wrapper, a generic Σ-type, or a decorative effect; the object
+// of interest is *retained-loss lineage*.
 //
 //   * `Safe`     — no loss: the operation is injective / reversible
-//                  (`+` ↔ `-`). Its fibre over any output is a subsingleton.
-//   * `Neutral`  — structured loss (non-total erasure): information is lost
-//                  but a residue witness is retained.
-//   * `Breaking` — total erasure: information is destroyed; not invertible.
+//                  (`+` ↔ `-`). Its fibre over any output is a subsingleton,
+//                  so the lineage is trivial.
+//   * `Neutral`  — structured loss: information is collapsed, but a residue
+//                  carrying the loss lineage/provenance is retained.
+//   * `Breaking` — total erasure: lineage is destroyed; not invertible.
 //
 // Lattice order: `Safe ⊑ Neutral ⊑ Breaking` (join loses guarantees). The
 // headline rule, proved as `blockEcho_admissible` in Lean, is that a reverse
