@@ -4,6 +4,11 @@
 # proof-regression.yml — Verify that formal proofs still compile after code changes.
 # Covers: Lean 4 mechanized proofs (jtv_proofs/) and Idris2 ABI types (src/abi/).
 # Taxonomy category: Proof Regression (PRF)
+#
+# NOTE: existence checks are performed in a post-checkout STEP rather than a
+# job-level `if: hashFiles(...)`. `hashFiles` at job-condition time runs before
+# checkout (empty workspace), which can produce a workflow "startup_failure"
+# run with zero scheduled jobs. Guarding per-step after checkout is reliable.
 name: Proof Regression
 
 on:
@@ -36,59 +41,97 @@ jobs:
   lean4-proofs:
     name: Lean 4 proof verification
     runs-on: ubuntu-latest
-    if: hashFiles('jtv_proofs/lakefile.lean') != ''
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
+      - name: Detect Lean proof project
+        id: detect
+        run: |
+          if [ -f jtv_proofs/lakefile.lean ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "No jtv_proofs/lakefile.lean — skipping Lean verification."
+          fi
+
       - name: Install elan (Lean toolchain manager)
+        if: steps.detect.outputs.present == 'true'
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
-      - name: Cache Lean build
-        uses: actions/cache@v4
-        with:
-          path: |
-            jtv_proofs/.lake
-            jtv_proofs/build
-          key: lean4-${{ hashFiles('jtv_proofs/lakefile.lean', 'jtv_proofs/lean-toolchain') }}
-          restore-keys: lean4-
+      # NOTE: no actions/cache step — a pinned cache SHA can be auto-failed by
+      # GitHub when that release is deprecated, and a cold Lean build is fine for
+      # this path-filtered job. Re-add a *current* actions/cache@v4 SHA if build
+      # time becomes a problem.
 
       - name: Build Lean proofs
+        if: steps.detect.outputs.present == 'true'
         working-directory: jtv_proofs
         run: |
           lake build
-          echo "## Lean 4 Proof Verification" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "All proofs compiled successfully." >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "## Lean 4 Proof Verification"
+            echo ""
+            echo "All proofs compiled successfully."
+          } >> "$GITHUB_STEP_SUMMARY"
 
   idris2-abi:
     name: Idris2 ABI type verification
     runs-on: ubuntu-latest
-    if: hashFiles('src/abi/Types.idr') != ''
+    # Generous: when no distro package exists, idris2-pack bootstraps Idris2
+    # from source against a Chez Scheme backend, which is slow.
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
+      - name: Detect Idris2 ABI sources
+        id: detect
+        run: |
+          if [ -f src/abi/Types.idr ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "No src/abi/Types.idr — skipping Idris2 verification."
+          fi
+
       - name: Install Idris2
+        if: steps.detect.outputs.present == 'true'
         run: |
           sudo apt-get update
-          sudo apt-get install -y idris2 || {
-            # Fallback: install from pack
-            curl -sSf https://raw.githubusercontent.com/stefan-hoeck/idris2-pack/main/install.bash | bash
+          # Prefer the distro package. If unavailable, bootstrap via idris2-pack.
+          if ! sudo apt-get install -y idris2; then
+            # idris2-pack needs a Chez Scheme backend.
+            sudo apt-get install -y chezscheme
+            # Debian/Ubuntu name the Chez binary `chez`; fall back to others.
+            scheme_bin="$(command -v chez || command -v chezscheme || command -v scheme || echo chez)"
+            echo "Using Scheme backend: $scheme_bin"
+            # IMPORTANT: download the installer to a FILE. Running it via
+            # `curl | bash` makes its interactive `read SCHEME` consume the
+            # script's own text as the answer. With a file + the Scheme name on
+            # stdin, the prompt is answered correctly and later reads hit EOF
+            # (taking defaults).
+            curl -sSfL -o /tmp/idris2-pack-install.bash \
+              https://raw.githubusercontent.com/stefan-hoeck/idris2-pack/main/install.bash
+            printf '%s\n' "$scheme_bin" | bash /tmp/idris2-pack-install.bash
             echo "$HOME/.pack/bin" >> "$GITHUB_PATH"
-          }
+          fi
 
       - name: Check Idris2 ABI types
+        if: steps.detect.outputs.present == 'true'
         run: |
           cd src/abi
           idris2 --check Types.idr || {
             echo "::error::Idris2 ABI type definitions failed to compile"
             exit 1
           }
-          echo "## Idris2 ABI Verification" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "ABI type definitions verified successfully." >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "## Idris2 ABI Verification"
+            echo ""
+            echo "ABI type definitions verified successfully."
+          } >> "$GITHUB_STEP_SUMMARY"

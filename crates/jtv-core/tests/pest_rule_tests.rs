@@ -666,19 +666,28 @@ fn rule_param_list_multiple() {
 
 #[test]
 fn rule_function_decl_simple() {
-    let result = JtvParser::parse(Rule::function_decl, "fn add(a: Int, b: Int): Int { return a + b }");
+    let result = JtvParser::parse(
+        Rule::function_decl,
+        "fn add(a: Int, b: Int): Int { return a + b }",
+    );
     assert!(result.is_ok());
 }
 
 #[test]
 fn rule_function_decl_pure() {
-    let result = JtvParser::parse(Rule::function_decl, "@pure fn double(x: Int): Int { return x + x }");
+    let result = JtvParser::parse(
+        Rule::function_decl,
+        "@pure fn double(x: Int): Int { return x + x }",
+    );
     assert!(result.is_ok());
 }
 
 #[test]
 fn rule_function_decl_total() {
-    let result = JtvParser::parse(Rule::function_decl, "@total fn identity(x: Int): Int { return x }");
+    let result = JtvParser::parse(
+        Rule::function_decl,
+        "@total fn identity(x: Int): Int { return x }",
+    );
     assert!(result.is_ok());
 }
 
@@ -803,9 +812,9 @@ fn rule_program_mixed() {
 #[test]
 fn rule_keyword_matches_all() {
     let keywords = [
-        "module", "import", "as", "fn", "return", "if", "else", "while", "for", "in",
-        "print", "reverse", "Int", "Float", "Rational", "Complex", "Hex", "Binary",
-        "Symbolic", "Bool", "String", "List", "Fn", "true", "false",
+        "module", "import", "as", "fn", "return", "if", "else", "while", "for", "in", "print",
+        "reverse", "Int", "Float", "Rational", "Complex", "Hex", "Binary", "Symbolic", "Bool",
+        "String", "List", "Fn", "true", "false",
     ];
     for kw in &keywords {
         let result = JtvParser::parse(Rule::keyword, kw);

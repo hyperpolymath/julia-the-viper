@@ -28,6 +28,10 @@
 Thumbs.db
 .Trash-*/
 
+# Lean 4 / Lake build artifacts
+**/.lake/
+jtv_proofs/lake-manifest.json
+
 # Temporary
 *.tmp
 *.log

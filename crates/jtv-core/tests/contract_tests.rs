@@ -53,9 +53,8 @@ fn contract_data_expr_variants_are_addition_only() {
             DataExpr::Negate(_) => {}
             DataExpr::FunctionCall(_) => {}
             DataExpr::List(_) => {}
-            DataExpr::Tuple(_) => {}
-            // If a new variant is added, this match becomes non-exhaustive
-            // and the test fails to compile — alerting us to a broken contract.
+            DataExpr::Tuple(_) => {} // If a new variant is added, this match becomes non-exhaustive
+                                     // and the test fails to compile — alerting us to a broken contract.
         }
     }
     assert_eq!(variants.len(), 8, "DataExpr must have exactly 8 variants");
@@ -187,10 +186,7 @@ fn contract_reversibility_identity_int() {
 #[test]
 fn contract_reversibility_identity_rational() {
     let mut interp = ReversibleInterpreter::new();
-    interp.set(
-        "r".to_string(),
-        Value::Rational(Ratio::new(1, 3)),
-    );
+    interp.set("r".to_string(), Value::Rational(Ratio::new(1, 3)));
     let original = interp.get_state().clone();
 
     let block = ReverseBlock {
@@ -207,10 +203,7 @@ fn contract_reversibility_identity_rational() {
 #[test]
 fn contract_reversibility_identity_complex() {
     let mut interp = ReversibleInterpreter::new();
-    interp.set(
-        "c".to_string(),
-        Value::Complex(Complex64::new(3.0, 4.0)),
-    );
+    interp.set("c".to_string(), Value::Complex(Complex64::new(3.0, 4.0)));
     let original = interp.get_state().clone();
 
     let block = ReverseBlock {
@@ -226,10 +219,7 @@ fn contract_reversibility_identity_complex() {
     let state = interp.get_state();
     match (state.get("c"), original.get("c")) {
         (Some(Value::Complex(got)), Some(Value::Complex(expected))) => {
-            assert!(
-                (got.re - expected.re).abs() < 1e-10,
-                "Real part mismatch"
-            );
+            assert!((got.re - expected.re).abs() < 1e-10, "Real part mismatch");
             assert!(
                 (got.im - expected.im).abs() < 1e-10,
                 "Imaginary part mismatch"
@@ -312,7 +302,9 @@ fn contract_comparison_uses_data_operands() {
 fn contract_all_seven_number_types_can_add_with_identity() {
     let cases: Vec<(Value, Value, &str)> = vec![
         (Value::Int(42), Value::Int(0), "Int"),
-        (Value::Float(3.14), Value::Float(0.0), "Float"),
+        // Arbitrary non-special float (avoid the PI-approximation lint; the
+        // exact value is irrelevant — this case only checks `x + 0.0 == x`).
+        (Value::Float(2.5), Value::Float(0.0), "Float"),
         (
             Value::Rational(Ratio::new(1, 3)),
             Value::Rational(Ratio::new(0, 1)),
@@ -352,10 +344,7 @@ fn contract_integer_overflow_returns_error() {
     let max = Value::Int(i64::MAX);
     let one = Value::Int(1);
     let result = max.add(&one);
-    assert!(
-        result.is_err(),
-        "i64::MAX + 1 must return Err, not panic"
-    );
+    assert!(result.is_err(), "i64::MAX + 1 must return Err, not panic");
 }
 
 #[test]

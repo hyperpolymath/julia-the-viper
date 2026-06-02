@@ -211,18 +211,14 @@ fn no_eval_keyword() {
     if let Ok(program) = result {
         // If it parsed, it must be as a data expression (function call), not control
         for stmt in &program.statements {
-            match stmt {
-                jtv_core::TopLevel::Control(ctrl) => match ctrl {
-                    jtv_core::ControlStmt::Assignment(assign) => {
-                        // The "eval(...)" parsed as a function call in data context — safe
-                        assert!(
-                            matches!(assign.value, jtv_core::Expr::Data(_)),
-                            "eval must parse as data (function call), never as control"
-                        );
-                    }
-                    _ => {} // Other control statements are fine
-                },
-                _ => {}
+            // Other top-level / control statements are fine; we only need to
+            // assert that an `eval(...)` that parses as an assignment value did
+            // so in the *data* sublanguage (a function call), never as control.
+            if let jtv_core::TopLevel::Control(jtv_core::ControlStmt::Assignment(assign)) = stmt {
+                assert!(
+                    matches!(assign.value, jtv_core::Expr::Data(_)),
+                    "eval must parse as data (function call), never as control"
+                );
             }
         }
     }
@@ -318,10 +314,7 @@ fn control_while_with_data_condition() {
 #[test]
 fn reverse_block_accepts_add_assign() {
     let code = r#"reverse { x += 5 }"#;
-    assert!(
-        parse_program(code).is_ok(),
-        "Reverse block must accept +="
-    );
+    assert!(parse_program(code).is_ok(), "Reverse block must accept +=");
 }
 
 #[test]

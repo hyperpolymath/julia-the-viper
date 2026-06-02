@@ -44,12 +44,12 @@ use crate::coproc::{CoprocEntry, CoprocKind, CoprocNamespace};
 
 fn to_zig_type(t: &TypeAnnotation) -> &'static str {
     match t {
-        TypeAnnotation::Basic(BasicType::Int)      => "i64",
-        TypeAnnotation::Basic(BasicType::Float)    => "f64",
-        TypeAnnotation::Basic(BasicType::Hex)      => "u64",
-        TypeAnnotation::Basic(BasicType::Binary)   => "u64",
+        TypeAnnotation::Basic(BasicType::Int) => "i64",
+        TypeAnnotation::Basic(BasicType::Float) => "f64",
+        TypeAnnotation::Basic(BasicType::Hex) => "u64",
+        TypeAnnotation::Basic(BasicType::Binary) => "u64",
         TypeAnnotation::Basic(BasicType::Rational) => "i64",
-        TypeAnnotation::Basic(BasicType::Complex)  => "i64",
+        TypeAnnotation::Basic(BasicType::Complex) => "i64",
         TypeAnnotation::Basic(BasicType::Symbolic) => "[*:0]const u8",
         _ => "i64",
     }
@@ -57,12 +57,12 @@ fn to_zig_type(t: &TypeAnnotation) -> &'static str {
 
 fn to_c_type(t: &TypeAnnotation) -> &'static str {
     match t {
-        TypeAnnotation::Basic(BasicType::Int)      => "int64_t",
-        TypeAnnotation::Basic(BasicType::Float)    => "double",
-        TypeAnnotation::Basic(BasicType::Hex)      => "uint64_t",
-        TypeAnnotation::Basic(BasicType::Binary)   => "uint64_t",
+        TypeAnnotation::Basic(BasicType::Int) => "int64_t",
+        TypeAnnotation::Basic(BasicType::Float) => "double",
+        TypeAnnotation::Basic(BasicType::Hex) => "uint64_t",
+        TypeAnnotation::Basic(BasicType::Binary) => "uint64_t",
         TypeAnnotation::Basic(BasicType::Rational) => "int64_t",
-        TypeAnnotation::Basic(BasicType::Complex)  => "int64_t",
+        TypeAnnotation::Basic(BasicType::Complex) => "int64_t",
         TypeAnnotation::Basic(BasicType::Symbolic) => "const char*",
         _ => "int64_t",
     }
@@ -70,12 +70,12 @@ fn to_c_type(t: &TypeAnnotation) -> &'static str {
 
 fn to_idris2_type(t: &TypeAnnotation) -> &'static str {
     match t {
-        TypeAnnotation::Basic(BasicType::Int)      => "Int",
-        TypeAnnotation::Basic(BasicType::Float)    => "Double",
-        TypeAnnotation::Basic(BasicType::Hex)      => "Bits64",
-        TypeAnnotation::Basic(BasicType::Binary)   => "Bits64",
+        TypeAnnotation::Basic(BasicType::Int) => "Int",
+        TypeAnnotation::Basic(BasicType::Float) => "Double",
+        TypeAnnotation::Basic(BasicType::Hex) => "Bits64",
+        TypeAnnotation::Basic(BasicType::Binary) => "Bits64",
         TypeAnnotation::Basic(BasicType::Rational) => "Int",
-        TypeAnnotation::Basic(BasicType::Complex)  => "Int",
+        TypeAnnotation::Basic(BasicType::Complex) => "Int",
         TypeAnnotation::Basic(BasicType::Symbolic) => "String",
         _ => "Int",
     }
@@ -173,7 +173,13 @@ pub fn lower_namespace(ns: &CoprocNamespace) -> Vec<LoweredGate> {
             let zig_source = emit_zig(&gate_name, &family, &fns);
             let idris2_source = emit_idris2(&gate_name, &family, &fns);
             let c_header = emit_c_header(&gate_name, &family, &fns);
-            LoweredGate { gate_name, family, zig_source, idris2_source, c_header }
+            LoweredGate {
+                gate_name,
+                family,
+                zig_source,
+                idris2_source,
+                c_header,
+            }
         })
         .collect()
 }
@@ -184,17 +190,23 @@ pub fn lower_namespace(ns: &CoprocNamespace) -> Vec<LoweredGate> {
 /// subdirectories as needed.
 pub fn write_lowered(gates: &[LoweredGate], root_dir: &Path) -> io::Result<()> {
     for gate in gates {
-        let zig_path = root_dir.join(&gate.zig_path());
-        let idr_path = root_dir.join(&gate.idris2_path());
-        let h_path = root_dir.join(&gate.c_header_path());
+        let zig_path = root_dir.join(gate.zig_path());
+        let idr_path = root_dir.join(gate.idris2_path());
+        let h_path = root_dir.join(gate.c_header_path());
 
-        if let Some(parent) = zig_path.parent() { std::fs::create_dir_all(parent)?; }
-        if let Some(parent) = idr_path.parent()  { std::fs::create_dir_all(parent)?; }
-        if let Some(parent) = h_path.parent()     { std::fs::create_dir_all(parent)?; }
+        if let Some(parent) = zig_path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        if let Some(parent) = idr_path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        if let Some(parent) = h_path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
 
         std::fs::write(&zig_path, &gate.zig_source)?;
         std::fs::write(&idr_path, &gate.idris2_source)?;
-        std::fs::write(&h_path,   &gate.c_header)?;
+        std::fs::write(&h_path, &gate.c_header)?;
     }
     Ok(())
 }
@@ -216,20 +228,31 @@ fn emit_zig(gate: &str, family: &str, fns: &BTreeMap<String, &CoprocEntry>) -> S
         let kind_label = match &entry.kind {
             CoprocKind::Intrinsic => "intrinsic".to_string(),
             CoprocKind::Insn { encoding: None } => "insn".to_string(),
-            CoprocKind::Insn { encoding: Some(enc) } => format!("insn (encoding: {})", enc),
+            CoprocKind::Insn {
+                encoding: Some(enc),
+            } => format!("insn (encoding: {})", enc),
         };
 
-        out.push_str(&format!("/// {}: {} — supply a platform implementation.\n",
-            kind_label, fn_name));
+        out.push_str(&format!(
+            "/// {}: {} — supply a platform implementation.\n",
+            kind_label, fn_name
+        ));
 
         // Build parameter list
-        let params: Vec<String> = entry.param_types.iter().enumerate()
+        let params: Vec<String> = entry
+            .param_types
+            .iter()
+            .enumerate()
             .map(|(i, ty)| format!("{}: {}", param_name(i), to_zig_type(ty)))
             .collect();
         let ret_ty = to_zig_type(&entry.return_type);
 
-        out.push_str(&format!("pub export fn {}({}) {} {{\n",
-            symbol, params.join(", "), ret_ty));
+        out.push_str(&format!(
+            "pub export fn {}({}) {} {{\n",
+            symbol,
+            params.join(", "),
+            ret_ty
+        ));
         out.push_str("    unreachable;\n");
         out.push_str("}\n\n");
     }
@@ -294,7 +317,10 @@ fn emit_c_header(gate: &str, family: &str, fns: &BTreeMap<String, &CoprocEntry>)
         let symbol = sym(gate, fn_name);
         let ret_ty = to_c_type(&entry.return_type);
 
-        let params: Vec<String> = entry.param_types.iter().enumerate()
+        let params: Vec<String> = entry
+            .param_types
+            .iter()
+            .enumerate()
             .map(|(i, ty)| format!("{} {}", to_c_type(ty), param_name(i)))
             .collect();
 

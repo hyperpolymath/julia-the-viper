@@ -27,9 +27,9 @@ use crate::number::Value;
 #[cfg(target_arch = "wasm32")]
 use crate::Interpreter;
 #[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
-#[cfg(target_arch = "wasm32")]
 use js_sys::{Array, Function};
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::prelude::*;
 
 // ---------------------------------------------------------------------------
 // Stateful WASM interface: JtvWasm
@@ -68,8 +68,7 @@ impl JtvWasm {
     /// `get_output()`. Throws a JS error string on parse or runtime failure.
     #[wasm_bindgen]
     pub fn run(&mut self, code: &str) -> Result<String, JsValue> {
-        let program =
-            parse_program(code).map_err(|e| JsValue::from_str(&format!("{}", e)))?;
+        let program = parse_program(code).map_err(|e| JsValue::from_str(&format!("{}", e)))?;
 
         self.interpreter
             .run(&program)
@@ -87,16 +86,14 @@ impl JtvWasm {
     /// drained after this call, so successive calls return only new output.
     #[wasm_bindgen]
     pub fn run_and_collect(&mut self, code: &str) -> Result<String, JsValue> {
-        let program =
-            parse_program(code).map_err(|e| JsValue::from_str(&format!("{}", e)))?;
+        let program = parse_program(code).map_err(|e| JsValue::from_str(&format!("{}", e)))?;
 
         self.interpreter
             .run(&program)
             .map_err(|e| JsValue::from_str(&format!("{}", e)))?;
 
         let output = self.interpreter.take_output();
-        serde_json::to_string(&output)
-            .map_err(|e| JsValue::from_str(&format!("{}", e)))
+        serde_json::to_string(&output).map_err(|e| JsValue::from_str(&format!("{}", e)))
     }
 
     // =======================================================================
@@ -108,8 +105,7 @@ impl JtvWasm {
     #[wasm_bindgen]
     pub fn get_output(&mut self) -> Result<String, JsValue> {
         let output = self.interpreter.take_output();
-        serde_json::to_string(&output)
-            .map_err(|e| JsValue::from_str(&format!("{}", e)))
+        serde_json::to_string(&output).map_err(|e| JsValue::from_str(&format!("{}", e)))
     }
 
     // =======================================================================
@@ -121,11 +117,9 @@ impl JtvWasm {
     /// Does **not** execute the code or modify interpreter state.
     #[wasm_bindgen]
     pub fn parse_only(&self, code: &str) -> Result<String, JsValue> {
-        let program =
-            parse_program(code).map_err(|e| JsValue::from_str(&format!("{}", e)))?;
+        let program = parse_program(code).map_err(|e| JsValue::from_str(&format!("{}", e)))?;
 
-        serde_json::to_string_pretty(&program)
-            .map_err(|e| JsValue::from_str(&format!("{}", e)))
+        serde_json::to_string_pretty(&program).map_err(|e| JsValue::from_str(&format!("{}", e)))
     }
 
     /// Validate source code (parse only). Returns `true` if the code parses
@@ -145,8 +139,7 @@ impl JtvWasm {
     /// describing the first type error found otherwise.
     #[wasm_bindgen]
     pub fn type_check(&self, code: &str) -> Result<String, JsValue> {
-        let program =
-            parse_program(code).map_err(|e| JsValue::from_str(&format!("{}", e)))?;
+        let program = parse_program(code).map_err(|e| JsValue::from_str(&format!("{}", e)))?;
 
         let mut checker = TypeChecker::new();
         checker
@@ -167,8 +160,7 @@ impl JtvWasm {
     /// describing the first purity violation found otherwise.
     #[wasm_bindgen]
     pub fn purity_check(&self, code: &str) -> Result<String, JsValue> {
-        let program =
-            parse_program(code).map_err(|e| JsValue::from_str(&format!("{}", e)))?;
+        let program = parse_program(code).map_err(|e| JsValue::from_str(&format!("{}", e)))?;
 
         let mut checker = PurityChecker::new();
         checker
@@ -240,8 +232,7 @@ impl JtvWasm {
             "purity_check": purity_status,
         });
 
-        serde_json::to_string_pretty(&report)
-            .map_err(|e| JsValue::from_str(&format!("{}", e)))
+        serde_json::to_string_pretty(&report).map_err(|e| JsValue::from_str(&format!("{}", e)))
     }
 
     // =======================================================================
@@ -267,8 +258,7 @@ impl JtvWasm {
             .into_iter()
             .map(|(k, v)| (k, format!("{}", v)))
             .collect();
-        serde_json::to_string_pretty(&map)
-            .map_err(|e| JsValue::from_str(&format!("{}", e)))
+        serde_json::to_string_pretty(&map).map_err(|e| JsValue::from_str(&format!("{}", e)))
     }
 
     /// Get the last evaluated result as a string, or `null` if there is none.
@@ -333,12 +323,9 @@ impl JtvWasm {
             .interpreter
             .list_coproc_decls()
             .into_iter()
-            .map(|(gate, fn_name)| {
-                serde_json::json!({ "gate": gate, "fn": fn_name })
-            })
+            .map(|(gate, fn_name)| serde_json::json!({ "gate": gate, "fn": fn_name }))
             .collect();
-        serde_json::to_string(&decls)
-            .map_err(|e| JsValue::from_str(&format!("{}", e)))
+        serde_json::to_string(&decls).map_err(|e| JsValue::from_str(&format!("{}", e)))
     }
 
     /// Register a JavaScript function as the implementation for an extern
@@ -362,12 +349,9 @@ impl JtvWasm {
             for arg in args {
                 js_args.push(&jtv_value_to_js(arg));
             }
-            let result = cb
-                .0
-                .apply(&JsValue::NULL, &js_args)
-                .map_err(|e| crate::error::JtvError::RuntimeError(
-                    format!("JS coproc callback error: {:?}", e),
-                ))?;
+            let result = cb.0.apply(&JsValue::NULL, &js_args).map_err(|e| {
+                crate::error::JtvError::RuntimeError(format!("JS coproc callback error: {:?}", e))
+            })?;
             js_to_jtv_value(&result)
         });
     }
@@ -425,10 +409,8 @@ pub fn jtv_version() -> String {
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 pub fn jtv_parse(code: &str) -> Result<String, JsValue> {
-    let program =
-        parse_program(code).map_err(|e| JsValue::from_str(&format!("{}", e)))?;
-    serde_json::to_string_pretty(&program)
-        .map_err(|e| JsValue::from_str(&format!("{}", e)))
+    let program = parse_program(code).map_err(|e| JsValue::from_str(&format!("{}", e)))?;
+    serde_json::to_string_pretty(&program).map_err(|e| JsValue::from_str(&format!("{}", e)))
 }
 
 /// Format JtV source code and return the formatted string.
@@ -442,8 +424,7 @@ pub fn jtv_format(code: &str) -> Result<String, JsValue> {
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 pub fn jtv_type_check(code: &str) -> Result<String, JsValue> {
-    let program =
-        parse_program(code).map_err(|e| JsValue::from_str(&format!("{}", e)))?;
+    let program = parse_program(code).map_err(|e| JsValue::from_str(&format!("{}", e)))?;
     let mut checker = TypeChecker::new();
     checker
         .check_program(&program)
@@ -455,8 +436,7 @@ pub fn jtv_type_check(code: &str) -> Result<String, JsValue> {
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 pub fn jtv_purity_check(code: &str) -> Result<String, JsValue> {
-    let program =
-        parse_program(code).map_err(|e| JsValue::from_str(&format!("{}", e)))?;
+    let program = parse_program(code).map_err(|e| JsValue::from_str(&format!("{}", e)))?;
     let mut checker = PurityChecker::new();
     checker
         .check_program(&program)
@@ -720,8 +700,16 @@ extern coproc math_gate {
         interp.register_coproc_namespace(ns);
         let decls = interp.list_coproc_decls();
         let fn_names: Vec<&str> = decls.iter().map(|(_, f)| f.as_str()).collect();
-        assert!(fn_names.contains(&"add_one"), "expected add_one in {:?}", fn_names);
-        assert!(fn_names.contains(&"double"), "expected double in {:?}", fn_names);
+        assert!(
+            fn_names.contains(&"add_one"),
+            "expected add_one in {:?}",
+            fn_names
+        );
+        assert!(
+            fn_names.contains(&"double"),
+            "expected double in {:?}",
+            fn_names
+        );
         // Both should have gate name "math_gate"
         for (gate, _) in &decls {
             assert_eq!(gate, "math_gate");

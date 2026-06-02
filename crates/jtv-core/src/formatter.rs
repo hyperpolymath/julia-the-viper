@@ -302,6 +302,30 @@ impl Formatter {
                 self.write_indent();
                 self.output.push('}');
             }
+            ControlStmt::ReversibleBlock(rb) => {
+                // `reversible { ... } -> tok` (the `-> tok` binding is optional).
+                self.output.push_str("reversible {\n");
+                self.indent_level += 1;
+                for s in &rb.body {
+                    self.format_reversible_stmt(s);
+                    self.output.push('\n');
+                }
+                self.indent_level -= 1;
+                self.write_indent();
+                self.output.push('}');
+                if let Some(tok) = &rb.token_binding {
+                    self.output.push_str(" -> ");
+                    self.output.push_str(tok);
+                }
+            }
+            ControlStmt::ReverseToken(tok) => {
+                self.output.push_str("reverse ");
+                self.output.push_str(tok);
+            }
+            ControlStmt::AbandonToken(tok) => {
+                self.output.push_str("abandon ");
+                self.output.push_str(tok);
+            }
             ControlStmt::Block(stmts) => {
                 self.output.push_str("{\n");
                 self.indent_level += 1;

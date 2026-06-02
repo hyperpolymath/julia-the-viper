@@ -145,7 +145,7 @@ theorem dataExpr_zero_add (e : DataExpr) (σ : State) :
 -/
 theorem dataExpr_add_neg (e : DataExpr) (σ : State) :
     evalDataExpr (DataExpr.add e (DataExpr.neg e)) σ = 0 := by
-  simp [evalDataExpr, Int.add_neg_cancel]
+  simp [evalDataExpr, Int.add_right_neg]
 
 /--
   **Theorem (Double Negation)**: -(-e) = e
@@ -179,14 +179,12 @@ theorem free_vars_sufficient (e : DataExpr) (σ₁ σ₂ : State)
     simp [evalDataExpr, h]
   | add e₁ e₂ ih₁ ih₂ =>
     simp [DataExpr.freeVars, List.mem_append] at h
-    simp [evalDataExpr]
-    constructor
-    · exact ih₁ (fun x hx => h x (Or.inl hx))
-    · exact ih₂ (fun x hx => h x (Or.inr hx))
+    simp only [evalDataExpr]
+    rw [ih₁ (fun x hx => h x (Or.inl hx)), ih₂ (fun x hx => h x (Or.inr hx))]
   | neg e ih =>
     simp [DataExpr.freeVars] at h
-    simp [evalDataExpr]
-    exact ih h
+    simp only [evalDataExpr]
+    rw [ih h]
 
 /--
   **Theorem (State Update Independence)**: Updating a variable not in
@@ -215,10 +213,8 @@ theorem subst_correct (e : DataExpr) (x : String) (v : Int) (σ : State) :
   induction e with
   | lit n => rfl
   | var y =>
-    simp [DataExpr.subst, evalDataExpr, State.update]
-    split
-    · simp_all
-    · simp_all
+    simp only [DataExpr.subst, State.update]
+    split <;> rename_i hyx <;> simp [evalDataExpr, State.update, hyx]
   | add e₁ e₂ ih₁ ih₂ =>
     simp [DataExpr.subst, evalDataExpr, ih₁, ih₂]
   | neg e ih =>
@@ -258,11 +254,17 @@ theorem constFold_correct (e : DataExpr) (σ : State) :
   | lit n => rfl
   | var x => rfl
   | add e₁ e₂ ih₁ ih₂ =>
-    simp [DataExpr.constFold]
-    split <;> simp [evalDataExpr, ← ih₁, ← ih₂]
+    simp only [DataExpr.constFold]
+    split
+    · rename_i n₁ n₂ heq₁ heq₂
+      simp only [evalDataExpr, ← ih₁, ← ih₂, heq₁, heq₂]
+    · simp only [evalDataExpr, ← ih₁, ← ih₂]
   | neg e ih =>
-    simp [DataExpr.constFold]
-    split <;> simp [evalDataExpr, ← ih]
+    simp only [DataExpr.constFold]
+    split
+    · rename_i n heq
+      simp only [evalDataExpr, ← ih, heq]
+    · simp only [evalDataExpr, ← ih]
 
 /--
   **Theorem (Zero Elimination)**: Adding zero can be safely eliminated.
@@ -286,7 +288,7 @@ theorem size_positive (e : DataExpr) : e.size > 0 := by
   | add _ _ _ _ => simp [DataExpr.size]; omega
   | neg _ _ => simp [DataExpr.size]; omega
 
-/--
+/-
   The evaluation time is O(size(e)) since each node is visited exactly once.
   This is witnessed by the structural recursion in evalDataExpr.
 -/
@@ -370,7 +372,6 @@ theorem rev_forward_backward (op : RevOp) (σ : State) (x : String) (e : DataExp
     apply update_non_free_var
     exact hfree
   simp [h]
-  ring
 
 -- ============================================================================
 -- SECTION 10: ADDITIONAL PROPERTIES
@@ -393,7 +394,7 @@ theorem dataExpr_finite (e : DataExpr) : e.size < e.size + 1 := by omega
   inductive type.
 -/
 theorem no_infinite_dataExpr : WellFounded (fun e₁ e₂ : DataExpr => e₁.size < e₂.size) :=
-  WellFoundedRelation.wf
+  InvImage.wf DataExpr.size Nat.lt_wfRel.wf
 
 -- Summary of all proven properties:
 -- 1. Totality: All evaluations terminate

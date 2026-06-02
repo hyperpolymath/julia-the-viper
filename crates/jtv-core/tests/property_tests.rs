@@ -53,10 +53,13 @@ fn arb_binary() -> impl Strategy<Value = Value> {
 
 /// Generate arbitrary Symbolic values
 fn arb_symbolic() -> impl Strategy<Value = Value> {
-    "[a-z]{1,4}".prop_map(|s| Value::Symbolic(s))
+    "[a-z]{1,4}".prop_map(Value::Symbolic)
 }
 
-/// Generate a Value of any number type (for cross-type tests)
+/// Generate a Value of any number type (for cross-type tests).
+/// Retained as the canonical "any numeric Value" generator; not all
+/// cross-type properties that would consume it are written yet.
+#[allow(dead_code)]
 fn arb_value() -> impl Strategy<Value = Value> {
     prop_oneof![
         arb_int(),
@@ -78,9 +81,9 @@ proptest! {
     fn prop_int_addition_commutative(a in arb_int(), b in arb_int()) {
         let ab = a.add(&b);
         let ba = b.add(&a);
-        match (ab, ba) {
-            (Ok(ab), Ok(ba)) => prop_assert_eq!(ab, ba),
-            _ => {} // Both overflow is acceptable
+        // Both overflow is acceptable; only assert when both succeed.
+        if let (Ok(ab), Ok(ba)) = (ab, ba) {
+            prop_assert_eq!(ab, ba);
         }
     }
 
@@ -109,9 +112,8 @@ proptest! {
     fn prop_hex_addition_commutative(a in arb_hex(), b in arb_hex()) {
         let ab = a.add(&b);
         let ba = b.add(&a);
-        match (ab, ba) {
-            (Ok(ab), Ok(ba)) => prop_assert_eq!(ab, ba),
-            _ => {}
+        if let (Ok(ab), Ok(ba)) = (ab, ba) {
+            prop_assert_eq!(ab, ba);
         }
     }
 
@@ -119,9 +121,8 @@ proptest! {
     fn prop_binary_addition_commutative(a in arb_binary(), b in arb_binary()) {
         let ab = a.add(&b);
         let ba = b.add(&a);
-        match (ab, ba) {
-            (Ok(ab), Ok(ba)) => prop_assert_eq!(ab, ba),
-            _ => {}
+        if let (Ok(ab), Ok(ba)) = (ab, ba) {
+            prop_assert_eq!(ab, ba);
         }
     }
 
@@ -153,9 +154,9 @@ proptest! {
     ) {
         let ab_c = a.add(&b).and_then(|ab| ab.add(&c));
         let a_bc = b.add(&c).and_then(|bc| a.add(&bc));
-        match (ab_c, a_bc) {
-            (Ok(left), Ok(right)) => prop_assert_eq!(left, right),
-            _ => {} // Overflow on both sides is acceptable
+        // Overflow on both sides is acceptable; only assert when both succeed.
+        if let (Ok(left), Ok(right)) = (ab_c, a_bc) {
+            prop_assert_eq!(left, right);
         }
     }
 

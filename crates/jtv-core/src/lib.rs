@@ -10,7 +10,6 @@
 #![allow(clippy::manual_strip)]
 #![allow(clippy::needless_range_loop)]
 #![allow(clippy::only_used_in_recursion)]
-
 #![forbid(unsafe_code)]
 pub mod ast;
 pub mod coproc;

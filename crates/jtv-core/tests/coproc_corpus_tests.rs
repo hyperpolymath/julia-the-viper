@@ -15,43 +15,62 @@
 //! CC5 — insn_with_encoding.jtv  : Insn kind + encoding string preserved
 //! CC6 — unknown_gate.jtv        : CoprocResolutionFailed on missing gate name
 //! CC7 — phase boundary          : ExternCoprocNotYetLowered fires at call site
+//!
+//! NOTE ON THE `patacl` FEATURE: every test except CC4 evaluates a `.pata`
+//! gate file, which requires the `patacl-core` sibling crate behind the
+//! `patacl` cargo feature. That crate is absent from the default build (see
+//! `crates/jtv-core/Cargo.toml`), so `resolve_coproc_blocks(.., Some(pata))`
+//! honestly returns `CoprocResolutionFailed` ("coprocessor disabled"). Rather
+//! than fake gate results, the pata-driven tests are gated on `feature =
+//! "patacl"` and only run when the coprocessor is actually wired in. CC4 uses
+//! `None` for the pata source and exercises the always-available dev path, so
+//! it runs unconditionally.
 
+// Always used (CC4 / dev path).
 use jtv_core::{
     ast::TopLevel,
-    coproc::{CoprocEnv, CoprocKind, resolve_coproc_blocks},
-    error::JtvError,
-    interpreter::Interpreter,
+    coproc::{resolve_coproc_blocks, CoprocEnv},
     parser::parse_program,
 };
+// Only used by the pata-gated tests (CC1–CC3, CC5–CC7).
+#[cfg(feature = "patacl")]
+use jtv_core::{coproc::CoprocKind, error::JtvError, interpreter::Interpreter};
 
 // ── Embedded corpus fixtures ─────────────────────────────────────────────────
+//
+// All `.pata`-backed fixtures are only referenced by the pata-gated tests, so
+// they are compiled in only under `feature = "patacl"`. `NO_PATA_ALL_LIVE_JTV`
+// drives the always-available dev path (CC4) and is unconditional.
 
-const RISCV_PATA: &str =
-    include_str!("../../../conformance/coproc/riscv.pata");
+#[cfg(feature = "patacl")]
+const RISCV_PATA: &str = include_str!("../../../conformance/coproc/riscv.pata");
 
-const LIVE_INTRINSIC_JTV: &str =
-    include_str!("../../../conformance/coproc/live_intrinsic.jtv");
+#[cfg(feature = "patacl")]
+const LIVE_INTRINSIC_JTV: &str = include_str!("../../../conformance/coproc/live_intrinsic.jtv");
 
+#[cfg(feature = "patacl")]
 const DEAD_GATE_DROPPED_JTV: &str =
     include_str!("../../../conformance/coproc/dead_gate_dropped.jtv");
 
+#[cfg(feature = "patacl")]
 const MULTI_BLOCK_SELECTIVE_JTV: &str =
     include_str!("../../../conformance/coproc/multi_block_selective.jtv");
 
-const NO_PATA_ALL_LIVE_JTV: &str =
-    include_str!("../../../conformance/coproc/no_pata_all_live.jtv");
+const NO_PATA_ALL_LIVE_JTV: &str = include_str!("../../../conformance/coproc/no_pata_all_live.jtv");
 
+#[cfg(feature = "patacl")]
 const INSN_WITH_ENCODING_JTV: &str =
     include_str!("../../../conformance/coproc/insn_with_encoding.jtv");
 
-const UNKNOWN_GATE_JTV: &str =
-    include_str!("../../../conformance/coproc/unknown_gate.jtv");
+#[cfg(feature = "patacl")]
+const UNKNOWN_GATE_JTV: &str = include_str!("../../../conformance/coproc/unknown_gate.jtv");
 
-const UNKNOWN_GATE_PATA: &str =
-    include_str!("../../../conformance/coproc/unknown_gate.pata");
+#[cfg(feature = "patacl")]
+const UNKNOWN_GATE_PATA: &str = include_str!("../../../conformance/coproc/unknown_gate.pata");
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
+#[cfg(feature = "patacl")]
 fn riscv64_v() -> CoprocEnv {
     CoprocEnv::from_triple("riscv64gc-unknown-none-elf", &["v"])
 }
@@ -62,6 +81,7 @@ fn aarch64() -> CoprocEnv {
 
 // ── CC1: live gate — two intrinsics retained ─────────────────────────────────
 
+#[cfg(feature = "patacl")]
 #[test]
 fn cc1_live_gate_two_intrinsics_in_namespace() {
     let prog = parse_program(LIVE_INTRINSIC_JTV).expect("should parse");
@@ -87,6 +107,7 @@ fn cc1_live_gate_two_intrinsics_in_namespace() {
 
 // ── CC2: dead gate — block absent, function still present ────────────────────
 
+#[cfg(feature = "patacl")]
 #[test]
 fn cc2_dead_gate_block_absent_fn_present() {
     let prog = parse_program(DEAD_GATE_DROPPED_JTV).expect("should parse");
@@ -94,17 +115,24 @@ fn cc2_dead_gate_block_absent_fn_present() {
         resolve_coproc_blocks(prog, &aarch64(), Some(RISCV_PATA)).expect("should resolve");
 
     // Only the fallback fn survives.
-    assert_eq!(resolved.statements.len(), 1,
-        "dead block should be dropped; got {:?}", resolved.statements);
+    assert_eq!(
+        resolved.statements.len(),
+        1,
+        "dead block should be dropped; got {:?}",
+        resolved.statements
+    );
     assert!(matches!(resolved.statements[0], TopLevel::Function(_)));
 
     // Nothing in namespace.
-    assert!(ns.get("vadd_i32").is_none(),
-        "dead gate's decls must not appear in namespace");
+    assert!(
+        ns.get("vadd_i32").is_none(),
+        "dead gate's decls must not appear in namespace"
+    );
 }
 
 // ── CC3: selective survival — vec lives, zbb dies ───────────────────────────
 
+#[cfg(feature = "patacl")]
 #[test]
 fn cc3_selective_survival_vec_lives_zbb_dies() {
     let prog = parse_program(MULTI_BLOCK_SELECTIVE_JTV).expect("should parse");
@@ -120,7 +148,7 @@ fn cc3_selective_survival_vec_lives_zbb_dies() {
 
     // riscv_vec intrinsic present, zbb intrinsics absent.
     assert!(ns.get("vadd_i32").is_some(), "vadd_i32 should survive");
-    assert!(ns.get("clz").is_none(),  "clz should be dropped");
+    assert!(ns.get("clz").is_none(), "clz should be dropped");
     assert!(ns.get("cpop").is_none(), "cpop should be dropped");
 }
 
@@ -130,19 +158,25 @@ fn cc3_selective_survival_vec_lives_zbb_dies() {
 fn cc4_no_pata_all_blocks_survive() {
     let prog = parse_program(NO_PATA_ALL_LIVE_JTV).expect("should parse");
     // Pass None for pata_source; even on aarch64, block survives.
-    let (resolved, ns) =
-        resolve_coproc_blocks(prog, &aarch64(), None).expect("should resolve");
+    let (resolved, ns) = resolve_coproc_blocks(prog, &aarch64(), None).expect("should resolve");
 
     assert_eq!(resolved.statements.len(), 1);
     assert!(matches!(resolved.statements[0], TopLevel::ExternCoproc(_)));
 
     // Both decls (intrinsic + insn) registered.
-    assert!(ns.get("custom_op").is_some(),   "custom_op should be in namespace");
-    assert!(ns.get("custom_load").is_some(), "custom_load should be in namespace");
+    assert!(
+        ns.get("custom_op").is_some(),
+        "custom_op should be in namespace"
+    );
+    assert!(
+        ns.get("custom_load").is_some(),
+        "custom_load should be in namespace"
+    );
 }
 
 // ── CC5: insn item — kind and encoding preserved ─────────────────────────────
 
+#[cfg(feature = "patacl")]
 #[test]
 fn cc5_insn_item_kind_and_encoding_preserved() {
     let prog = parse_program(INSN_WITH_ENCODING_JTV).expect("should parse");
@@ -151,15 +185,19 @@ fn cc5_insn_item_kind_and_encoding_preserved() {
 
     assert_eq!(resolved.statements.len(), 1);
 
-    let entry = ns.get("packed_add").expect("packed_add should be in namespace");
+    let entry = ns
+        .get("packed_add")
+        .expect("packed_add should be in namespace");
     assert_eq!(entry.gate_name, "riscv_vec");
     assert_eq!(entry.param_count, 2);
 
     match &entry.kind {
         CoprocKind::Insn { encoding } => {
             let enc = encoding.as_ref().expect("encoding should be present");
-            assert!(enc.contains("0x0B"),
-                "encoding should contain opcode 0x0B, got {enc:?}");
+            assert!(
+                enc.contains("0x0B"),
+                "encoding should contain opcode 0x0B, got {enc:?}"
+            );
         }
         _ => panic!("expected CoprocKind::Insn, got {:?}", entry.kind),
     }
@@ -167,14 +205,11 @@ fn cc5_insn_item_kind_and_encoding_preserved() {
 
 // ── CC6: unknown gate → CoprocResolutionFailed ──────────────────────────────
 
+#[cfg(feature = "patacl")]
 #[test]
 fn cc6_unknown_gate_is_build_error() {
     let prog = parse_program(UNKNOWN_GATE_JTV).expect("should parse");
-    let result = resolve_coproc_blocks(
-        prog,
-        &riscv64_v(),
-        Some(UNKNOWN_GATE_PATA),
-    );
+    let result = resolve_coproc_blocks(prog, &riscv64_v(), Some(UNKNOWN_GATE_PATA));
 
     assert!(
         matches!(result, Err(JtvError::CoprocResolutionFailed { ref gate, .. })
@@ -185,6 +220,7 @@ fn cc6_unknown_gate_is_build_error() {
 
 // ── CC7: phase boundary — live coproc call raises ExternCoprocNotYetLowered ──
 
+#[cfg(feature = "patacl")]
 #[test]
 fn cc7_live_coproc_call_raises_phase_boundary_error() {
     // Inline source: parse an extern coproc + a call to it.

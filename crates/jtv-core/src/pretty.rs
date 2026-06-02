@@ -142,8 +142,13 @@ impl PrettyPrinter {
                     Some(_) => " /* dead */".into(),
                     None => " /* unresolved */".into(),
                 };
-                format!("{}extern coproc {}{} {{ /* {} item(s) */ }}\n",
-                    indent, block.gate_name, status, block.items.len())
+                format!(
+                    "{}extern coproc {}{} {{ /* {} item(s) */ }}\n",
+                    indent,
+                    block.gate_name,
+                    status,
+                    block.items.len()
+                )
             }
         }
     }
@@ -193,11 +198,7 @@ impl PrettyPrinter {
         out.push_str(&func.name);
         out.push('(');
 
-        let params: Vec<String> = func
-            .params
-            .iter()
-            .map(|p| self.print_param(p))
-            .collect();
+        let params: Vec<String> = func.params.iter().map(|p| self.print_param(p)).collect();
         out.push_str(&params.join(", "));
         out.push(')');
 
@@ -232,7 +233,12 @@ impl PrettyPrinter {
 
         match stmt {
             ControlStmt::Assignment(assign) => {
-                format!("{}{} = {}", indent, assign.target, self.print_expr(&assign.value))
+                format!(
+                    "{}{} = {}",
+                    indent,
+                    assign.target,
+                    self.print_expr(&assign.value)
+                )
             }
             ControlStmt::If(if_stmt) => self.print_if(if_stmt, depth),
             ControlStmt::While(while_stmt) => {
@@ -250,10 +256,7 @@ impl PrettyPrinter {
             }
             ControlStmt::For(for_stmt) => {
                 let range = self.print_range(&for_stmt.range);
-                let mut out = format!(
-                    "{}for {} in {} {{\n",
-                    indent, for_stmt.variable, range
-                );
+                let mut out = format!("{}for {} in {} {{\n", indent, for_stmt.variable, range);
                 for s in &for_stmt.body {
                     out.push_str(&self.print_control_stmt(s, depth + 1));
                     out.push('\n');
@@ -278,6 +281,20 @@ impl PrettyPrinter {
                 out.push_str(&format!("{}}}", indent));
                 out
             }
+            ControlStmt::ReversibleBlock(rb) => {
+                let mut out = format!("{}reversible {{\n", indent);
+                for s in &rb.body {
+                    out.push_str(&self.print_reversible_stmt(s, depth + 1));
+                    out.push('\n');
+                }
+                out.push_str(&format!("{}}}", indent));
+                if let Some(tok) = &rb.token_binding {
+                    out.push_str(&format!(" -> {}", tok));
+                }
+                out
+            }
+            ControlStmt::ReverseToken(tok) => format!("{}reverse {}", indent, tok),
+            ControlStmt::AbandonToken(tok) => format!("{}abandon {}", indent, tok),
             ControlStmt::Block(stmts) => {
                 let mut out = format!("{}{{\n", indent);
                 for s in stmts {
@@ -350,7 +367,11 @@ impl PrettyPrinter {
             DataExpr::StringLit(s) => format!("\"{}\"", s),
             DataExpr::Identifier(name) => name.clone(),
             DataExpr::Add(left, right) => {
-                format!("{} + {}", self.print_data_expr(left), self.print_data_expr(right))
+                format!(
+                    "{} + {}",
+                    self.print_data_expr(left),
+                    self.print_data_expr(right)
+                )
             }
             DataExpr::Negate(inner) => {
                 format!("-{}", self.print_data_expr(inner))
@@ -364,13 +385,11 @@ impl PrettyPrinter {
                 format!("{}({})", name, args.join(", "))
             }
             DataExpr::List(elements) => {
-                let elems: Vec<String> =
-                    elements.iter().map(|e| self.print_data_expr(e)).collect();
+                let elems: Vec<String> = elements.iter().map(|e| self.print_data_expr(e)).collect();
                 format!("[{}]", elems.join(", "))
             }
             DataExpr::Tuple(elements) => {
-                let elems: Vec<String> =
-                    elements.iter().map(|e| self.print_data_expr(e)).collect();
+                let elems: Vec<String> = elements.iter().map(|e| self.print_data_expr(e)).collect();
                 format!("({})", elems.join(", "))
             }
         }
@@ -450,14 +469,22 @@ impl PrettyPrinter {
                 format!("List<{}>", self.print_type_annotation(inner))
             }
             TypeAnnotation::Tuple(types) => {
-                let parts: Vec<String> =
-                    types.iter().map(|t| self.print_type_annotation(t)).collect();
+                let parts: Vec<String> = types
+                    .iter()
+                    .map(|t| self.print_type_annotation(t))
+                    .collect();
                 format!("({})", parts.join(", "))
             }
             TypeAnnotation::Function(params, ret) => {
-                let parts: Vec<String> =
-                    params.iter().map(|t| self.print_type_annotation(t)).collect();
-                format!("Fn({}) -> {}", parts.join(", "), self.print_type_annotation(ret))
+                let parts: Vec<String> = params
+                    .iter()
+                    .map(|t| self.print_type_annotation(t))
+                    .collect();
+                format!(
+                    "Fn({}) -> {}",
+                    parts.join(", "),
+                    self.print_type_annotation(ret)
+                )
             }
         }
     }
@@ -517,11 +544,14 @@ mod tests {
     fn round_trip(code: &str) {
         let ast1 = parse_program(code).expect("First parse should succeed");
         let printed = pretty_print(&ast1);
-        let ast2 = parse_program(&printed).expect(&format!(
-            "Second parse should succeed. Pretty-printed:\n{}",
+        let ast2 = parse_program(&printed).unwrap_or_else(|e| {
+            panic!("Second parse should succeed ({e:?}). Pretty-printed:\n{printed}")
+        });
+        assert_eq!(
+            ast1, ast2,
+            "Round-trip mismatch. Pretty-printed:\n{}",
             printed
-        ));
-        assert_eq!(ast1, ast2, "Round-trip mismatch. Pretty-printed:\n{}", printed);
+        );
     }
 
     #[test]
@@ -581,9 +611,7 @@ mod tests {
 
     #[test]
     fn test_round_trip_module() {
-        round_trip(
-            "module M { fn f(x: Int): Int { return x } }",
-        );
+        round_trip("module M { fn f(x: Int): Int { return x } }");
     }
 
     #[test]
@@ -602,6 +630,9 @@ mod tests {
     }
 
     #[test]
+    // 3.14 here is the literal display string under test, not an approximation
+    // of PI — the assertion checks the rendered text is exactly "3.14".
+    #[allow(clippy::approx_constant)]
     fn test_display_number_float() {
         assert_eq!(Number::Float(3.14).to_string(), "3.14");
     }

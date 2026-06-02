@@ -3,7 +3,6 @@
 
 #![forbid(unsafe_code)]
 use jtv_core::{parser::parse_program, purity::PurityChecker, typechecker::TypeChecker};
-use serde_json::Value;
 use tower_lsp::jsonrpc::Result;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer, LspService, Server};
@@ -98,7 +97,7 @@ impl LanguageServer for Backend {
         ])))
     }
 
-    async fn hover(&self, params: HoverParams) -> Result<Option<Hover>> {
+    async fn hover(&self, _params: HoverParams) -> Result<Option<Hover>> {
         Ok(Some(Hover {
             contents: HoverContents::Scalar(MarkedString::String(
                 "Julia the Viper: Reversible systems programming".to_string(),
@@ -107,7 +106,7 @@ impl LanguageServer for Backend {
         }))
     }
 
-    async fn formatting(&self, params: DocumentFormattingParams) -> Result<Option<Vec<TextEdit>>> {
+    async fn formatting(&self, _params: DocumentFormattingParams) -> Result<Option<Vec<TextEdit>>> {
         // Read document content from client
         Ok(None)
     }

@@ -4,7 +4,7 @@ use crate::coproc::CoprocNamespace;
 use crate::error::{JtvError, Result};
 use crate::number::Value;
 use crate::reversible::RecordedOp;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -435,8 +435,10 @@ impl Interpreter {
         }
 
         if self.trace_enabled {
-            self.add_trace("reverse_block",
-                &format!("applied inverse of {} operations", block.body.len()));
+            self.add_trace(
+                "reverse_block",
+                &format!("applied inverse of {} operations", block.body.len()),
+            );
         }
 
         Ok(())
@@ -451,7 +453,9 @@ impl Interpreter {
         use crate::reversible::ReversibleInterpreter;
 
         let mut rev = ReversibleInterpreter::with_state(self.globals.clone());
-        rev.execute_forward(&crate::ast::ReverseBlock { body: stmt.body.clone() })?;
+        rev.execute_forward(&crate::ast::ReverseBlock {
+            body: stmt.body.clone(),
+        })?;
 
         // Sync the forward-pass state back to globals.
         for (name, value) in rev.get_state() {
@@ -469,8 +473,7 @@ impl Interpreter {
         // If no binding, the log is in the store but inaccessible — effectively abandoned.
 
         if self.trace_enabled {
-            self.add_trace("reversible_block",
-                &format!("forward pass; token #{}", id));
+            self.add_trace("reversible_block", &format!("forward pass; token #{}", id));
         }
         Ok(())
     }
@@ -486,14 +489,18 @@ impl Interpreter {
         let tok_val = self.get_variable(tok_name)?;
         let id = match tok_val {
             Value::ReversalToken(id) => id,
-            other => return Err(JtvError::TypeError(
-                format!("`reverse` requires a ReversalToken, got {}", other)
-            )),
+            other => {
+                return Err(JtvError::TypeError(format!(
+                    "`reverse` requires a ReversalToken, got {}",
+                    other
+                )))
+            }
         };
 
         let ops = self.token_store.remove(&id).ok_or_else(|| {
             JtvError::RuntimeError(format!(
-                "reversal token #{} already consumed or not found", id
+                "reversal token #{} already consumed or not found",
+                id
             ))
         })?;
 
@@ -523,9 +530,12 @@ impl Interpreter {
         let tok_val = self.get_variable(tok_name)?;
         let id = match tok_val {
             Value::ReversalToken(id) => id,
-            other => return Err(JtvError::TypeError(
-                format!("`abandon` requires a ReversalToken, got {}", other)
-            )),
+            other => {
+                return Err(JtvError::TypeError(format!(
+                    "`abandon` requires a ReversalToken, got {}",
+                    other
+                )))
+            }
         };
 
         self.token_store.remove(&id);

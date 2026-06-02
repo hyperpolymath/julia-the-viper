@@ -88,6 +88,17 @@ pub enum ControlStmt {
     Return(Option<DataExpr>),
     Print(Vec<DataExpr>),
     ReverseBlock(ReverseBlock),
+    /// v2 — `reversible { stmts } -> tok`: runs the body forward, recording a
+    /// reversal log, and (optionally) binds a reversal token to `tok`.
+    /// Phase 2: grammar pending — produced by the interpreter API, not yet by
+    /// the parser.
+    ReversibleBlock(ReversibleBlockStmt),
+    /// v2 — `reverse tok`: linearly consumes a reversal token, applying the
+    /// inverse of its recorded operations. Phase 2: grammar pending.
+    ReverseToken(String),
+    /// v2 — `abandon tok`: linearly consumes a reversal token, discarding its
+    /// recorded operations without applying inverses. Phase 2: grammar pending.
+    AbandonToken(String),
     Block(Vec<ControlStmt>),
 }
 
@@ -120,6 +131,18 @@ pub struct ForStmt {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ReverseBlock {
     pub body: Vec<ReversibleStmt>,
+}
+
+/// v2 — body of a `reversible { ... } -> tok` statement.
+///
+/// The forward pass runs `body` (the same reversible statements as a
+/// `reverse` block), recording a concrete operation log. `token_binding` is
+/// the optional name the resulting reversal token is bound to; if `None` the
+/// log is effectively abandoned (forward state is committed, no token issued).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ReversibleBlockStmt {
+    pub body: Vec<ReversibleStmt>,
+    pub token_binding: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

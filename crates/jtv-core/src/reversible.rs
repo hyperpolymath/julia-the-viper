@@ -109,6 +109,31 @@ impl ReversibleInterpreter {
         Ok(())
     }
 
+    /// Consume and return the operations recorded so far during a forward pass.
+    ///
+    /// Used by the `reversible { } -> tok` interpreter path to move the log out
+    /// of this interpreter and into the host's token store. Leaves the trace
+    /// empty afterwards (`std::mem::take`), so a subsequent forward pass starts
+    /// from a clean log. The ops are returned in forward declaration order; the
+    /// inverse/replay path (`apply_inverse_ops`) handles reversal.
+    pub fn take_recorded_ops(&mut self) -> Vec<RecordedOp> {
+        std::mem::take(&mut self.trace).operations
+    }
+
+    /// Apply the inverse of a previously-recorded operation log to the current
+    /// state, in reverse declaration order.
+    ///
+    /// This is the replay counterpart to `take_recorded_ops`: given the ops a
+    /// `reversible { }` block recorded (in forward order), undoing them means
+    /// applying each op's `inverse()` from last to first. Used by the
+    /// `reverse tok` interpreter path.
+    pub fn apply_inverse_ops(&mut self, ops: &[RecordedOp]) -> Result<()> {
+        for op in ops.iter().rev() {
+            self.apply_operation(&op.inverse())?;
+        }
+        Ok(())
+    }
+
     /// Execute the reverse of recorded operations
     pub fn execute_reverse(&mut self) -> Result<()> {
         let reverse_ops = self.trace.reverse_operations();

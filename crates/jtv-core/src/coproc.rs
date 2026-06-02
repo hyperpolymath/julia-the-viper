@@ -24,11 +24,14 @@
 
 use std::collections::HashMap;
 
+// PataCL gate evaluation is gated behind the `patacl` cargo feature.
+// When the feature is OFF (the default — see `Cargo.toml`), the symbols below
+// are absent and `resolve_coproc_blocks` falls back to the honest
+// "coprocessor disabled" path (no fake gate results).
+#[cfg(feature = "patacl")]
 use patacl_core::{compile as patacl_compile, env_from_triple, eval::eval_gates, GateResult};
 
-use crate::ast::{
-    CoprocItem, CoprocResolution, ExternCoprocBlock, Program, TopLevel,
-};
+use crate::ast::{CoprocItem, CoprocResolution, ExternCoprocBlock, Program, TopLevel};
 use crate::error::{JtvError, Result};
 
 // ──────────────────────────────────────────────
@@ -36,13 +39,25 @@ use crate::error::{JtvError, Result};
 // ──────────────────────────────────────────────
 
 /// Build-time environment for PataCL gate evaluation.
+///
+/// The fields capture the target triple and feature set used to evaluate
+/// `.pata` gates. They are only *read* by `patacl_env()`, which exists solely
+/// under the `patacl` cargo feature. With that feature off (the default build),
+/// nothing consumes them yet — but they are still part of the public
+/// constructor contract, so we suppress the dead-code lint rather than drop
+/// real data the coprocessor build needs.
 pub struct CoprocEnv {
+    #[cfg_attr(not(feature = "patacl"), allow(dead_code))]
     target_triple: String,
+    #[cfg_attr(not(feature = "patacl"), allow(dead_code))]
     features: Vec<String>,
 }
 
 impl CoprocEnv {
-    pub fn new(target_triple: impl Into<String>, features: impl IntoIterator<Item = impl Into<String>>) -> Self {
+    pub fn new(
+        target_triple: impl Into<String>,
+        features: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
         CoprocEnv {
             target_triple: target_triple.into(),
             features: features.into_iter().map(|f| f.into()).collect(),
@@ -54,6 +69,7 @@ impl CoprocEnv {
         CoprocEnv::new(triple, features.iter().copied())
     }
 
+    #[cfg(feature = "patacl")]
     fn patacl_env(&self) -> patacl_core::FactEnv {
         let refs: Vec<&str> = self.features.iter().map(|s| s.as_str()).collect();
         env_from_triple(&self.target_triple, &refs)
@@ -121,12 +137,18 @@ pub fn resolve_coproc_blocks(
     pata_source: Option<&str>,
 ) -> Result<(Program, CoprocNamespace)> {
     // Compile the pata file once, if provided, to get all gate results.
+    //
+    // Gate evaluation requires the `patacl` feature. With the feature OFF,
+    // a provided `pata_source` cannot be honoured, so we surface an honest
+    // `CoprocResolutionFailed` rather than fabricating gate results. A `None`
+    // source still works (all blocks treated as unconditionally live — the
+    // pre-pata development path).
+    #[cfg(feature = "patacl")]
     let gate_results: HashMap<String, GateResult> = if let Some(src) = pata_source {
-        let gates = patacl_compile(src)
-            .map_err(|e| JtvError::CoprocResolutionFailed {
-                gate: "<pata-file>".into(),
-                detail: e.to_string(),
-            })?;
+        let gates = patacl_compile(src).map_err(|e| JtvError::CoprocResolutionFailed {
+            gate: "<pata-file>".into(),
+            detail: e.to_string(),
+        })?;
         let patacl_env = env.patacl_env();
         eval_gates(&gates, &patacl_env)
             .map_err(|e| JtvError::CoprocResolutionFailed {
@@ -140,15 +162,38 @@ pub fn resolve_coproc_blocks(
         HashMap::new()
     };
 
+    #[cfg(not(feature = "patacl"))]
+    if pata_source.is_some() {
+        let _ = env;
+        return Err(JtvError::CoprocResolutionFailed {
+            gate: "<pata-file>".into(),
+            detail: "PataCL coprocessor support is disabled in this build \
+                     (the `patacl` cargo feature is OFF); cannot evaluate \
+                     gates from a .pata source. Rebuild jtv-core with \
+                     `--features patacl` and a resolvable `patacl-core` \
+                     dependency to enable gate evaluation."
+                .into(),
+        });
+    }
+
     let mut namespace = CoprocNamespace::default();
     let mut filtered = Vec::with_capacity(program.statements.len());
 
     for item in program.statements {
         match item {
             TopLevel::ExternCoproc(block) => {
+                #[cfg(feature = "patacl")]
                 let (keep, resolved) = resolve_one_block(&block, pata_source, &gate_results)?;
+                // Without `patacl`, `pata_source` is guaranteed `None` here
+                // (the `Some` case returned above), so every block is live
+                // with no PataCL-derived resolution.
+                #[cfg(not(feature = "patacl"))]
+                let (keep, resolved): (bool, Option<CoprocResolution>) = (true, None);
                 if keep {
-                    let family = resolved.as_ref().map(|r| r.family.clone()).unwrap_or_default();
+                    let family = resolved
+                        .as_ref()
+                        .map(|r| r.family.clone())
+                        .unwrap_or_default();
                     register_block_decls(&block, &family, &mut namespace);
                     filtered.push(TopLevel::ExternCoproc(ExternCoprocBlock {
                         resolved,
@@ -161,10 +206,16 @@ pub fn resolve_coproc_blocks(
         }
     }
 
-    Ok((Program { statements: filtered }, namespace))
+    Ok((
+        Program {
+            statements: filtered,
+        },
+        namespace,
+    ))
 }
 
 /// Resolve a single block: returns (keep, Option<CoprocResolution>).
+#[cfg(feature = "patacl")]
 fn resolve_one_block(
     block: &ExternCoprocBlock,
     pata_source: Option<&str>,
@@ -179,10 +230,13 @@ fn resolve_one_block(
     match gate_results.get(&block.gate_name) {
         Some(result) => {
             if result.live {
-                Ok((true, Some(CoprocResolution {
-                    live: true,
-                    family: result.family.clone().unwrap_or_default(),
-                })))
+                Ok((
+                    true,
+                    Some(CoprocResolution {
+                        live: true,
+                        family: result.family.clone().unwrap_or_default(),
+                    }),
+                ))
             } else {
                 Ok((false, None))
             }
@@ -203,11 +257,7 @@ fn resolve_one_block(
 }
 
 /// Register all decls in a live block into the namespace.
-fn register_block_decls(
-    block: &ExternCoprocBlock,
-    family: &str,
-    ns: &mut CoprocNamespace,
-) {
+fn register_block_decls(block: &ExternCoprocBlock, family: &str, ns: &mut CoprocNamespace) {
     use crate::ast::{BasicType, TypeAnnotation};
 
     // Fall-back type when a param has no annotation: JtV default is Int.
@@ -216,30 +266,42 @@ fn register_block_decls(
     for item in &block.items {
         match item {
             CoprocItem::Intrinsic(i) => {
-                let param_types = i.params.iter()
+                let param_types = i
+                    .params
+                    .iter()
                     .map(|p| p.type_annotation.clone().unwrap_or_else(default_ty))
                     .collect();
-                ns.entries.insert(i.name.clone(), CoprocEntry {
-                    gate_name: block.gate_name.clone(),
-                    family: family.to_string(),
-                    kind: CoprocKind::Intrinsic,
-                    param_count: i.params.len(),
-                    param_types,
-                    return_type: i.return_type.clone(),
-                });
+                ns.entries.insert(
+                    i.name.clone(),
+                    CoprocEntry {
+                        gate_name: block.gate_name.clone(),
+                        family: family.to_string(),
+                        kind: CoprocKind::Intrinsic,
+                        param_count: i.params.len(),
+                        param_types,
+                        return_type: i.return_type.clone(),
+                    },
+                );
             }
             CoprocItem::Insn(i) => {
-                let param_types = i.params.iter()
+                let param_types = i
+                    .params
+                    .iter()
                     .map(|p| p.type_annotation.clone().unwrap_or_else(default_ty))
                     .collect();
-                ns.entries.insert(i.name.clone(), CoprocEntry {
-                    gate_name: block.gate_name.clone(),
-                    family: family.to_string(),
-                    kind: CoprocKind::Insn { encoding: i.encoding.clone() },
-                    param_count: i.params.len(),
-                    param_types,
-                    return_type: i.return_type.clone(),
-                });
+                ns.entries.insert(
+                    i.name.clone(),
+                    CoprocEntry {
+                        gate_name: block.gate_name.clone(),
+                        family: family.to_string(),
+                        kind: CoprocKind::Insn {
+                            encoding: i.encoding.clone(),
+                        },
+                        param_count: i.params.len(),
+                        param_types,
+                        return_type: i.return_type.clone(),
+                    },
+                );
             }
         }
     }

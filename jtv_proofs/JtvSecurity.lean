@@ -10,6 +10,7 @@
 
 import JtvCore
 import JtvTypes
+import JtvTheorems
 
 -- ============================================================================
 -- SECTION 1: THE HARVARD ARCHITECTURE INVARIANT
@@ -208,7 +209,7 @@ theorem no_reverse_joinpoints :
   intro _ _
   trivial
 
-/--
+/-
   **AOLD vs Traditional AOP Comparison**:
 
   | Aspect          | Traditional AOP              | JtV AOLD                      |
@@ -407,7 +408,7 @@ theorem data_evaluation_secure (e : DataExpr) (σ : State) :
 -- SECTION 9: REVERSIBILITY SECURITY (v2)
 -- ============================================================================
 
-/--
+/-
   Reversible operations maintain security because:
   1. They only modify state within the reverse block
   2. The modifications are invertible
