@@ -9,6 +9,7 @@
 -/
 
 import JtvCore
+import JtvOperational
 
 -- ============================================================================
 -- SECTION 1: TYPE DEFINITIONS
@@ -29,7 +30,203 @@ inductive JtvType where
   | list     : JtvType → JtvType           -- List<T>
   | tuple    : List JtvType → JtvType      -- (T₁, T₂, ...)
   | func     : List JtvType → JtvType → JtvType  -- Fn(T₁, T₂, ...) -> R
-  deriving Repr, DecidableEq
+  deriving Repr
+
+-- DecidableEq cannot be auto-derived because `tuple`/`func` nest `JtvType`
+-- inside `List`. We provide it manually via mutual structural recursion.
+mutual
+def JtvType.decEq : (a b : JtvType) → Decidable (a = b)
+  | .int, .int => isTrue rfl
+  | .float, .float => isTrue rfl
+  | .rational, .rational => isTrue rfl
+  | .complex, .complex => isTrue rfl
+  | .hex, .hex => isTrue rfl
+  | .binary, .binary => isTrue rfl
+  | .symbolic, .symbolic => isTrue rfl
+  | .bool, .bool => isTrue rfl
+  | .string, .string => isTrue rfl
+  | .unit, .unit => isTrue rfl
+  | .list a, .list b =>
+    match JtvType.decEq a b with
+    | isTrue h => isTrue (by rw [h])
+    | isFalse h => isFalse (by intro he; injection he; contradiction)
+  | .tuple a, .tuple b =>
+    match JtvType.decEqList a b with
+    | isTrue h => isTrue (by rw [h])
+    | isFalse h => isFalse (by intro he; injection he; contradiction)
+  | .func a r, .func b s =>
+    match JtvType.decEqList a b, JtvType.decEq r s with
+    | isTrue h1, isTrue h2 => isTrue (by rw [h1, h2])
+    | isFalse h, _ => isFalse (by intro he; injection he with hl hr; exact h hl)
+    | _, isFalse h => isFalse (by intro he; injection he with hl hr; exact h hr)
+  | .int, .float => isFalse (by intro h; cases h)
+  | .int, .rational => isFalse (by intro h; cases h)
+  | .int, .complex => isFalse (by intro h; cases h)
+  | .int, .hex => isFalse (by intro h; cases h)
+  | .int, .binary => isFalse (by intro h; cases h)
+  | .int, .symbolic => isFalse (by intro h; cases h)
+  | .int, .bool => isFalse (by intro h; cases h)
+  | .int, .string => isFalse (by intro h; cases h)
+  | .int, .unit => isFalse (by intro h; cases h)
+  | .int, .list _ => isFalse (by intro h; cases h)
+  | .int, .tuple _ => isFalse (by intro h; cases h)
+  | .int, .func _ _ => isFalse (by intro h; cases h)
+  | .float, .int => isFalse (by intro h; cases h)
+  | .float, .rational => isFalse (by intro h; cases h)
+  | .float, .complex => isFalse (by intro h; cases h)
+  | .float, .hex => isFalse (by intro h; cases h)
+  | .float, .binary => isFalse (by intro h; cases h)
+  | .float, .symbolic => isFalse (by intro h; cases h)
+  | .float, .bool => isFalse (by intro h; cases h)
+  | .float, .string => isFalse (by intro h; cases h)
+  | .float, .unit => isFalse (by intro h; cases h)
+  | .float, .list _ => isFalse (by intro h; cases h)
+  | .float, .tuple _ => isFalse (by intro h; cases h)
+  | .float, .func _ _ => isFalse (by intro h; cases h)
+  | .rational, .int => isFalse (by intro h; cases h)
+  | .rational, .float => isFalse (by intro h; cases h)
+  | .rational, .complex => isFalse (by intro h; cases h)
+  | .rational, .hex => isFalse (by intro h; cases h)
+  | .rational, .binary => isFalse (by intro h; cases h)
+  | .rational, .symbolic => isFalse (by intro h; cases h)
+  | .rational, .bool => isFalse (by intro h; cases h)
+  | .rational, .string => isFalse (by intro h; cases h)
+  | .rational, .unit => isFalse (by intro h; cases h)
+  | .rational, .list _ => isFalse (by intro h; cases h)
+  | .rational, .tuple _ => isFalse (by intro h; cases h)
+  | .rational, .func _ _ => isFalse (by intro h; cases h)
+  | .complex, .int => isFalse (by intro h; cases h)
+  | .complex, .float => isFalse (by intro h; cases h)
+  | .complex, .rational => isFalse (by intro h; cases h)
+  | .complex, .hex => isFalse (by intro h; cases h)
+  | .complex, .binary => isFalse (by intro h; cases h)
+  | .complex, .symbolic => isFalse (by intro h; cases h)
+  | .complex, .bool => isFalse (by intro h; cases h)
+  | .complex, .string => isFalse (by intro h; cases h)
+  | .complex, .unit => isFalse (by intro h; cases h)
+  | .complex, .list _ => isFalse (by intro h; cases h)
+  | .complex, .tuple _ => isFalse (by intro h; cases h)
+  | .complex, .func _ _ => isFalse (by intro h; cases h)
+  | .hex, .int => isFalse (by intro h; cases h)
+  | .hex, .float => isFalse (by intro h; cases h)
+  | .hex, .rational => isFalse (by intro h; cases h)
+  | .hex, .complex => isFalse (by intro h; cases h)
+  | .hex, .binary => isFalse (by intro h; cases h)
+  | .hex, .symbolic => isFalse (by intro h; cases h)
+  | .hex, .bool => isFalse (by intro h; cases h)
+  | .hex, .string => isFalse (by intro h; cases h)
+  | .hex, .unit => isFalse (by intro h; cases h)
+  | .hex, .list _ => isFalse (by intro h; cases h)
+  | .hex, .tuple _ => isFalse (by intro h; cases h)
+  | .hex, .func _ _ => isFalse (by intro h; cases h)
+  | .binary, .int => isFalse (by intro h; cases h)
+  | .binary, .float => isFalse (by intro h; cases h)
+  | .binary, .rational => isFalse (by intro h; cases h)
+  | .binary, .complex => isFalse (by intro h; cases h)
+  | .binary, .hex => isFalse (by intro h; cases h)
+  | .binary, .symbolic => isFalse (by intro h; cases h)
+  | .binary, .bool => isFalse (by intro h; cases h)
+  | .binary, .string => isFalse (by intro h; cases h)
+  | .binary, .unit => isFalse (by intro h; cases h)
+  | .binary, .list _ => isFalse (by intro h; cases h)
+  | .binary, .tuple _ => isFalse (by intro h; cases h)
+  | .binary, .func _ _ => isFalse (by intro h; cases h)
+  | .symbolic, .int => isFalse (by intro h; cases h)
+  | .symbolic, .float => isFalse (by intro h; cases h)
+  | .symbolic, .rational => isFalse (by intro h; cases h)
+  | .symbolic, .complex => isFalse (by intro h; cases h)
+  | .symbolic, .hex => isFalse (by intro h; cases h)
+  | .symbolic, .binary => isFalse (by intro h; cases h)
+  | .symbolic, .bool => isFalse (by intro h; cases h)
+  | .symbolic, .string => isFalse (by intro h; cases h)
+  | .symbolic, .unit => isFalse (by intro h; cases h)
+  | .symbolic, .list _ => isFalse (by intro h; cases h)
+  | .symbolic, .tuple _ => isFalse (by intro h; cases h)
+  | .symbolic, .func _ _ => isFalse (by intro h; cases h)
+  | .bool, .int => isFalse (by intro h; cases h)
+  | .bool, .float => isFalse (by intro h; cases h)
+  | .bool, .rational => isFalse (by intro h; cases h)
+  | .bool, .complex => isFalse (by intro h; cases h)
+  | .bool, .hex => isFalse (by intro h; cases h)
+  | .bool, .binary => isFalse (by intro h; cases h)
+  | .bool, .symbolic => isFalse (by intro h; cases h)
+  | .bool, .string => isFalse (by intro h; cases h)
+  | .bool, .unit => isFalse (by intro h; cases h)
+  | .bool, .list _ => isFalse (by intro h; cases h)
+  | .bool, .tuple _ => isFalse (by intro h; cases h)
+  | .bool, .func _ _ => isFalse (by intro h; cases h)
+  | .string, .int => isFalse (by intro h; cases h)
+  | .string, .float => isFalse (by intro h; cases h)
+  | .string, .rational => isFalse (by intro h; cases h)
+  | .string, .complex => isFalse (by intro h; cases h)
+  | .string, .hex => isFalse (by intro h; cases h)
+  | .string, .binary => isFalse (by intro h; cases h)
+  | .string, .symbolic => isFalse (by intro h; cases h)
+  | .string, .bool => isFalse (by intro h; cases h)
+  | .string, .unit => isFalse (by intro h; cases h)
+  | .string, .list _ => isFalse (by intro h; cases h)
+  | .string, .tuple _ => isFalse (by intro h; cases h)
+  | .string, .func _ _ => isFalse (by intro h; cases h)
+  | .unit, .int => isFalse (by intro h; cases h)
+  | .unit, .float => isFalse (by intro h; cases h)
+  | .unit, .rational => isFalse (by intro h; cases h)
+  | .unit, .complex => isFalse (by intro h; cases h)
+  | .unit, .hex => isFalse (by intro h; cases h)
+  | .unit, .binary => isFalse (by intro h; cases h)
+  | .unit, .symbolic => isFalse (by intro h; cases h)
+  | .unit, .bool => isFalse (by intro h; cases h)
+  | .unit, .string => isFalse (by intro h; cases h)
+  | .unit, .list _ => isFalse (by intro h; cases h)
+  | .unit, .tuple _ => isFalse (by intro h; cases h)
+  | .unit, .func _ _ => isFalse (by intro h; cases h)
+  | .list _, .int => isFalse (by intro h; cases h)
+  | .list _, .float => isFalse (by intro h; cases h)
+  | .list _, .rational => isFalse (by intro h; cases h)
+  | .list _, .complex => isFalse (by intro h; cases h)
+  | .list _, .hex => isFalse (by intro h; cases h)
+  | .list _, .binary => isFalse (by intro h; cases h)
+  | .list _, .symbolic => isFalse (by intro h; cases h)
+  | .list _, .bool => isFalse (by intro h; cases h)
+  | .list _, .string => isFalse (by intro h; cases h)
+  | .list _, .unit => isFalse (by intro h; cases h)
+  | .list _, .tuple _ => isFalse (by intro h; cases h)
+  | .list _, .func _ _ => isFalse (by intro h; cases h)
+  | .tuple _, .int => isFalse (by intro h; cases h)
+  | .tuple _, .float => isFalse (by intro h; cases h)
+  | .tuple _, .rational => isFalse (by intro h; cases h)
+  | .tuple _, .complex => isFalse (by intro h; cases h)
+  | .tuple _, .hex => isFalse (by intro h; cases h)
+  | .tuple _, .binary => isFalse (by intro h; cases h)
+  | .tuple _, .symbolic => isFalse (by intro h; cases h)
+  | .tuple _, .bool => isFalse (by intro h; cases h)
+  | .tuple _, .string => isFalse (by intro h; cases h)
+  | .tuple _, .unit => isFalse (by intro h; cases h)
+  | .tuple _, .list _ => isFalse (by intro h; cases h)
+  | .tuple _, .func _ _ => isFalse (by intro h; cases h)
+  | .func _ _, .int => isFalse (by intro h; cases h)
+  | .func _ _, .float => isFalse (by intro h; cases h)
+  | .func _ _, .rational => isFalse (by intro h; cases h)
+  | .func _ _, .complex => isFalse (by intro h; cases h)
+  | .func _ _, .hex => isFalse (by intro h; cases h)
+  | .func _ _, .binary => isFalse (by intro h; cases h)
+  | .func _ _, .symbolic => isFalse (by intro h; cases h)
+  | .func _ _, .bool => isFalse (by intro h; cases h)
+  | .func _ _, .string => isFalse (by intro h; cases h)
+  | .func _ _, .unit => isFalse (by intro h; cases h)
+  | .func _ _, .list _ => isFalse (by intro h; cases h)
+  | .func _ _, .tuple _ => isFalse (by intro h; cases h)
+def JtvType.decEqList : (a b : List JtvType) → Decidable (a = b)
+  | [], [] => isTrue rfl
+  | [], _ :: _ => isFalse (by intro h; cases h)
+  | _ :: _, [] => isFalse (by intro h; cases h)
+  | x :: xs, y :: ys =>
+    match JtvType.decEq x y, JtvType.decEqList xs ys with
+    | isTrue h1, isTrue h2 => isTrue (by rw [h1, h2])
+    | isFalse h, _ => isFalse (by intro he; injection he with hx hxs; exact h hx)
+    | _, isFalse h => isFalse (by intro he; injection he with hx hxs; exact h hxs)
+end
+
+instance : DecidableEq JtvType := JtvType.decEq
 
 /-- Type environment: maps variable names to types -/
 abbrev TypeEnv := String → Option JtvType
@@ -120,7 +317,7 @@ notation:50 τ₁ " ≤ᵀ " τ₂ => Coercible τ₁ τ₂
 
 /-- Typing with coercion: Γ ⊢ e : τ₁ and τ₁ ≤ τ₂ implies Γ ⊢ e : τ₂ -/
 theorem typing_coercion (Γ : TypeEnv) (e : DataExpr) (τ₁ τ₂ : JtvType) :
-    DataTyping Γ e τ₁ → Coercible τ₁ τ₂ → ∃ τ₃, DataTyping Γ e τ₁ := by
+    DataTyping Γ e τ₁ → Coercible τ₁ τ₂ → ∃ τ₃, DataTyping Γ e τ₃ := by
   intro h₁ _
   exact ⟨τ₁, h₁⟩
 
@@ -251,7 +448,7 @@ theorem typed_progress (Γ : TypeEnv) (e : DataExpr) (τ : JtvType)
 -- SECTION 7: DATA/CONTROL TYPE SEPARATION
 -- ============================================================================
 
-/--
+/-
   **Key Type-Level Invariant**:
   DataExpr and ControlStmt are distinct types with no overlap.
   This is enforced by Lean's type system itself.
@@ -270,7 +467,7 @@ theorem typed_progress (Γ : TypeEnv) (e : DataExpr) (τ : JtvType)
 #check ControlStmt.ifThenElse
 #check ControlStmt.whileLoop
 
-/--
+/-
   The type system prevents any mixing:
   - There is no DataExpr constructor that takes a ControlStmt
   - There is no ControlStmt constructor that produces a DataExpr value
@@ -298,8 +495,12 @@ def inferType (Γ : TypeEnv) (e : DataExpr) : Option JtvType :=
   | DataExpr.var x => Γ x
   | DataExpr.add e₁ e₂ =>
     match inferType Γ e₁, inferType Γ e₂ with
-    | some τ₁, some τ₂ =>
-      if τ₁ == τ₂ then some τ₁ else none  -- Simplified: same types only
+    -- Only the addable number systems have a DataTyping rule for `+`.
+    | some JtvType.int, some JtvType.int => some JtvType.int
+    | some JtvType.float, some JtvType.float => some JtvType.float
+    | some JtvType.rational, some JtvType.rational => some JtvType.rational
+    | some JtvType.complex, some JtvType.complex => some JtvType.complex
+    | some JtvType.symbolic, some JtvType.symbolic => some JtvType.symbolic
     | _, _ => none
   | DataExpr.neg e =>
     match inferType Γ e with
@@ -325,11 +526,28 @@ theorem infer_sound (Γ : TypeEnv) (e : DataExpr) (τ : JtvType) :
     simp [inferType] at h
     exact DataTyping.var Γ x τ h
   | add e₁ e₂ ih₁ ih₂ =>
-    simp [inferType] at h
-    split at h <;> simp_all
+    simp only [inferType] at h
+    split at h <;> (
+      first
+      | (injection h with h; subst h
+         first
+         | exact DataTyping.addInt Γ e₁ e₂ (ih₁ _ ‹_›) (ih₂ _ ‹_›)
+         | exact DataTyping.addFloat Γ e₁ e₂ (ih₁ _ ‹_›) (ih₂ _ ‹_›)
+         | exact DataTyping.addRational Γ e₁ e₂ (ih₁ _ ‹_›) (ih₂ _ ‹_›)
+         | exact DataTyping.addComplex Γ e₁ e₂ (ih₁ _ ‹_›) (ih₂ _ ‹_›)
+         | exact DataTyping.addSymbolic Γ e₁ e₂ (ih₁ _ ‹_›) (ih₂ _ ‹_›))
+      | exact absurd h (by simp))
   | neg e ih =>
-    simp [inferType] at h
-    split at h <;> simp_all
+    simp only [inferType] at h
+    split at h <;> (
+      first
+      | (injection h with h; subst h
+         first
+         | exact DataTyping.negInt Γ e (ih _ ‹_›)
+         | exact DataTyping.negFloat Γ e (ih _ ‹_›)
+         | exact DataTyping.negRational Γ e (ih _ ‹_›)
+         | exact DataTyping.negComplex Γ e (ih _ ‹_›))
+      | exact absurd h (by simp))
 
 -- ============================================================================
 -- SECTION 9: PURITY CHECKING ALGORITHM
