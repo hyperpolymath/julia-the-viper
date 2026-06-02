@@ -19,6 +19,10 @@ pub enum Value {
     String(String),
     List(Vec<Value>),
     Tuple(Vec<Value>),
+    /// v2 — an opaque, linearly-consumed reversal token (handle into the
+    /// interpreter's token store). Not a number: arithmetic and comparison
+    /// against it fall through to the existing `TypeError` arms.
+    ReversalToken(u64),
     Unit,
 }
 
@@ -261,6 +265,7 @@ impl fmt::Display for Value {
                 }
                 write!(f, ")")
             }
+            Value::ReversalToken(id) => write!(f, "<reversal-token #{}>", id),
             Value::Unit => write!(f, "()"),
         }
     }

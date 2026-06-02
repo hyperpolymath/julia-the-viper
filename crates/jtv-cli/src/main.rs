@@ -13,7 +13,7 @@
 
 use clap::{Parser, Subcommand};
 use colored::*;
-use jtv_core::coproc::{CoprocEnv, resolve_coproc_blocks};
+use jtv_core::coproc::{resolve_coproc_blocks, CoprocEnv};
 use jtv_core::coproc_lower::{lower_namespace, write_lowered};
 use jtv_core::{format_code, parse_program, Interpreter, PurityChecker, TypeChecker};
 use std::fs;
@@ -176,7 +176,13 @@ fn main() {
                 std::process::exit(1);
             }
         }
-        Commands::Lower { file, pata, target, features, output_dir } => {
+        Commands::Lower {
+            file,
+            pata,
+            target,
+            features,
+            output_dir,
+        } => {
             let feats: Vec<&str> = if features.is_empty() {
                 vec![]
             } else {
@@ -364,7 +370,7 @@ fn top_level_to_sexpr(tl: &jtv_core::TopLevel, out: &mut String, indent: usize) 
         }
         jtv_core::TopLevel::Function(f) => {
             out.push_str(&format!("(fn \"{}\" {:?}", f.name, f.purity));
-            out.push_str("\n");
+            out.push('\n');
             out.push_str(&" ".repeat(indent + 2));
             out.push_str("(params");
             for p in &f.params {
@@ -397,7 +403,7 @@ fn control_to_sexpr(stmt: &jtv_core::ControlStmt, out: &mut String, indent: usiz
         jtv_core::ControlStmt::If(i) => {
             out.push_str("(if ");
             cexpr_to_sexpr(&i.condition, out);
-            out.push_str("\n");
+            out.push('\n');
             out.push_str(&" ".repeat(indent + 2));
             out.push_str("(then");
             for s in &i.then_branch {
@@ -406,7 +412,7 @@ fn control_to_sexpr(stmt: &jtv_core::ControlStmt, out: &mut String, indent: usiz
             }
             out.push(')');
             if let Some(els) = &i.else_branch {
-                out.push_str("\n");
+                out.push('\n');
                 out.push_str(&" ".repeat(indent + 2));
                 out.push_str("(else");
                 for s in els {
@@ -531,17 +537,15 @@ fn expr_to_sexpr(expr: &jtv_core::Expr, out: &mut String) {
 
 fn data_to_sexpr(expr: &jtv_core::DataExpr, out: &mut String) {
     match expr {
-        jtv_core::DataExpr::Number(n) => {
-            match n {
-                jtv_core::Number::Int(i) => out.push_str(&format!("{}", i)),
-                jtv_core::Number::Float(f) => out.push_str(&format!("{}", f)),
-                jtv_core::Number::Rational(n, d) => out.push_str(&format!("(rational {} {})", n, d)),
-                jtv_core::Number::Complex(r, i) => out.push_str(&format!("(complex {} {})", r, i)),
-                jtv_core::Number::Hex(s) => out.push_str(&format!("(hex \"{}\")", s)),
-                jtv_core::Number::Binary(s) => out.push_str(&format!("(binary \"{}\")", s)),
-                jtv_core::Number::Symbolic(s) => out.push_str(&format!("(sym \"{}\")", s)),
-            }
-        }
+        jtv_core::DataExpr::Number(n) => match n {
+            jtv_core::Number::Int(i) => out.push_str(&format!("{}", i)),
+            jtv_core::Number::Float(f) => out.push_str(&format!("{}", f)),
+            jtv_core::Number::Rational(n, d) => out.push_str(&format!("(rational {} {})", n, d)),
+            jtv_core::Number::Complex(r, i) => out.push_str(&format!("(complex {} {})", r, i)),
+            jtv_core::Number::Hex(s) => out.push_str(&format!("(hex \"{}\")", s)),
+            jtv_core::Number::Binary(s) => out.push_str(&format!("(binary \"{}\")", s)),
+            jtv_core::Number::Symbolic(s) => out.push_str(&format!("(sym \"{}\")", s)),
+        },
         jtv_core::DataExpr::StringLit(s) => out.push_str(&format!("(str \"{}\")", s)),
         jtv_core::DataExpr::Identifier(name) => out.push_str(&format!("(id \"{}\")", name)),
         jtv_core::DataExpr::Add(l, r) => {
@@ -640,19 +644,21 @@ fn lower_files(
     features: &[&str],
     output_dir: &str,
 ) -> Result<(), String> {
-    let src = fs::read_to_string(jtv_path)
-        .map_err(|e| format!("cannot read {}: {}", jtv_path, e))?;
-    let pata_src = fs::read_to_string(pata_path)
-        .map_err(|e| format!("cannot read {}: {}", pata_path, e))?;
+    let src =
+        fs::read_to_string(jtv_path).map_err(|e| format!("cannot read {}: {}", jtv_path, e))?;
+    let pata_src =
+        fs::read_to_string(pata_path).map_err(|e| format!("cannot read {}: {}", pata_path, e))?;
 
     let prog = parse_program(&src).map_err(|e| e.to_string())?;
     let env = CoprocEnv::from_triple(target, features);
-    let (_, ns) = resolve_coproc_blocks(prog, &env, Some(&pata_src))
-        .map_err(|e| e.to_string())?;
+    let (_, ns) = resolve_coproc_blocks(prog, &env, Some(&pata_src)).map_err(|e| e.to_string())?;
 
     let gates = lower_namespace(&ns);
     if gates.is_empty() {
-        println!("{} no live extern coproc gates — nothing to lower", "note:".yellow());
+        println!(
+            "{} no live extern coproc gates — nothing to lower",
+            "note:".yellow()
+        );
         return Ok(());
     }
 

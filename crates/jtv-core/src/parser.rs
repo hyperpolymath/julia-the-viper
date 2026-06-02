@@ -58,7 +58,9 @@ fn parse_module(pair: pest::iterators::Pair<Rule>) -> Result<TopLevel> {
 
 fn parse_import(pair: pest::iterators::Pair<Rule>) -> Result<TopLevel> {
     let mut inner = pair.into_inner();
-    let module_path = inner.next().ok_or_else(|| JtvError::ParseError("Expected module path in import".to_string()))?;
+    let module_path = inner
+        .next()
+        .ok_or_else(|| JtvError::ParseError("Expected module path in import".to_string()))?;
 
     let path: Vec<String> = module_path
         .into_inner()
@@ -74,7 +76,9 @@ fn parse_function(pair: pest::iterators::Pair<Rule>) -> Result<TopLevel> {
     let mut inner = pair.into_inner();
 
     let mut purity = Purity::Impure;
-    let mut first = inner.next().ok_or_else(|| JtvError::ParseError("Expected function declaration".to_string()))?;
+    let mut first = inner
+        .next()
+        .ok_or_else(|| JtvError::ParseError("Expected function declaration".to_string()))?;
 
     // Check for purity marker
     if first.as_rule() == Rule::purity_marker {
@@ -83,7 +87,9 @@ fn parse_function(pair: pest::iterators::Pair<Rule>) -> Result<TopLevel> {
             "@total" => Purity::Total,
             _ => Purity::Impure,
         };
-        first = inner.next().ok_or_else(|| JtvError::ParseError("Expected function name after purity marker".to_string()))?;
+        first = inner.next().ok_or_else(|| {
+            JtvError::ParseError("Expected function name after purity marker".to_string())
+        })?;
     }
 
     let name = first.as_str().to_string();
@@ -101,9 +107,9 @@ fn parse_function(pair: pest::iterators::Pair<Rule>) -> Result<TopLevel> {
             }
             Rule::return_type => {
                 return_type = Some(parse_type_annotation(
-                    pair.into_inner()
-                        .next()
-                        .ok_or_else(|| JtvError::ParseError("Expected type annotation in return type".to_string()))?
+                    pair.into_inner().next().ok_or_else(|| {
+                        JtvError::ParseError("Expected type annotation in return type".to_string())
+                    })?,
                 )?);
             }
             Rule::block => {
@@ -153,7 +159,9 @@ fn parse_control_stmt(pair: pest::iterators::Pair<Rule>) -> Result<ControlStmt> 
                 .ok_or_else(|| JtvError::ParseError("Expected assignment target".to_string()))?
                 .as_str()
                 .to_string();
-            let value_pair = parts.next().ok_or_else(|| JtvError::ParseError("Expected assignment value".to_string()))?;
+            let value_pair = parts
+                .next()
+                .ok_or_else(|| JtvError::ParseError("Expected assignment value".to_string()))?;
 
             let value = if value_pair.as_rule() == Rule::data_expr {
                 Expr::Data(parse_data_expr(value_pair)?)
@@ -166,22 +174,29 @@ fn parse_control_stmt(pair: pest::iterators::Pair<Rule>) -> Result<ControlStmt> 
         Rule::if_stmt => {
             let mut parts = inner.into_inner();
             let condition = parse_control_expr(
-                parts.next().ok_or_else(|| JtvError::ParseError("Expected if condition".to_string()))?
+                parts
+                    .next()
+                    .ok_or_else(|| JtvError::ParseError("Expected if condition".to_string()))?,
             )?;
 
-            let then_block = parts.next().ok_or_else(|| JtvError::ParseError("Expected if then block".to_string()))?;
+            let then_block = parts
+                .next()
+                .ok_or_else(|| JtvError::ParseError("Expected if then block".to_string()))?;
             let mut then_branch = Vec::new();
             for stmt in then_block.into_inner() {
                 then_branch.push(parse_control_stmt(stmt)?);
             }
 
-            let else_branch = parts.next().map(|else_block| {
-                let mut stmts = Vec::new();
-                for stmt in else_block.into_inner() {
-                    stmts.push(parse_control_stmt(stmt)?);
-                }
-                Ok::<Vec<ControlStmt>, JtvError>(stmts)
-            }).transpose()?;
+            let else_branch = parts
+                .next()
+                .map(|else_block| {
+                    let mut stmts = Vec::new();
+                    for stmt in else_block.into_inner() {
+                        stmts.push(parse_control_stmt(stmt)?);
+                    }
+                    Ok::<Vec<ControlStmt>, JtvError>(stmts)
+                })
+                .transpose()?;
 
             Ok(ControlStmt::If(IfStmt {
                 condition,
@@ -191,12 +206,17 @@ fn parse_control_stmt(pair: pest::iterators::Pair<Rule>) -> Result<ControlStmt> 
         }
         Rule::while_stmt => {
             let mut parts = inner.into_inner();
-            let condition = parse_control_expr(
-                parts.next().ok_or_else(|| JtvError::ParseError("Expected while condition".to_string()))?
-            )?;
+            let condition =
+                parse_control_expr(parts.next().ok_or_else(|| {
+                    JtvError::ParseError("Expected while condition".to_string())
+                })?)?;
 
             let mut body = Vec::new();
-            for stmt in parts.next().ok_or_else(|| JtvError::ParseError("Expected while body".to_string()))?.into_inner() {
+            for stmt in parts
+                .next()
+                .ok_or_else(|| JtvError::ParseError("Expected while body".to_string()))?
+                .into_inner()
+            {
                 body.push(parse_control_stmt(stmt)?);
             }
 
@@ -209,7 +229,9 @@ fn parse_control_stmt(pair: pest::iterators::Pair<Rule>) -> Result<ControlStmt> 
                 .ok_or_else(|| JtvError::ParseError("Expected for loop variable".to_string()))?
                 .as_str()
                 .to_string();
-            let iterable = parts.next().ok_or_else(|| JtvError::ParseError("Expected for loop iterable".to_string()))?;
+            let iterable = parts
+                .next()
+                .ok_or_else(|| JtvError::ParseError("Expected for loop iterable".to_string()))?;
 
             // Support both range expressions (0..10) and data expressions (xs)
             let range = if iterable.as_rule() == Rule::range_expr {
@@ -226,7 +248,11 @@ fn parse_control_stmt(pair: pest::iterators::Pair<Rule>) -> Result<ControlStmt> 
             };
 
             let mut body = Vec::new();
-            for stmt in parts.next().ok_or_else(|| JtvError::ParseError("Expected for loop body".to_string()))?.into_inner() {
+            for stmt in parts
+                .next()
+                .ok_or_else(|| JtvError::ParseError("Expected for loop body".to_string()))?
+                .into_inner()
+            {
                 body.push(parse_control_stmt(stmt)?);
             }
 
@@ -258,6 +284,51 @@ fn parse_control_stmt(pair: pest::iterators::Pair<Rule>) -> Result<ControlStmt> 
             }
             Ok(ControlStmt::ReverseBlock(ReverseBlock { body }))
         }
+        Rule::reversible_block => {
+            // `reversible { reversible_stmt* } ( -> identifier )?`
+            // Body statements are `reversible_stmt`; a trailing `identifier`
+            // (if present) is the token binding.
+            let mut body = Vec::new();
+            let mut token_binding = None;
+            for sub in inner.into_inner() {
+                match sub.as_rule() {
+                    Rule::reversible_stmt => body.push(parse_reversible_stmt(sub)?),
+                    Rule::identifier => token_binding = Some(sub.as_str().to_string()),
+                    other => {
+                        return Err(JtvError::ParseError(format!(
+                            "Unexpected item in reversible block: {:?}",
+                            other
+                        )))
+                    }
+                }
+            }
+            Ok(ControlStmt::ReversibleBlock(ReversibleBlockStmt {
+                body,
+                token_binding,
+            }))
+        }
+        Rule::reverse_token => {
+            let tok = inner
+                .into_inner()
+                .next()
+                .ok_or_else(|| {
+                    JtvError::ParseError("Expected reversal token name after `reverse`".to_string())
+                })?
+                .as_str()
+                .to_string();
+            Ok(ControlStmt::ReverseToken(tok))
+        }
+        Rule::abandon_token => {
+            let tok = inner
+                .into_inner()
+                .next()
+                .ok_or_else(|| {
+                    JtvError::ParseError("Expected reversal token name after `abandon`".to_string())
+                })?
+                .as_str()
+                .to_string();
+            Ok(ControlStmt::AbandonToken(tok))
+        }
         Rule::block => {
             let mut stmts = Vec::new();
             for stmt_pair in inner.into_inner() {
@@ -283,16 +354,18 @@ fn parse_reversible_stmt(pair: pest::iterators::Pair<Rule>) -> Result<Reversible
             let mut parts = inner.into_inner();
             let target = parts
                 .next()
-                .ok_or_else(|| JtvError::ParseError("Expected reversible assignment target".to_string()))?
+                .ok_or_else(|| {
+                    JtvError::ParseError("Expected reversible assignment target".to_string())
+                })?
                 .as_str()
                 .to_string();
             let op = parts
                 .next()
                 .ok_or_else(|| JtvError::ParseError("Expected reversible operator".to_string()))?
                 .as_str();
-            let expr = parse_data_expr(
-                parts.next().ok_or_else(|| JtvError::ParseError("Expected reversible assignment expression".to_string()))?
-            )?;
+            let expr = parse_data_expr(parts.next().ok_or_else(|| {
+                JtvError::ParseError("Expected reversible assignment expression".to_string())
+            })?)?;
 
             match op {
                 "+=" => Ok(ReversibleStmt::AddAssign(target, expr)),
@@ -306,23 +379,28 @@ fn parse_reversible_stmt(pair: pest::iterators::Pair<Rule>) -> Result<Reversible
         Rule::if_stmt => {
             // Parse as regular if statement
             let mut parts = inner.into_inner();
-            let condition = parse_control_expr(
-                parts.next().ok_or_else(|| JtvError::ParseError("Expected reversible if condition".to_string()))?
-            )?;
+            let condition = parse_control_expr(parts.next().ok_or_else(|| {
+                JtvError::ParseError("Expected reversible if condition".to_string())
+            })?)?;
 
-            let then_block = parts.next().ok_or_else(|| JtvError::ParseError("Expected reversible if then block".to_string()))?;
+            let then_block = parts.next().ok_or_else(|| {
+                JtvError::ParseError("Expected reversible if then block".to_string())
+            })?;
             let mut then_branch = Vec::new();
             for stmt in then_block.into_inner() {
                 then_branch.push(parse_control_stmt(stmt)?);
             }
 
-            let else_branch = parts.next().map(|else_block| {
-                let mut stmts = Vec::new();
-                for stmt in else_block.into_inner() {
-                    stmts.push(parse_control_stmt(stmt)?);
-                }
-                Ok::<Vec<ControlStmt>, JtvError>(stmts)
-            }).transpose()?;
+            let else_branch = parts
+                .next()
+                .map(|else_block| {
+                    let mut stmts = Vec::new();
+                    for stmt in else_block.into_inner() {
+                        stmts.push(parse_control_stmt(stmt)?);
+                    }
+                    Ok::<Vec<ControlStmt>, JtvError>(stmts)
+                })
+                .transpose()?;
 
             Ok(ReversibleStmt::If(IfStmt {
                 condition,
@@ -347,9 +425,10 @@ fn parse_data_expr(pair: pest::iterators::Pair<Rule>) -> Result<DataExpr> {
 
 fn parse_additive_expr(pair: pest::iterators::Pair<Rule>) -> Result<DataExpr> {
     let mut inner = pair.into_inner();
-    let mut left = parse_term(
-        inner.next().ok_or_else(|| JtvError::ParseError("Expected additive expression term".to_string()))?
-    )?;
+    let mut left =
+        parse_term(inner.next().ok_or_else(|| {
+            JtvError::ParseError("Expected additive expression term".to_string())
+        })?)?;
 
     while let Some(right_pair) = inner.next() {
         let right = parse_term(right_pair)?;
@@ -373,7 +452,7 @@ fn parse_factor(pair: pest::iterators::Pair<Rule>) -> Result<DataExpr> {
             let num = parse_number(
                 pair.into_inner()
                     .next()
-                    .ok_or_else(|| JtvError::ParseError("Expected number".to_string()))?
+                    .ok_or_else(|| JtvError::ParseError("Expected number".to_string()))?,
             )?;
             Ok(DataExpr::Number(num))
         }
@@ -388,7 +467,9 @@ fn parse_factor(pair: pest::iterators::Pair<Rule>) -> Result<DataExpr> {
         Rule::identifier => Ok(DataExpr::Identifier(pair.as_str().to_string())),
         Rule::function_call => {
             let mut parts = pair.into_inner();
-            let qualified_name = parts.next().ok_or_else(|| JtvError::ParseError("Expected function name".to_string()))?;
+            let qualified_name = parts
+                .next()
+                .ok_or_else(|| JtvError::ParseError("Expected function name".to_string()))?;
 
             // Parse qualified name: Module.submodule.function
             let name_parts: Vec<String> = qualified_name
@@ -430,13 +511,15 @@ fn parse_factor(pair: pest::iterators::Pair<Rule>) -> Result<DataExpr> {
         }
         Rule::factor => {
             let mut inner = pair.into_inner();
-            let first = inner.next().ok_or_else(|| JtvError::ParseError("Expected factor".to_string()))?;
+            let first = inner
+                .next()
+                .ok_or_else(|| JtvError::ParseError("Expected factor".to_string()))?;
 
             if first.as_rule() == Rule::unary_op {
                 let op = first.as_str();
-                let expr = parse_factor(
-                    inner.next().ok_or_else(|| JtvError::ParseError("Expected factor after unary operator".to_string()))?
-                )?;
+                let expr = parse_factor(inner.next().ok_or_else(|| {
+                    JtvError::ParseError("Expected factor after unary operator".to_string())
+                })?)?;
 
                 match op {
                     "-" => Ok(DataExpr::Negate(Box::new(expr))),
@@ -534,7 +617,9 @@ fn parse_control_expr(pair: pest::iterators::Pair<Rule>) -> Result<ControlExpr> 
 fn parse_logical_expr(pair: pest::iterators::Pair<Rule>) -> Result<ControlExpr> {
     let mut inner = pair.into_inner();
     let mut left = parse_logical_term(
-        inner.next().ok_or_else(|| JtvError::ParseError("Expected logical term".to_string()))?
+        inner
+            .next()
+            .ok_or_else(|| JtvError::ParseError("Expected logical term".to_string()))?,
     )?;
 
     for right_pair in inner {
@@ -548,7 +633,9 @@ fn parse_logical_expr(pair: pest::iterators::Pair<Rule>) -> Result<ControlExpr> 
 fn parse_logical_term(pair: pest::iterators::Pair<Rule>) -> Result<ControlExpr> {
     let mut inner = pair.into_inner();
     let mut left = parse_logical_factor(
-        inner.next().ok_or_else(|| JtvError::ParseError("Expected logical factor".to_string()))?
+        inner
+            .next()
+            .ok_or_else(|| JtvError::ParseError("Expected logical factor".to_string()))?,
     )?;
 
     for right_pair in inner {
@@ -561,13 +648,15 @@ fn parse_logical_term(pair: pest::iterators::Pair<Rule>) -> Result<ControlExpr> 
 
 fn parse_logical_factor(pair: pest::iterators::Pair<Rule>) -> Result<ControlExpr> {
     let mut inner = pair.into_inner();
-    let first = inner.next().ok_or_else(|| JtvError::ParseError("Expected logical factor".to_string()))?;
+    let first = inner
+        .next()
+        .ok_or_else(|| JtvError::ParseError("Expected logical factor".to_string()))?;
 
     match first.as_str() {
         "!" => {
-            let expr = parse_logical_factor(
-                inner.next().ok_or_else(|| JtvError::ParseError("Expected expression after negation".to_string()))?
-            )?;
+            let expr = parse_logical_factor(inner.next().ok_or_else(|| {
+                JtvError::ParseError("Expected expression after negation".to_string())
+            })?)?;
             Ok(ControlExpr::Not(Box::new(expr)))
         }
         _ => match first.as_rule() {
@@ -581,16 +670,18 @@ fn parse_logical_factor(pair: pest::iterators::Pair<Rule>) -> Result<ControlExpr
 
 fn parse_comparison_expr(pair: pest::iterators::Pair<Rule>) -> Result<ControlExpr> {
     let mut inner = pair.into_inner();
-    let left = parse_data_expr(
-        inner.next().ok_or_else(|| JtvError::ParseError("Expected comparison left operand".to_string()))?
-    )?;
+    let left =
+        parse_data_expr(inner.next().ok_or_else(|| {
+            JtvError::ParseError("Expected comparison left operand".to_string())
+        })?)?;
     let op = inner
         .next()
         .ok_or_else(|| JtvError::ParseError("Expected comparison operator".to_string()))?
         .as_str();
-    let right = parse_data_expr(
-        inner.next().ok_or_else(|| JtvError::ParseError("Expected comparison right operand".to_string()))?
-    )?;
+    let right =
+        parse_data_expr(inner.next().ok_or_else(|| {
+            JtvError::ParseError("Expected comparison right operand".to_string())
+        })?)?;
 
     let comparator = match op {
         "==" => Comparator::Eq,
@@ -611,13 +702,19 @@ fn parse_comparison_expr(pair: pest::iterators::Pair<Rule>) -> Result<ControlExp
 
 fn parse_range_expr(pair: pest::iterators::Pair<Rule>) -> Result<RangeExpr> {
     let mut inner = pair.into_inner();
-    let start = Box::new(parse_data_expr(
-        inner.next().ok_or_else(|| JtvError::ParseError("Expected range start".to_string()))?
-    )?);
-    let end = Box::new(parse_data_expr(
-        inner.next().ok_or_else(|| JtvError::ParseError("Expected range end".to_string()))?
-    )?);
-    let step = inner.next().map(|p| parse_data_expr(p)).transpose()?.map(Box::new);
+    let start =
+        Box::new(parse_data_expr(inner.next().ok_or_else(|| {
+            JtvError::ParseError("Expected range start".to_string())
+        })?)?);
+    let end =
+        Box::new(parse_data_expr(inner.next().ok_or_else(|| {
+            JtvError::ParseError("Expected range end".to_string())
+        })?)?);
+    let step = inner
+        .next()
+        .map(|p| parse_data_expr(p))
+        .transpose()?
+        .map(Box::new);
 
     Ok(RangeExpr { start, end, step })
 }
@@ -646,11 +743,10 @@ fn parse_type_annotation(pair: pest::iterators::Pair<Rule>) -> Result<TypeAnnota
             Ok(TypeAnnotation::Basic(basic))
         }
         Rule::list_type => {
-            let elem_type = parse_type_annotation(
-                inner.into_inner()
-                    .next()
-                    .ok_or_else(|| JtvError::ParseError("Expected list element type".to_string()))?
-            )?;
+            let elem_type =
+                parse_type_annotation(inner.into_inner().next().ok_or_else(|| {
+                    JtvError::ParseError("Expected list element type".to_string())
+                })?)?;
             Ok(TypeAnnotation::List(Box::new(elem_type)))
         }
         Rule::tuple_type => {
@@ -703,7 +799,11 @@ fn parse_extern_coproc_block(pair: pest::iterators::Pair<Rule>) -> Result<Extern
         }
     }
 
-    Ok(ExternCoprocBlock { gate_name, items, resolved: None })
+    Ok(ExternCoprocBlock {
+        gate_name,
+        items,
+        resolved: None,
+    })
 }
 
 fn parse_coproc_item(pair: pest::iterators::Pair<Rule>) -> Result<CoprocItem> {
@@ -714,7 +814,9 @@ fn parse_coproc_item(pair: pest::iterators::Pair<Rule>) -> Result<CoprocItem> {
     match inner.as_rule() {
         Rule::intrinsic_decl => Ok(CoprocItem::Intrinsic(parse_intrinsic_decl(inner)?)),
         Rule::insn_decl => Ok(CoprocItem::Insn(parse_insn_decl(inner)?)),
-        r => Err(JtvError::ParseError(format!("unexpected coproc item rule: {r:?}"))),
+        r => Err(JtvError::ParseError(format!(
+            "unexpected coproc item rule: {r:?}"
+        ))),
     }
 }
 
@@ -731,9 +833,9 @@ fn parse_intrinsic_decl(pair: pest::iterators::Pair<Rule>) -> Result<CoprocIntri
             "@total" => Purity::Total,
             _ => Purity::Impure,
         };
-        first = inner
-            .next()
-            .ok_or_else(|| JtvError::ParseError("expected intrinsic name after purity marker".into()))?;
+        first = inner.next().ok_or_else(|| {
+            JtvError::ParseError("expected intrinsic name after purity marker".into())
+        })?;
     }
 
     let name = first.as_str().to_string();
@@ -758,7 +860,12 @@ fn parse_intrinsic_decl(pair: pest::iterators::Pair<Rule>) -> Result<CoprocIntri
         }
     }
 
-    Ok(CoprocIntrinsic { name, params, return_type, purity })
+    Ok(CoprocIntrinsic {
+        name,
+        params,
+        return_type,
+        purity,
+    })
 }
 
 fn parse_insn_decl(pair: pest::iterators::Pair<Rule>) -> Result<CoprocInsn> {
@@ -815,7 +922,13 @@ fn parse_insn_decl(pair: pest::iterators::Pair<Rule>) -> Result<CoprocInsn> {
         }
     }
 
-    Ok(CoprocInsn { name, params, return_type, purity, encoding })
+    Ok(CoprocInsn {
+        name,
+        params,
+        return_type,
+        purity,
+        encoding,
+    })
 }
 
 #[cfg(test)]
@@ -855,7 +968,11 @@ mod tests {
     fn test_parse_symbolic_literal() {
         let code = "x = #pi + #e";
         let result = parse_program(code);
-        assert!(result.is_ok(), "Failed to parse symbolic literals: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "Failed to parse symbolic literals: {:?}",
+            result.err()
+        );
         let program = result.unwrap();
         // Verify the AST contains symbolic numbers
         if let TopLevel::Control(ControlStmt::Assignment(ref assign)) = program.statements[0] {
@@ -874,6 +991,10 @@ mod tests {
     fn test_parse_symbolic_with_underscore() {
         let code = "y = #my_var";
         let result = parse_program(code);
-        assert!(result.is_ok(), "Failed to parse symbolic with underscore: {:?}", result.err());
+        assert!(
+            result.is_ok(),
+            "Failed to parse symbolic with underscore: {:?}",
+            result.err()
+        );
     }
 }

@@ -39,10 +39,16 @@ reverse { x += 5 }
     let prog = parse_program(src).expect("should parse");
     interp.run(&prog).expect("should run");
 
-    let x = interp.get_variables().into_iter()
-        .find(|(k, _)| k == "x").map(|(_, v)| v);
-    assert_eq!(x, Some(Value::Int(5)),
-        "reverse {{ x += 5 }} with x=10 should give x=5 (subtraction)");
+    let x = interp
+        .get_variables()
+        .into_iter()
+        .find(|(k, _)| k == "x")
+        .map(|(_, v)| v);
+    assert_eq!(
+        x,
+        Some(Value::Int(5)),
+        "reverse {{ x += 5 }} with x=10 should give x=5 (subtraction)"
+    );
 }
 
 // ── RV2: reverse sub is add ──────────────────────────────────────────────────
@@ -57,10 +63,16 @@ reverse { x -= 3 }
     let prog = parse_program(src).expect("should parse");
     interp.run(&prog).expect("should run");
 
-    let x = interp.get_variables().into_iter()
-        .find(|(k, _)| k == "x").map(|(_, v)| v);
-    assert_eq!(x, Some(Value::Int(13)),
-        "reverse {{ x -= 3 }} with x=10 should give x=13 (inverse of subtraction is addition)");
+    let x = interp
+        .get_variables()
+        .into_iter()
+        .find(|(k, _)| k == "x")
+        .map(|(_, v)| v);
+    assert_eq!(
+        x,
+        Some(Value::Int(13)),
+        "reverse {{ x -= 3 }} with x=10 should give x=13 (inverse of subtraction is addition)"
+    );
 }
 
 // ── RV3: multi-op chain inverts in reverse order ─────────────────────────────
@@ -81,10 +93,8 @@ reverse { x += 5 y += 3 }
 
     let vars: std::collections::HashMap<String, Value> =
         interp.get_variables().into_iter().collect();
-    assert_eq!(vars.get("x"), Some(&Value::Int(5)),
-        "x should be 10-5=5");
-    assert_eq!(vars.get("y"), Some(&Value::Int(17)),
-        "y should be 20-3=17");
+    assert_eq!(vars.get("x"), Some(&Value::Int(5)), "x should be 10-5=5");
+    assert_eq!(vars.get("y"), Some(&Value::Int(17)), "y should be 20-3=17");
 }
 
 // ── RV4: cross-variable: reverse { x += y } → x = x - y ────────────────────
@@ -100,10 +110,16 @@ reverse { x += y }
     let prog = parse_program(src).expect("should parse");
     interp.run(&prog).expect("should run");
 
-    let x = interp.get_variables().into_iter()
-        .find(|(k, _)| k == "x").map(|(_, v)| v);
-    assert_eq!(x, Some(Value::Int(7)),
-        "reverse {{ x += y }} with x=10, y=3 should give x=7");
+    let x = interp
+        .get_variables()
+        .into_iter()
+        .find(|(k, _)| k == "x")
+        .map(|(_, v)| v);
+    assert_eq!(
+        x,
+        Some(Value::Int(7)),
+        "reverse {{ x += y }} with x=10, y=3 should give x=7"
+    );
 }
 
 // ── RV5: CNO via execute_and_reverse ────────────────────────────────────────
@@ -121,10 +137,20 @@ fn rv5_cno_execute_and_reverse_is_identity() {
         ],
     };
 
-    interp.execute_and_reverse(&block).expect("CNO should not fail");
+    interp
+        .execute_and_reverse(&block)
+        .expect("CNO should not fail");
 
-    assert_eq!(interp.get("x"), Some(&Value::Int(42)), "x must be unchanged after CNO");
-    assert_eq!(interp.get("y"), Some(&Value::Int(100)), "y must be unchanged after CNO");
+    assert_eq!(
+        interp.get("x"),
+        Some(&Value::Int(42)),
+        "x must be unchanged after CNO"
+    );
+    assert_eq!(
+        interp.get("y"),
+        Some(&Value::Int(100)),
+        "y must be unchanged after CNO"
+    );
 }
 
 // ── RV6: full-program parse + run ────────────────────────────────────────────
@@ -146,8 +172,11 @@ reverse { total += bonus }
 
     let vars: std::collections::HashMap<String, Value> =
         interp.get_variables().into_iter().collect();
-    assert_eq!(vars.get("total"), Some(&Value::Int(100)),
-        "forward +25 then reverse -25 returns total to 100");
+    assert_eq!(
+        vars.get("total"),
+        Some(&Value::Int(100)),
+        "forward +25 then reverse -25 returns total to 100"
+    );
     assert_eq!(vars.get("bonus"), Some(&Value::Int(25)), "bonus unchanged");
 }
 
@@ -160,19 +189,27 @@ fn rv7_forward_then_reverse_is_left_inverse() {
     // forward on one interpreter, then inverse on another starting from
     // the FORWARD state — proving they are mutual inverses.
     let block = ReverseBlock {
-        body: vec![
-            ReversibleStmt::AddAssign("x".to_string(), DataExpr::Number(Number::Int(11))),
-        ],
+        body: vec![ReversibleStmt::AddAssign(
+            "x".to_string(),
+            DataExpr::Number(Number::Int(11)),
+        )],
     };
 
     let mut fwd = ReversibleInterpreter::new();
     fwd.set("x".to_string(), Value::Int(5));
     fwd.execute_forward(&block).expect("forward");
-    assert_eq!(fwd.get("x"), Some(&Value::Int(16)), "forward: x = 5 + 11 = 16");
+    assert_eq!(
+        fwd.get("x"),
+        Some(&Value::Int(16)),
+        "forward: x = 5 + 11 = 16"
+    );
 
     // Now apply inverse starting from the forward state
     let mut inv = ReversibleInterpreter::with_state(fwd.get_state().clone());
     inv.execute_inverse(&block).expect("inverse");
-    assert_eq!(inv.get("x"), Some(&Value::Int(5)),
-        "inverse of forward restores original: 16 - 11 = 5");
+    assert_eq!(
+        inv.get("x"),
+        Some(&Value::Int(5)),
+        "inverse of forward restores original: 16 - 11 = 5"
+    );
 }

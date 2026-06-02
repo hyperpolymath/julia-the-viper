@@ -10,12 +10,20 @@
 // - Interpreter::eval_control_stmt (control flow)
 // - Formatter output correctness
 
+// These mutation-killer tests deliberately assert against explicit `true`/
+// `false` literals: the expected boolean is the thing under test, so spelling
+// it out documents intent and makes a flipped-comparator mutant obvious.
+#![allow(clippy::bool_assert_comparison)]
+// The `3.14` literals here are display-string fixtures (asserting that a float
+// renders as exactly "3.14"), not approximations of PI.
+#![allow(clippy::approx_constant)]
+
+use jtv_core::ast::*;
+use jtv_core::formatter::Formatter;
+use jtv_core::interpreter::Interpreter;
 use jtv_core::number::Value;
 use jtv_core::parser::parse_program;
-use jtv_core::formatter::Formatter;
 use jtv_core::pretty::PrettyPrinter;
-use jtv_core::ast::*;
-use jtv_core::interpreter::Interpreter;
 use num_complex::Complex64;
 use num_rational::Ratio;
 
@@ -110,22 +118,42 @@ fn lt_float_int_false() {
 
 #[test]
 fn lt_int_rational_true() {
-    assert_eq!(Value::Int(0).lt(&Value::Rational(Ratio::new(1, 2))).unwrap(), true);
+    assert_eq!(
+        Value::Int(0)
+            .lt(&Value::Rational(Ratio::new(1, 2)))
+            .unwrap(),
+        true
+    );
 }
 
 #[test]
 fn lt_int_rational_false() {
-    assert_eq!(Value::Int(1).lt(&Value::Rational(Ratio::new(1, 2))).unwrap(), false);
+    assert_eq!(
+        Value::Int(1)
+            .lt(&Value::Rational(Ratio::new(1, 2)))
+            .unwrap(),
+        false
+    );
 }
 
 #[test]
 fn lt_rational_int_true() {
-    assert_eq!(Value::Rational(Ratio::new(1, 2)).lt(&Value::Int(1)).unwrap(), true);
+    assert_eq!(
+        Value::Rational(Ratio::new(1, 2))
+            .lt(&Value::Int(1))
+            .unwrap(),
+        true
+    );
 }
 
 #[test]
 fn lt_rational_int_false() {
-    assert_eq!(Value::Rational(Ratio::new(3, 2)).lt(&Value::Int(1)).unwrap(), false);
+    assert_eq!(
+        Value::Rational(Ratio::new(3, 2))
+            .lt(&Value::Int(1))
+            .unwrap(),
+        false
+    );
 }
 
 #[test]
@@ -160,8 +188,18 @@ fn lt_cross_type_equal_is_false() {
     // Int(2) < Float(2.0) should be false
     assert_eq!(Value::Int(2).lt(&Value::Float(2.0)).unwrap(), false);
     assert_eq!(Value::Float(2.0).lt(&Value::Int(2)).unwrap(), false);
-    assert_eq!(Value::Int(1).lt(&Value::Rational(Ratio::new(1, 1))).unwrap(), false);
-    assert_eq!(Value::Rational(Ratio::new(1, 1)).lt(&Value::Int(1)).unwrap(), false);
+    assert_eq!(
+        Value::Int(1)
+            .lt(&Value::Rational(Ratio::new(1, 1)))
+            .unwrap(),
+        false
+    );
+    assert_eq!(
+        Value::Rational(Ratio::new(1, 1))
+            .lt(&Value::Int(1))
+            .unwrap(),
+        false
+    );
     assert_eq!(Value::Hex(5).lt(&Value::Int(5)).unwrap(), false);
     assert_eq!(Value::Int(5).lt(&Value::Hex(5)).unwrap(), false);
     assert_eq!(Value::Binary(5).lt(&Value::Int(5)).unwrap(), false);
@@ -172,8 +210,18 @@ fn lt_cross_type_equal_is_false() {
 fn gt_cross_type_equal_is_false() {
     assert_eq!(Value::Int(2).gt(&Value::Float(2.0)).unwrap(), false);
     assert_eq!(Value::Float(2.0).gt(&Value::Int(2)).unwrap(), false);
-    assert_eq!(Value::Int(1).gt(&Value::Rational(Ratio::new(1, 1))).unwrap(), false);
-    assert_eq!(Value::Rational(Ratio::new(1, 1)).gt(&Value::Int(1)).unwrap(), false);
+    assert_eq!(
+        Value::Int(1)
+            .gt(&Value::Rational(Ratio::new(1, 1)))
+            .unwrap(),
+        false
+    );
+    assert_eq!(
+        Value::Rational(Ratio::new(1, 1))
+            .gt(&Value::Int(1))
+            .unwrap(),
+        false
+    );
     assert_eq!(Value::Hex(5).gt(&Value::Int(5)).unwrap(), false);
     assert_eq!(Value::Int(5).gt(&Value::Hex(5)).unwrap(), false);
     assert_eq!(Value::Binary(5).gt(&Value::Int(5)).unwrap(), false);
@@ -246,12 +294,22 @@ fn gt_float_int_true() {
 
 #[test]
 fn gt_int_rational_true() {
-    assert_eq!(Value::Int(1).gt(&Value::Rational(Ratio::new(1, 2))).unwrap(), true);
+    assert_eq!(
+        Value::Int(1)
+            .gt(&Value::Rational(Ratio::new(1, 2)))
+            .unwrap(),
+        true
+    );
 }
 
 #[test]
 fn gt_rational_int_true() {
-    assert_eq!(Value::Rational(Ratio::new(3, 2)).gt(&Value::Int(1)).unwrap(), true);
+    assert_eq!(
+        Value::Rational(Ratio::new(3, 2))
+            .gt(&Value::Int(1))
+            .unwrap(),
+        true
+    );
 }
 
 #[test]
@@ -300,12 +358,22 @@ fn le_float_greater() {
 
 #[test]
 fn le_rational_less() {
-    assert_eq!(Value::Rational(Ratio::new(1, 3)).le(&Value::Rational(Ratio::new(1, 2))).unwrap(), true);
+    assert_eq!(
+        Value::Rational(Ratio::new(1, 3))
+            .le(&Value::Rational(Ratio::new(1, 2)))
+            .unwrap(),
+        true
+    );
 }
 
 #[test]
 fn le_rational_equal() {
-    assert_eq!(Value::Rational(Ratio::new(1, 2)).le(&Value::Rational(Ratio::new(1, 2))).unwrap(), true);
+    assert_eq!(
+        Value::Rational(Ratio::new(1, 2))
+            .le(&Value::Rational(Ratio::new(1, 2)))
+            .unwrap(),
+        true
+    );
 }
 
 #[test]
@@ -338,14 +406,34 @@ fn le_float_int() {
 
 #[test]
 fn le_int_rational() {
-    assert_eq!(Value::Int(0).le(&Value::Rational(Ratio::new(1, 2))).unwrap(), true);
-    assert_eq!(Value::Int(1).le(&Value::Rational(Ratio::new(1, 2))).unwrap(), false);
+    assert_eq!(
+        Value::Int(0)
+            .le(&Value::Rational(Ratio::new(1, 2)))
+            .unwrap(),
+        true
+    );
+    assert_eq!(
+        Value::Int(1)
+            .le(&Value::Rational(Ratio::new(1, 2)))
+            .unwrap(),
+        false
+    );
 }
 
 #[test]
 fn le_rational_int() {
-    assert_eq!(Value::Rational(Ratio::new(1, 2)).le(&Value::Int(1)).unwrap(), true);
-    assert_eq!(Value::Rational(Ratio::new(3, 2)).le(&Value::Int(1)).unwrap(), false);
+    assert_eq!(
+        Value::Rational(Ratio::new(1, 2))
+            .le(&Value::Int(1))
+            .unwrap(),
+        true
+    );
+    assert_eq!(
+        Value::Rational(Ratio::new(3, 2))
+            .le(&Value::Int(1))
+            .unwrap(),
+        false
+    );
 }
 
 #[test]
@@ -396,12 +484,22 @@ fn ge_float_less() {
 
 #[test]
 fn ge_rational_greater() {
-    assert_eq!(Value::Rational(Ratio::new(2, 3)).ge(&Value::Rational(Ratio::new(1, 3))).unwrap(), true);
+    assert_eq!(
+        Value::Rational(Ratio::new(2, 3))
+            .ge(&Value::Rational(Ratio::new(1, 3)))
+            .unwrap(),
+        true
+    );
 }
 
 #[test]
 fn ge_rational_equal() {
-    assert_eq!(Value::Rational(Ratio::new(1, 2)).ge(&Value::Rational(Ratio::new(1, 2))).unwrap(), true);
+    assert_eq!(
+        Value::Rational(Ratio::new(1, 2))
+            .ge(&Value::Rational(Ratio::new(1, 2)))
+            .unwrap(),
+        true
+    );
 }
 
 #[test]
@@ -434,14 +532,34 @@ fn ge_float_int() {
 
 #[test]
 fn ge_int_rational() {
-    assert_eq!(Value::Int(1).ge(&Value::Rational(Ratio::new(1, 2))).unwrap(), true);
-    assert_eq!(Value::Int(0).ge(&Value::Rational(Ratio::new(1, 2))).unwrap(), false);
+    assert_eq!(
+        Value::Int(1)
+            .ge(&Value::Rational(Ratio::new(1, 2)))
+            .unwrap(),
+        true
+    );
+    assert_eq!(
+        Value::Int(0)
+            .ge(&Value::Rational(Ratio::new(1, 2)))
+            .unwrap(),
+        false
+    );
 }
 
 #[test]
 fn ge_rational_int() {
-    assert_eq!(Value::Rational(Ratio::new(3, 2)).ge(&Value::Int(1)).unwrap(), true);
-    assert_eq!(Value::Rational(Ratio::new(1, 2)).ge(&Value::Int(1)).unwrap(), false);
+    assert_eq!(
+        Value::Rational(Ratio::new(3, 2))
+            .ge(&Value::Int(1))
+            .unwrap(),
+        true
+    );
+    assert_eq!(
+        Value::Rational(Ratio::new(1, 2))
+            .ge(&Value::Int(1))
+            .unwrap(),
+        false
+    );
 }
 
 #[test]
@@ -690,10 +808,22 @@ fn formatter_function_with_purity() {
 #[test]
 fn pretty_print_number_types() {
     let printer = PrettyPrinter::new();
-    assert_eq!(printer.print_data_expr(&DataExpr::Number(Number::Int(42))), "42");
-    assert_eq!(printer.print_data_expr(&DataExpr::Number(Number::Float(3.14))), "3.14");
-    assert_eq!(printer.print_data_expr(&DataExpr::StringLit("hello".to_string())), "\"hello\"");
-    assert_eq!(printer.print_data_expr(&DataExpr::Identifier("x".to_string())), "x");
+    assert_eq!(
+        printer.print_data_expr(&DataExpr::Number(Number::Int(42))),
+        "42"
+    );
+    assert_eq!(
+        printer.print_data_expr(&DataExpr::Number(Number::Float(3.14))),
+        "3.14"
+    );
+    assert_eq!(
+        printer.print_data_expr(&DataExpr::StringLit("hello".to_string())),
+        "\"hello\""
+    );
+    assert_eq!(
+        printer.print_data_expr(&DataExpr::Identifier("x".to_string())),
+        "x"
+    );
 }
 
 #[test]
@@ -764,7 +894,11 @@ fn pretty_print_qualified_function_call() {
 
 #[test]
 fn qualified_name_no_module() {
-    let fc = FunctionCall { module: None, name: "foo".to_string(), args: vec![] };
+    let fc = FunctionCall {
+        module: None,
+        name: "foo".to_string(),
+        args: vec![],
+    };
     assert_eq!(fc.qualified_name(), "foo");
 }
 
@@ -799,11 +933,19 @@ fn formatter_if_indentation() {
     let mut formatter = Formatter::new();
     let output = formatter.format_program(&program);
     // Body should be indented (4 spaces by default)
-    assert!(output.contains("    y = 1"), "If body should be indented:\n{}", output);
+    assert!(
+        output.contains("    y = 1"),
+        "If body should be indented:\n{}",
+        output
+    );
     // Closing brace should NOT be indented
     let lines: Vec<&str> = output.lines().collect();
     let last_non_empty = lines.iter().rev().find(|l| !l.trim().is_empty()).unwrap();
-    assert!(last_non_empty.starts_with('}') || last_non_empty.trim() == "}", "Closing brace should be at top level:\n{}", output);
+    assert!(
+        last_non_empty.starts_with('}') || last_non_empty.trim() == "}",
+        "Closing brace should be at top level:\n{}",
+        output
+    );
 }
 
 #[test]
@@ -812,8 +954,16 @@ fn formatter_if_else_indentation() {
     let program = parse_program(code).unwrap();
     let mut formatter = Formatter::new();
     let output = formatter.format_program(&program);
-    assert!(output.contains("    y = 1"), "Then body should be indented:\n{}", output);
-    assert!(output.contains("    y = 0"), "Else body should be indented:\n{}", output);
+    assert!(
+        output.contains("    y = 1"),
+        "Then body should be indented:\n{}",
+        output
+    );
+    assert!(
+        output.contains("    y = 0"),
+        "Else body should be indented:\n{}",
+        output
+    );
 }
 
 #[test]
@@ -822,7 +972,11 @@ fn formatter_while_indentation() {
     let program = parse_program(code).unwrap();
     let mut formatter = Formatter::new();
     let output = formatter.format_program(&program);
-    assert!(output.contains("    x = x"), "While body should be indented:\n{}", output);
+    assert!(
+        output.contains("    x = x"),
+        "While body should be indented:\n{}",
+        output
+    );
 }
 
 #[test]
@@ -831,7 +985,11 @@ fn formatter_for_indentation() {
     let program = parse_program(code).unwrap();
     let mut formatter = Formatter::new();
     let output = formatter.format_program(&program);
-    assert!(output.contains("    x = x"), "For body should be indented:\n{}", output);
+    assert!(
+        output.contains("    x = x"),
+        "For body should be indented:\n{}",
+        output
+    );
 }
 
 #[test]
@@ -840,7 +998,11 @@ fn formatter_reverse_indentation() {
     let program = parse_program(code).unwrap();
     let mut formatter = Formatter::new();
     let output = formatter.format_program(&program);
-    assert!(output.contains("    x += 5"), "Reverse body should be indented:\n{}", output);
+    assert!(
+        output.contains("    x += 5"),
+        "Reverse body should be indented:\n{}",
+        output
+    );
 }
 
 #[test]
@@ -850,7 +1012,11 @@ fn formatter_module_indentation() {
     let mut formatter = Formatter::new();
     let output = formatter.format_program(&program);
     // Module body should be indented
-    assert!(output.contains("    fn f"), "Module body should be indented:\n{}", output);
+    assert!(
+        output.contains("    fn f"),
+        "Module body should be indented:\n{}",
+        output
+    );
 }
 
 #[test]
@@ -859,7 +1025,11 @@ fn formatter_function_body_indentation() {
     let program = parse_program(code).unwrap();
     let mut formatter = Formatter::new();
     let output = formatter.format_program(&program);
-    assert!(output.contains("    return"), "Function body should be indented:\n{}", output);
+    assert!(
+        output.contains("    return"),
+        "Function body should be indented:\n{}",
+        output
+    );
 }
 
 #[test]
@@ -868,7 +1038,11 @@ fn formatter_import() {
     let program = parse_program(code).unwrap();
     let mut formatter = Formatter::new();
     let output = formatter.format_program(&program);
-    assert!(output.contains("import Math"), "Import should be formatted:\n{}", output);
+    assert!(
+        output.contains("import Math"),
+        "Import should be formatted:\n{}",
+        output
+    );
 }
 
 #[test]
@@ -878,7 +1052,10 @@ fn formatter_print_multiple_args() {
     let mut formatter = Formatter::new();
     let output = formatter.format_program(&program);
     assert!(output.contains("print("), "Print should be formatted");
-    assert!(output.contains(", "), "Multiple args should have comma separator");
+    assert!(
+        output.contains(", "),
+        "Multiple args should have comma separator"
+    );
 }
 
 #[test]
@@ -887,7 +1064,11 @@ fn formatter_type_annotation_list() {
     let program = parse_program(code).unwrap();
     let mut formatter = Formatter::new();
     let output = formatter.format_program(&program);
-    assert!(output.contains("List<Int>"), "List type annotation:\n{}", output);
+    assert!(
+        output.contains("List<Int>"),
+        "List type annotation:\n{}",
+        output
+    );
 }
 
 // ============================================================================
@@ -902,7 +1083,10 @@ fn interp_trace_enabled() {
     interp.enable_trace();
     interp.run(&program).unwrap();
     let trace = interp.get_trace();
-    assert!(!trace.is_empty(), "Trace should capture entries when enabled");
+    assert!(
+        !trace.is_empty(),
+        "Trace should capture entries when enabled"
+    );
 }
 
 #[test]
@@ -923,8 +1107,14 @@ fn interp_output_capture() {
     interp.enable_output_capture();
     interp.run(&program).unwrap();
     let output = interp.get_output();
-    assert!(!output.is_empty(), "Output capture should capture print statements");
-    assert!(output[0].contains("42"), "Output should contain printed value");
+    assert!(
+        !output.is_empty(),
+        "Output capture should capture print statements"
+    );
+    assert!(
+        output[0].contains("42"),
+        "Output should contain printed value"
+    );
 }
 
 #[test]
@@ -934,7 +1124,10 @@ fn interp_output_not_captured_by_default() {
     let mut interp = Interpreter::new();
     interp.run(&program).unwrap();
     let output = interp.get_output();
-    assert!(output.is_empty(), "Output should not be captured by default");
+    assert!(
+        output.is_empty(),
+        "Output should not be captured by default"
+    );
 }
 
 #[test]
@@ -958,11 +1151,20 @@ use jtv_core::typechecker::Type;
 fn type_add_same_types() {
     assert_eq!(Type::Int.add_result(&Type::Int), Some(Type::Int));
     assert_eq!(Type::Float.add_result(&Type::Float), Some(Type::Float));
-    assert_eq!(Type::Rational.add_result(&Type::Rational), Some(Type::Rational));
-    assert_eq!(Type::Complex.add_result(&Type::Complex), Some(Type::Complex));
+    assert_eq!(
+        Type::Rational.add_result(&Type::Rational),
+        Some(Type::Rational)
+    );
+    assert_eq!(
+        Type::Complex.add_result(&Type::Complex),
+        Some(Type::Complex)
+    );
     assert_eq!(Type::Hex.add_result(&Type::Hex), Some(Type::Hex));
     assert_eq!(Type::Binary.add_result(&Type::Binary), Some(Type::Binary));
-    assert_eq!(Type::Symbolic.add_result(&Type::Symbolic), Some(Type::Symbolic));
+    assert_eq!(
+        Type::Symbolic.add_result(&Type::Symbolic),
+        Some(Type::Symbolic)
+    );
     assert_eq!(Type::String.add_result(&Type::String), Some(Type::String));
 }
 
@@ -1048,7 +1250,11 @@ fn pretty_print_if_indented_body() {
     let printer = PrettyPrinter::new();
     let output = printer.print_program(&program);
     // Body should be indented (2 spaces by default)
-    assert!(output.contains("  y = 1"), "If body should be indented:\n{}", output);
+    assert!(
+        output.contains("  y = 1"),
+        "If body should be indented:\n{}",
+        output
+    );
 }
 
 #[test]
@@ -1057,7 +1263,11 @@ fn pretty_print_while_indented_body() {
     let program = parse_program(code).unwrap();
     let printer = PrettyPrinter::new();
     let output = printer.print_program(&program);
-    assert!(output.contains("  x = x"), "While body should be indented:\n{}", output);
+    assert!(
+        output.contains("  x = x"),
+        "While body should be indented:\n{}",
+        output
+    );
 }
 
 #[test]
@@ -1066,7 +1276,11 @@ fn pretty_print_for_indented_body() {
     let program = parse_program(code).unwrap();
     let printer = PrettyPrinter::new();
     let output = printer.print_program(&program);
-    assert!(output.contains("  x = x"), "For body should be indented:\n{}", output);
+    assert!(
+        output.contains("  x = x"),
+        "For body should be indented:\n{}",
+        output
+    );
 }
 
 #[test]
@@ -1075,7 +1289,11 @@ fn pretty_print_reverse_indented_body() {
     let program = parse_program(code).unwrap();
     let printer = PrettyPrinter::new();
     let output = printer.print_program(&program);
-    assert!(output.contains("  x += 5"), "Reverse body should be indented:\n{}", output);
+    assert!(
+        output.contains("  x += 5"),
+        "Reverse body should be indented:\n{}",
+        output
+    );
 }
 
 #[test]
@@ -1084,8 +1302,16 @@ fn pretty_print_if_else_both_branches_indented() {
     let program = parse_program(code).unwrap();
     let printer = PrettyPrinter::new();
     let output = printer.print_program(&program);
-    assert!(output.contains("  y = 1"), "Then branch should be indented:\n{}", output);
-    assert!(output.contains("  y = 0"), "Else branch should be indented:\n{}", output);
+    assert!(
+        output.contains("  y = 1"),
+        "Then branch should be indented:\n{}",
+        output
+    );
+    assert!(
+        output.contains("  y = 0"),
+        "Else branch should be indented:\n{}",
+        output
+    );
 }
 
 #[test]
@@ -1095,7 +1321,11 @@ fn pretty_print_module() {
     let printer = PrettyPrinter::new();
     let output = printer.print_program(&program);
     assert!(output.contains("module M"), "Module header:\n{}", output);
-    assert!(output.contains("  fn f"), "Function should be indented in module:\n{}", output);
+    assert!(
+        output.contains("  fn f"),
+        "Function should be indented in module:\n{}",
+        output
+    );
 }
 
 #[test]
@@ -1138,7 +1368,10 @@ fn pretty_print_complex_number_formats() {
 #[test]
 fn pretty_print_symbolic() {
     let printer = PrettyPrinter::new();
-    assert_eq!(printer.print_number(&Number::Symbolic("pi".to_string())), "#pi");
+    assert_eq!(
+        printer.print_number(&Number::Symbolic("pi".to_string())),
+        "#pi"
+    );
 }
 
 // ============================================================================

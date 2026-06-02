@@ -186,6 +186,26 @@ impl PurityChecker {
                 }
                 Ok(level)
             }
+            ControlStmt::ReversibleBlock(rb) => {
+                // A `reversible { } -> tok` block has the purity of its body —
+                // same reasoning as `ReverseBlock` (addition-only, no I/O, total
+                // if every reversible statement is total). The token binding is a
+                // local-state operation, not I/O, so it does not lower purity.
+                let mut level = PurityLevel::Total;
+                for stmt in &rb.body {
+                    let stmt_level = self.analyze_reversible_stmt(stmt)?;
+                    level = level.combine(&stmt_level);
+                }
+                Ok(level)
+            }
+            ControlStmt::ReverseToken(_) | ControlStmt::AbandonToken(_) => {
+                // Consuming a reversal token (`reverse tok` / `abandon tok`)
+                // mutates interpreter state by replaying or discarding a recorded
+                // op log. This is an effectful state operation comparable to an
+                // assignment: it terminates (the log is finite) so it is Total,
+                // but it is not a no-op. Total is the right classification.
+                Ok(PurityLevel::Total)
+            }
             ControlStmt::Block(stmts) => self.analyze_body(stmts),
         }
     }

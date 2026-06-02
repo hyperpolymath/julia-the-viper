@@ -10,20 +10,28 @@
 //! CL4 — insn encoding appears in Zig comment
 //! CL5 — multi-gate namespace: two separate LoweredGate outputs
 //! CL6 — native impl dispatches instead of ExternCoprocNotYetLowered
+//!
+//! EVERY test here resolves a `.pata` gate file before lowering, which needs
+//! the `patacl-core` sibling crate behind the `patacl` cargo feature (absent
+//! from the default build — see `crates/jtv-core/Cargo.toml`). Without it,
+//! `resolve_coproc_blocks(.., Some(pata))` honestly fails with "coprocessor
+//! disabled". Rather than fake gate results, the whole file is gated on
+//! `feature = "patacl"`: under the default build this test binary contains
+//! zero tests; build with `--features patacl` (and a resolvable `patacl-core`)
+//! to run the lowering corpus.
+#![cfg(feature = "patacl")]
 
 use jtv_core::{
-    coproc::{CoprocEnv, resolve_coproc_blocks},
+    coproc::{resolve_coproc_blocks, CoprocEnv},
     coproc_lower::{lower_namespace, sym},
     error::JtvError,
     interpreter::Interpreter,
     parser::parse_program,
 };
 
-const RISCV_PATA: &str =
-    include_str!("../../../conformance/coproc/riscv.pata");
+const RISCV_PATA: &str = include_str!("../../../conformance/coproc/riscv.pata");
 
-const LIVE_INTRINSIC_JTV: &str =
-    include_str!("../../../conformance/coproc/live_intrinsic.jtv");
+const LIVE_INTRINSIC_JTV: &str = include_str!("../../../conformance/coproc/live_intrinsic.jtv");
 
 const INSN_WITH_ENCODING_JTV: &str =
     include_str!("../../../conformance/coproc/insn_with_encoding.jtv");
@@ -51,22 +59,36 @@ fn cl1_zig_stubs_symbol_names_and_body() {
 
     let zig = &gate.zig_source;
     // Both symbols present
-    assert!(zig.contains("pub export fn jtv_coproc_riscv_vec_vadd_i32("),
-        "vadd_i32 stub missing from Zig:\n{}", zig);
-    assert!(zig.contains("pub export fn jtv_coproc_riscv_vec_vsub_i32("),
-        "vsub_i32 stub missing from Zig:\n{}", zig);
+    assert!(
+        zig.contains("pub export fn jtv_coproc_riscv_vec_vadd_i32("),
+        "vadd_i32 stub missing from Zig:\n{}",
+        zig
+    );
+    assert!(
+        zig.contains("pub export fn jtv_coproc_riscv_vec_vsub_i32("),
+        "vsub_i32 stub missing from Zig:\n{}",
+        zig
+    );
 
     // Parameters typed as i64 (Int → i64)
-    assert!(zig.contains("a: i64, b: i64") || zig.contains("i64"),
-        "i64 type expected in Zig params:\n{}", zig);
+    assert!(
+        zig.contains("a: i64, b: i64") || zig.contains("i64"),
+        "i64 type expected in Zig params:\n{}",
+        zig
+    );
 
     // Placeholder body
-    assert!(zig.contains("unreachable"),
-        "unreachable body expected:\n{}", zig);
+    assert!(
+        zig.contains("unreachable"),
+        "unreachable body expected:\n{}",
+        zig
+    );
 
     // SPDX header
-    assert!(zig.starts_with("// SPDX-License-Identifier: MPL-2.0"),
-        "SPDX header missing");
+    assert!(
+        zig.starts_with("// SPDX-License-Identifier: MPL-2.0"),
+        "SPDX header missing"
+    );
 }
 
 // ── CL2: Idris2 ABI ─────────────────────────────────────────────────────────
@@ -81,21 +103,33 @@ fn cl2_idris2_foreign_pragma_and_module() {
     let idr = &gates[0].idris2_source;
 
     // Module declaration
-    assert!(idr.contains("module Jtv.Coproc.RiscvVec"),
-        "module declaration missing:\n{}", idr);
+    assert!(
+        idr.contains("module Jtv.Coproc.RiscvVec"),
+        "module declaration missing:\n{}",
+        idr
+    );
 
     // %foreign pragma for vadd_i32
     let vadd_sym = sym("riscv_vec", "vadd_i32");
-    assert!(idr.contains(&format!("%foreign \"C:{},", vadd_sym)),
-        "%foreign pragma missing for vadd_i32:\n{}", idr);
+    assert!(
+        idr.contains(&format!("%foreign \"C:{},", vadd_sym)),
+        "%foreign pragma missing for vadd_i32:\n{}",
+        idr
+    );
 
     // Arrow type: Int -> Int -> Int
-    assert!(idr.contains("Int -> Int -> Int"),
-        "arrow type missing in Idris2 output:\n{}", idr);
+    assert!(
+        idr.contains("Int -> Int -> Int"),
+        "arrow type missing in Idris2 output:\n{}",
+        idr
+    );
 
     // export keyword
-    assert!(idr.contains("\nexport\n"),
-        "export keyword missing:\n{}", idr);
+    assert!(
+        idr.contains("\nexport\n"),
+        "export keyword missing:\n{}",
+        idr
+    );
 }
 
 // ── CL3: C header ────────────────────────────────────────────────────────────
@@ -110,19 +144,32 @@ fn cl3_c_header_include_guard_and_types() {
     let h = &gates[0].c_header;
 
     // Include guard
-    assert!(h.contains("#ifndef JTV_COPROC_RISCV_VEC_H"),
-        "include guard missing:\n{}", h);
+    assert!(
+        h.contains("#ifndef JTV_COPROC_RISCV_VEC_H"),
+        "include guard missing:\n{}",
+        h
+    );
 
     // int64_t types and extern "C"
     assert!(h.contains("int64_t"), "int64_t missing:\n{}", h);
     assert!(h.contains("extern \"C\""), "extern \"C\" missing:\n{}", h);
-    assert!(h.contains("#include <stdint.h>"), "stdint.h include missing:\n{}", h);
+    assert!(
+        h.contains("#include <stdint.h>"),
+        "stdint.h include missing:\n{}",
+        h
+    );
 
     // Both function declarations
-    assert!(h.contains("jtv_coproc_riscv_vec_vadd_i32"),
-        "vadd_i32 decl missing:\n{}", h);
-    assert!(h.contains("jtv_coproc_riscv_vec_vsub_i32"),
-        "vsub_i32 decl missing:\n{}", h);
+    assert!(
+        h.contains("jtv_coproc_riscv_vec_vadd_i32"),
+        "vadd_i32 decl missing:\n{}",
+        h
+    );
+    assert!(
+        h.contains("jtv_coproc_riscv_vec_vsub_i32"),
+        "vsub_i32 decl missing:\n{}",
+        h
+    );
 
     // Closing guard
     assert!(h.contains("#endif"), "closing guard missing:\n{}", h);
@@ -140,8 +187,11 @@ fn cl4_insn_encoding_appears_in_zig_comment() {
     assert!(!gates.is_empty(), "expected at least one gate");
 
     let zig = &gates[0].zig_source;
-    assert!(zig.contains("0x0B"),
-        "encoding '0x0B' should appear in Zig output:\n{}", zig);
+    assert!(
+        zig.contains("0x0B"),
+        "encoding '0x0B' should appear in Zig output:\n{}",
+        zig
+    );
 }
 
 // ── CL5: multi-gate namespace ─────────────────────────────────────────────────
@@ -180,20 +230,24 @@ result = vadd_i32(10, 32)
     interp.register_coproc_namespace(ns);
 
     // Register a native impl: just adds the two Int args.
-    interp.register_coproc_impl("vadd_i32", |args| {
-        match (&args[0], &args[1]) {
-            (Value::Int(a), Value::Int(b)) => Ok(Value::Int(a + b)),
-            _ => Err(JtvError::TypeError("expected Int".into())),
-        }
+    interp.register_coproc_impl("vadd_i32", |args| match (&args[0], &args[1]) {
+        (Value::Int(a), Value::Int(b)) => Ok(Value::Int(a + b)),
+        _ => Err(JtvError::TypeError("expected Int".into())),
     });
 
-    interp.run(&resolved).expect("should not return phase-boundary error");
+    interp
+        .run(&resolved)
+        .expect("should not return phase-boundary error");
 
-    let result = interp.get_variables()
+    let result = interp
+        .get_variables()
         .into_iter()
         .find(|(k, _)| k == "result")
         .map(|(_, v)| v);
 
-    assert_eq!(result, Some(Value::Int(42)),
-        "native impl should compute 10+32=42");
+    assert_eq!(
+        result,
+        Some(Value::Int(42)),
+        "native impl should compute 10+32=42"
+    );
 }

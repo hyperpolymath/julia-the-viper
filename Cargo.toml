@@ -61,5 +61,13 @@ tower-lsp = "0.20"
 # Internal crates
 jtv-core = { path = "crates/jtv-core" }
 
-# PataCL — compile-time decision layer
-patacl-core = { path = "../patacl/crates/patacl-core" }
+# PataCL — compile-time decision layer.
+#
+# NOTE: `patacl-core` lives in a SIBLING repository (`../patacl`) that is not
+# present in fresh clones or CI. Declaring it here as a workspace dependency
+# makes Cargo eagerly resolve `../patacl/crates/patacl-core/Cargo.toml` during
+# lockfile resolution, which fails the ENTIRE build even when no crate enables
+# the optional feature. Therefore it is NOT declared as a workspace dependency.
+#
+# To build WITH the coprocessor: re-add `patacl-core` and enable the `patacl`
+# feature — see the instructions in `crates/jtv-core/Cargo.toml`.

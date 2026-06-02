@@ -152,7 +152,10 @@ fn bench_harvard_data_language_only(c: &mut Criterion) {
         ("binary_add", "x = 1 + 2"),
         ("chain_5", "x = 1 + 2 + 3 + 4 + 5"),
         ("chain_10", "x = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10"),
-        ("nested_parens", "x = ((1 + 2) + (3 + 4)) + ((5 + 6) + (7 + 8))"),
+        (
+            "nested_parens",
+            "x = ((1 + 2) + (3 + 4)) + ((5 + 6) + (7 + 8))",
+        ),
         ("mixed_numbers", "x = 42 + 3.14 + 0xFF + 0b1010"),
         ("list_literal", "x = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]"),
         ("function_calls", "x = add(1, 2) + multiply(3, 4)"),
@@ -174,26 +177,14 @@ fn bench_harvard_control_language(c: &mut Criterion) {
     let mut group = c.benchmark_group("control language constructs");
 
     let constructs = [
-        (
-            "while_loop",
-            "x = 0\nwhile x < 100 { x = x + 1 }",
-        ),
-        (
-            "for_loop",
-            "sum = 0\nfor i in 0..100 { sum = sum + i }",
-        ),
-        (
-            "if_else",
-            "if x > 0 { y = 1 } else { y = 0 }",
-        ),
+        ("while_loop", "x = 0\nwhile x < 100 { x = x + 1 }"),
+        ("for_loop", "sum = 0\nfor i in 0..100 { sum = sum + i }"),
+        ("if_else", "if x > 0 { y = 1 } else { y = 0 }"),
         (
             "nested_if",
             "if x > 0 { if y > 0 { z = 1 } else { z = 2 } } else { z = 3 }",
         ),
-        (
-            "reverse_block",
-            "reverse { x += 1 y += 2 x += 3 y += 4 }",
-        ),
+        ("reverse_block", "reverse { x += 1 y += 2 x += 3 y += 4 }"),
     ];
 
     for (name, code) in &constructs {

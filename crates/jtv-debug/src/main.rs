@@ -13,9 +13,17 @@ struct Debugger {
     source_file: Option<PathBuf>,
     source_code: String,
     breakpoints: HashSet<usize>,
+    // Reserved for the step/inspect execution loop (not yet wired up): the
+    // interpreter does not yet expose per-line stepping or a live variable/
+    // call-stack snapshot, so these are written at init but not read. Kept as
+    // the intended debugger state rather than removed.
+    #[allow(dead_code)]
     current_line: usize,
+    #[allow(dead_code)]
     variables: HashMap<String, String>,
+    #[allow(dead_code)]
     call_stack: Vec<String>,
+    #[allow(dead_code)]
     paused: bool,
     interpreter: Interpreter,
 }
@@ -39,8 +47,7 @@ impl Debugger {
     }
 
     fn load_file(&mut self, path: PathBuf) -> Result<()> {
-        self.source_code = std::fs::read_to_string(&path)
-            .map_err(|e| ReadlineError::Io(e))?;
+        self.source_code = std::fs::read_to_string(&path).map_err(ReadlineError::Io)?;
         self.source_file = Some(path);
         println!("{}", "File loaded successfully".green());
         Ok(())
@@ -156,9 +163,18 @@ impl Debugger {
         println!("\n{}", "Julia the Viper Debugger Commands:".bold().cyan());
         println!("  {}              - Run the loaded program", "run".green());
         println!("  {}        - Set breakpoint at line N", "break N".green());
-        println!("  {}       - Delete breakpoint at line N", "delete N".green());
-        println!("  {}             - List all breakpoints", "breakpoints".green());
-        println!("  {}      - List source code (from line N, M lines)", "list [N] [M]".green());
+        println!(
+            "  {}       - Delete breakpoint at line N",
+            "delete N".green()
+        );
+        println!(
+            "  {}             - List all breakpoints",
+            "breakpoints".green()
+        );
+        println!(
+            "  {}      - List source code (from line N, M lines)",
+            "list [N] [M]".green()
+        );
         println!("  {}         - Print variable value", "print VAR".green());
         println!("  {}          - List all variables", "locals".green());
         println!("  {}            - Show execution trace", "trace".green());
@@ -198,7 +214,7 @@ fn main() -> Result<()> {
                 editor.add_history_entry(line)?;
 
                 let parts: Vec<&str> = line.split_whitespace().collect();
-                match parts.get(0).map(|s| *s) {
+                match parts.first().copied() {
                     Some("run") => debugger.run_program(),
                     Some("break") | Some("b") => {
                         if let Some(line_str) = parts.get(1) {
@@ -224,8 +240,14 @@ fn main() -> Result<()> {
                     }
                     Some("breakpoints") | Some("bp") => debugger.list_breakpoints(),
                     Some("list") | Some("l") => {
-                        let start = parts.get(1).and_then(|s| s.parse::<usize>().ok()).unwrap_or(0);
-                        let count = parts.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(20);
+                        let start = parts
+                            .get(1)
+                            .and_then(|s| s.parse::<usize>().ok())
+                            .unwrap_or(0);
+                        let count = parts
+                            .get(2)
+                            .and_then(|s| s.parse::<usize>().ok())
+                            .unwrap_or(20);
                         debugger.list_source(start, count);
                     }
                     Some("print") | Some("p") => {

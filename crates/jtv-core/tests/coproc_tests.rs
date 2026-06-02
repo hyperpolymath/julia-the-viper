@@ -9,13 +9,18 @@
 //! TC4 — call-site: ExternCoprocNotYetLowered fires correctly
 //! TC5 — no-pata: blocks survive when pata source absent
 
+// Always used (TC1 parsing + TC5 dev path).
 use jtv_core::{
     ast::{CoprocItem, TopLevel},
     coproc::{resolve_coproc_blocks, CoprocEnv},
-    error::JtvError,
-    interpreter::Interpreter,
     parser::parse_program,
 };
+// Only used by the pata-gated resolution tests (TC2–TC4): these evaluate a
+// `.pata` gate file, which requires the `patacl` cargo feature (see
+// `crates/jtv-core/Cargo.toml`). Without it, resolution honestly fails with
+// "coprocessor disabled", so the resolution tests are gated rather than faked.
+#[cfg(feature = "patacl")]
+use jtv_core::{error::JtvError, interpreter::Interpreter};
 
 // ── TC1: Grammar ────────────────────────────────────────────────────────────
 
@@ -106,6 +111,7 @@ fn mul(a: Int, b: Int): Int {
 
 // ── TC2: Resolution — live/dead ─────────────────────────────────────────────
 
+#[cfg(feature = "patacl")]
 const RISCV_PATA: &str = r#"
 pata v1
 gate riscv_vec when arch == "riscv64" && feature_v
@@ -114,6 +120,7 @@ gate zbb when arch == "riscv64" && feature_zbb
 family zbb = "riscv"
 "#;
 
+#[cfg(feature = "patacl")]
 fn riscv64_v_env() -> CoprocEnv {
     CoprocEnv::from_triple("riscv64gc-unknown-none-elf", &["v"])
 }
@@ -122,6 +129,7 @@ fn aarch64_env() -> CoprocEnv {
     CoprocEnv::from_triple("aarch64-unknown-linux-gnu", &[])
 }
 
+#[cfg(feature = "patacl")]
 #[test]
 fn tc2_live_gate_keeps_block() {
     let src = r#"
@@ -144,6 +152,7 @@ extern coproc riscv_vec {
     }
 }
 
+#[cfg(feature = "patacl")]
 #[test]
 fn tc2_dead_gate_drops_block() {
     let src = r#"
@@ -156,10 +165,14 @@ extern coproc riscv_vec {
         resolve_coproc_blocks(prog, &aarch64_env(), Some(RISCV_PATA)).unwrap();
 
     // Block should have been dropped — program is now empty.
-    assert!(resolved_prog.statements.is_empty(),
-        "dead block should be dropped, got {:?}", resolved_prog.statements);
+    assert!(
+        resolved_prog.statements.is_empty(),
+        "dead block should be dropped, got {:?}",
+        resolved_prog.statements
+    );
 }
 
+#[cfg(feature = "patacl")]
 #[test]
 fn tc2_selective_drop_multiple_blocks() {
     let src = r#"
@@ -183,6 +196,7 @@ extern coproc zbb {
     }
 }
 
+#[cfg(feature = "patacl")]
 #[test]
 fn tc2_unknown_gate_is_error() {
     let src = r#"
@@ -200,6 +214,7 @@ extern coproc nonexistent_gate {
 
 // ── TC3: Namespace registration ─────────────────────────────────────────────
 
+#[cfg(feature = "patacl")]
 #[test]
 fn tc3_live_decls_registered_in_namespace() {
     let src = r#"
@@ -212,8 +227,14 @@ extern coproc riscv_vec {
     let (_resolved_prog, ns) =
         resolve_coproc_blocks(prog, &riscv64_v_env(), Some(RISCV_PATA)).unwrap();
 
-    assert!(ns.get("vadd_i32").is_some(), "vadd_i32 should be in namespace");
-    assert!(ns.get("vsub_i32").is_some(), "vsub_i32 should be in namespace");
+    assert!(
+        ns.get("vadd_i32").is_some(),
+        "vadd_i32 should be in namespace"
+    );
+    assert!(
+        ns.get("vsub_i32").is_some(),
+        "vsub_i32 should be in namespace"
+    );
 
     let entry = ns.get("vadd_i32").unwrap();
     assert_eq!(entry.gate_name, "riscv_vec");
@@ -221,6 +242,7 @@ extern coproc riscv_vec {
     assert_eq!(entry.param_count, 2);
 }
 
+#[cfg(feature = "patacl")]
 #[test]
 fn tc3_dead_decls_not_in_namespace() {
     let src = r#"
@@ -240,6 +262,7 @@ extern coproc riscv_vec {
 
 // ── TC4: Call-site phase-boundary error ─────────────────────────────────────
 
+#[cfg(feature = "patacl")]
 #[test]
 fn tc4_call_to_live_coproc_returns_phase_boundary_error() {
     let src = r#"
@@ -274,8 +297,7 @@ extern coproc riscv_vec {
 "#;
     let prog = parse_program(src).unwrap();
     // Pass None as pata source → unconditionally live.
-    let (resolved_prog, ns) =
-        resolve_coproc_blocks(prog, &aarch64_env(), None).unwrap();
+    let (resolved_prog, ns) = resolve_coproc_blocks(prog, &aarch64_env(), None).unwrap();
 
     assert_eq!(resolved_prog.statements.len(), 1);
     assert!(ns.get("vadd_i32").is_some());

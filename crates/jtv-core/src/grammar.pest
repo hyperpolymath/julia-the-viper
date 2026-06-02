@@ -22,7 +22,14 @@ control_stmt = {
     | for_stmt
     | return_stmt
     | print_stmt
+    // `reversible_block` MUST precede the `reverse`-prefixed rules so that the
+    // literal "reversible" is not mis-tokenised as "reverse" + identifier.
+    | reversible_block
+    // `reverse_block` (`reverse { }`) MUST precede `reverse_token`
+    // (`reverse tok`) so the braced form wins over the bare-identifier form.
     | reverse_block
+    | reverse_token
+    | abandon_token
     | block
 }
 
@@ -44,6 +51,14 @@ reverse_block = { "reverse" ~ "{" ~ reversible_stmt* ~ "}" }
 reversible_stmt = { reversible_assignment | if_stmt }
 reversible_assignment = { identifier ~ reversible_op ~ data_expr }
 reversible_op = { "+=" | "-=" }
+
+// ===== v2 REVERSIBLE TOKENS (Phase 2) =====
+// `reversible { stmts } -> tok` runs the body forward and binds a linear
+// reversal token; `reverse tok` consumes it and applies inverses; `abandon
+// tok` consumes it and discards the log (committing the forward state).
+reversible_block = { "reversible" ~ "{" ~ reversible_stmt* ~ "}" ~ ("->" ~ identifier)? }
+reverse_token = { "reverse" ~ identifier }
+abandon_token = { "abandon" ~ identifier }
 
 // ===== DATA LANGUAGE (Total, addition-only) =====
 data_expr = { additive_expr }
@@ -173,7 +188,7 @@ identifier = @{ !keyword ~ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 
 keyword = {
     "module" | "import" | "as" | "fn" | "return" | "if" | "else" | "while" | "for" | "in"
-    | "print" | "reverse" | "extern" | "coproc" | "intrinsic" | "insn" | "encoding"
+    | "print" | "reversible" | "reverse" | "abandon" | "extern" | "coproc" | "intrinsic" | "insn" | "encoding"
     | "Int" | "Float" | "Rational" | "Complex" | "Hex" | "Binary"
     | "Symbolic" | "Bool" | "String" | "List" | "Fn" | "true" | "false"
 }

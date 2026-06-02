@@ -22,7 +22,28 @@ thiserror.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 wasm-bindgen.workspace = true
-patacl-core.workspace = true
+
+[features]
+# PataCL compile-time decision layer (`extern coproc` gate evaluation).
+#
+# OFF by default because `patacl-core` lives in a SIBLING repo
+# (`../patacl/crates/patacl-core`) that is absent from fresh clones / CI.
+# A missing path/registry dependency — even an `optional` one — breaks
+# Cargo's lockfile resolution for the WHOLE workspace before any code is
+# compiled, so the `patacl-core` dependency line is intentionally NOT
+# present in this manifest. The `patacl` feature here is a pure CODE gate
+# (`#[cfg(feature = "patacl")]` in `src/coproc.rs`).
+#
+# To build WITH the coprocessor you must re-add the dependency yourself:
+#   1. Make `patacl-core` resolvable by adding to the `[dependencies]`
+#      section above (and back into the root `[workspace.dependencies]`),
+#      pointing at the real crate, e.g.:
+#          patacl-core = { path = "../patacl/crates/patacl-core" }
+#      (a path/git source; do NOT use a non-existent crates.io version).
+#   2. Build with the feature enabled:
+#          cargo build -p jtv-core --features patacl
+default = []
+patacl = []
 
 [dev-dependencies]
 criterion.workspace = true

@@ -302,7 +302,7 @@ mod tests {
         // be silently dropped. Either way, we must get at least x=1
         // or y=2 back.
         assert!(
-            result.program.statements.len() >= 1,
+            !result.program.statements.is_empty(),
             "Should recover at least one statement"
         );
     }
