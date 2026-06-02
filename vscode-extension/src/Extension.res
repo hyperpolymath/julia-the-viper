@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+// hypatia:ignore cicd_rules/banned_language_file — legacy ReScript pending AffineScript migration
 // Julia the Viper - VS Code Extension
 // Provides LSP client, run/debug/format commands for .jtv files
 

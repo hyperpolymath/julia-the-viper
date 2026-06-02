@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+// hypatia:ignore cicd_rules/banned_language_file — legacy ReScript pending AffineScript migration
 // Deno server for Julia the Viper PWA
 
 /** Deno HTTP request type */
