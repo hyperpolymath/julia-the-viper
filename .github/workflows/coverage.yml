@@ -17,9 +17,11 @@ permissions:
 jobs:
   coverage:
     name: Code coverage
+    # No `if: hashFiles('Cargo.toml') != ''` guard — `hashFiles()` is invalid in
+    # a job-level `if:` and startup-fails the whole workflow (see rust-ci.yml).
+    # This repo always has a Cargo workspace.
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    if: hashFiles('Cargo.toml') != ''
 
     steps:
       - name: Checkout repository
