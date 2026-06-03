@@ -19,6 +19,7 @@ jobs:
   check:
     name: Check (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     if: hashFiles('Cargo.toml') != ''
     strategy:
       fail-fast: false
@@ -49,6 +50,7 @@ jobs:
   test:
     name: Test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     needs: check
     if: hashFiles('Cargo.toml') != ''
     strategy:
