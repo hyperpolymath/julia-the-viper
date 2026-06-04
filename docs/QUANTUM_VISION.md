@@ -1,3 +1,7 @@
+<!--
+SPDX-License-Identifier: MPL-2.0
+Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+-->
 # JtV v2: Quantum Computing Vision
 
 **Status**: Specification only (v2 not yet implemented)

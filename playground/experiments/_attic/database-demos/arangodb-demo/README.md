@@ -1,3 +1,7 @@
+<!--
+SPDX-License-Identifier: MPL-2.0
+Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+-->
 # ArangoDB Multi-Model Database Demo
 
 Comprehensive demonstration of ArangoDB's multi-model capabilities using AQL (ArangoDB Query Language).

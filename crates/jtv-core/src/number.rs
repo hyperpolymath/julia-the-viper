@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 // Number system implementation supporting 7 types
 use crate::ast::Number;
 use crate::error::{JtvError, Result};

@@ -1,3 +1,7 @@
+<!--
+SPDX-License-Identifier: MPL-2.0
+Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+-->
 # Julia the Viper VSCode Extension
 
 Language support for Julia the Viper - a reversible systems programming language with purity guarantees.

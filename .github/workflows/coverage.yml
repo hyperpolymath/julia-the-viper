@@ -18,6 +18,7 @@ jobs:
   coverage:
     name: Code coverage
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     if: hashFiles('Cargo.toml') != ''
 
     steps:

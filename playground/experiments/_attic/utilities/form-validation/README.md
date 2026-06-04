@@ -1,3 +1,7 @@
+<!--
+SPDX-License-Identifier: MPL-2.0
+Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+-->
 # Form Validation Library
 
 A comprehensive, chainable form validation library for JavaScript with support for sync/async validation, cross-field validation, and conditional rules.

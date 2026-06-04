@@ -145,7 +145,7 @@ theorem dataExpr_zero_add (e : DataExpr) (σ : State) :
 -/
 theorem dataExpr_add_neg (e : DataExpr) (σ : State) :
     evalDataExpr (DataExpr.add e (DataExpr.neg e)) σ = 0 := by
-  simp [evalDataExpr, Int.add_neg_cancel]
+  simp [evalDataExpr]; omega
 
 /--
   **Theorem (Double Negation)**: -(-e) = e
@@ -179,14 +179,13 @@ theorem free_vars_sufficient (e : DataExpr) (σ₁ σ₂ : State)
     simp [evalDataExpr, h]
   | add e₁ e₂ ih₁ ih₂ =>
     simp [DataExpr.freeVars, List.mem_append] at h
-    simp [evalDataExpr]
-    constructor
-    · exact ih₁ (fun x hx => h x (Or.inl hx))
-    · exact ih₂ (fun x hx => h x (Or.inr hx))
+    have eq₁ := ih₁ (fun x hx => h x (Or.inl hx))
+    have eq₂ := ih₂ (fun x hx => h x (Or.inr hx))
+    simp [evalDataExpr, eq₁, eq₂]
   | neg e ih =>
     simp [DataExpr.freeVars] at h
-    simp [evalDataExpr]
-    exact ih h
+    have eq := ih h
+    simp [evalDataExpr, eq]
 
 /--
   **Theorem (State Update Independence)**: Updating a variable not in
@@ -215,10 +214,8 @@ theorem subst_correct (e : DataExpr) (x : String) (v : Int) (σ : State) :
   induction e with
   | lit n => rfl
   | var y =>
-    simp [DataExpr.subst, evalDataExpr, State.update]
-    split
-    · simp_all
-    · simp_all
+    simp only [DataExpr.subst]
+    split <;> simp_all [evalDataExpr, State.update]
   | add e₁ e₂ ih₁ ih₂ =>
     simp [DataExpr.subst, evalDataExpr, ih₁, ih₂]
   | neg e ih =>
@@ -258,11 +255,17 @@ theorem constFold_correct (e : DataExpr) (σ : State) :
   | lit n => rfl
   | var x => rfl
   | add e₁ e₂ ih₁ ih₂ =>
-    simp [DataExpr.constFold]
-    split <;> simp [evalDataExpr, ← ih₁, ← ih₂]
+    simp only [DataExpr.constFold]
+    split
+    · rename_i n₁ n₂ heq₁ heq₂
+      simp only [evalDataExpr, ← ih₁, ← ih₂, heq₁, heq₂]
+    · simp only [evalDataExpr, ih₁, ih₂]
   | neg e ih =>
-    simp [DataExpr.constFold]
-    split <;> simp [evalDataExpr, ← ih]
+    simp only [DataExpr.constFold]
+    split
+    · rename_i n heq
+      simp only [evalDataExpr, ← ih, heq]
+    · simp only [evalDataExpr, ih]
 
 /--
   **Theorem (Zero Elimination)**: Adding zero can be safely eliminated.
@@ -286,7 +289,7 @@ theorem size_positive (e : DataExpr) : e.size > 0 := by
   | add _ _ _ _ => simp [DataExpr.size]; omega
   | neg _ _ => simp [DataExpr.size]; omega
 
-/--
+/-
   The evaluation time is O(size(e)) since each node is visited exactly once.
   This is witnessed by the structural recursion in evalDataExpr.
 -/
@@ -316,12 +319,16 @@ theorem size_positive (e : DataExpr) : e.size > 0 := by
   This is a *metatheoretic* property enforced by the Lean type system itself.
 -/
 
-/-- Type-level proof that DataExpr cannot contain ControlStmt -/
-theorem dataExpr_no_control : ∀ (e : DataExpr),
-    (∀ s : ControlStmt, True) := by
-  intro e
-  intro s
-  trivial
+/-- **Theorem (DataExpr/ControlStmt non-interference)**:
+    Data evaluation is a function of `DataExpr` and `State` only, so it cannot
+    depend on any ControlStmt. We witness this concretely: for every Data
+    expression `e`, every state `σ`, and every pair of control statements
+    `s₁ s₂`, the value of `evalDataExpr e σ` is the same — no `ControlStmt`
+    parameter is ever consulted because the type signature of `evalDataExpr`
+    does not accept one. -/
+theorem dataExpr_no_control (e : DataExpr) (σ : State) (s₁ s₂ : ControlStmt) :
+    (fun (_ : ControlStmt) => evalDataExpr e σ) s₁ =
+    (fun (_ : ControlStmt) => evalDataExpr e σ) s₂ := rfl
 
 /-
   **Key Observation**: The above is trivially true because DataExpr and
@@ -336,24 +343,11 @@ theorem dataExpr_no_control : ∀ (e : DataExpr),
 
 -- ============================================================================
 -- SECTION 9: REVERSIBILITY PROPERTIES (v2 Preview)
+--
+-- `RevOp`, `RevOp.execForward`, and `RevOp.execBackward` have moved into
+-- `JtvCore.lean` so that `ControlStmt.reverseBlock` can refer to them.
+-- See the v2 grammar section of JtvCore for the definitions.
 -- ============================================================================
-
-/-- Reversible assignment operations -/
-inductive RevOp where
-  | addAssign : String → DataExpr → RevOp  -- x += e
-  | subAssign : String → DataExpr → RevOp  -- x -= e
-
-/-- Execute a reversible operation forward -/
-def RevOp.execForward (op : RevOp) (σ : State) : State :=
-  match op with
-  | addAssign x e => σ[x ↦ σ x + evalDataExpr e σ]
-  | subAssign x e => σ[x ↦ σ x - evalDataExpr e σ]
-
-/-- Execute a reversible operation backward (inverse) -/
-def RevOp.execBackward (op : RevOp) (σ : State) : State :=
-  match op with
-  | addAssign x e => σ[x ↦ σ x - evalDataExpr e σ]  -- Inverse of +=
-  | subAssign x e => σ[x ↦ σ x + evalDataExpr e σ]  -- Inverse of -=
 
 /--
   **Theorem (Reversibility)**: For reversible operations on variables not
@@ -370,7 +364,6 @@ theorem rev_forward_backward (op : RevOp) (σ : State) (x : String) (e : DataExp
     apply update_non_free_var
     exact hfree
   simp [h]
-  ring
 
 -- ============================================================================
 -- SECTION 10: ADDITIONAL PROPERTIES
@@ -393,7 +386,7 @@ theorem dataExpr_finite (e : DataExpr) : e.size < e.size + 1 := by omega
   inductive type.
 -/
 theorem no_infinite_dataExpr : WellFounded (fun e₁ e₂ : DataExpr => e₁.size < e₂.size) :=
-  WellFoundedRelation.wf
+  (measure DataExpr.size).wf
 
 -- Summary of all proven properties:
 -- 1. Totality: All evaluations terminate

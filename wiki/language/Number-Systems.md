@@ -1,3 +1,7 @@
+<!--
+SPDX-License-Identifier: MPL-2.0
+Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+-->
 # Number Systems
 
 JtV supports **7 number systems** with automatic type coercion and exact arithmetic where possible.

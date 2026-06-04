@@ -36,6 +36,7 @@ jobs:
   lean4-proofs:
     name: Lean 4 proof verification
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     if: hashFiles('jtv_proofs/lakefile.lean') != ''
 
     steps:
@@ -67,6 +68,7 @@ jobs:
   idris2-abi:
     name: Idris2 ABI type verification
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     if: hashFiles('src/abi/Types.idr') != ''
 
     steps:

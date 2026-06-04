@@ -1,3 +1,7 @@
+<!--
+SPDX-License-Identifier: MPL-2.0
+Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+-->
 # JtV Purity System
 
 The purity system enforces the Harvard Architecture by tracking function purity at compile time.

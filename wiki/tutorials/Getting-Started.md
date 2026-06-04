@@ -1,3 +1,7 @@
+<!--
+SPDX-License-Identifier: MPL-2.0
+Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+-->
 # Getting Started with Julia the Viper
 
 Welcome to Julia the Viper (JtV), a security-focused programming language that makes code injection **grammatically impossible**.

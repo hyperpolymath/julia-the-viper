@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 // Type checker for Julia the Viper
 // Implements static type checking for the 7 number systems and compound types
 

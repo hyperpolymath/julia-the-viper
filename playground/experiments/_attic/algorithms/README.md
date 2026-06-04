@@ -1,3 +1,7 @@
+<!--
+SPDX-License-Identifier: MPL-2.0
+Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+-->
 # Algorithm Implementations
 
 Comprehensive collection of classic algorithms with detailed explanations and complexity analysis.

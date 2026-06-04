@@ -23,7 +23,7 @@ import JtvCore
 structure DataConfig where
   expr : DataExpr
   state : State
-  deriving Repr
+  -- Note: no `deriving Repr` — State = String → Int has no Repr instance.
 
 /--
   Small-step transition relation for Data expressions: e, σ ⟶ e', σ'
@@ -101,7 +101,6 @@ notation:50 "⟨" e ", " σ "⟩ ⇓ " n => DataBigStep e σ n
 structure CtrlConfig where
   stmt : ControlStmt
   state : State
-  deriving Repr
 
 /--
   Small-step for Control statements (partial - may not terminate)
@@ -212,23 +211,29 @@ theorem data_step_deterministic (c c₁ c₂ : DataConfig) :
     | negStep _ _ _ h => cases h
   | addLeft e₁ e₁' e₂ σ hs ih =>
     cases h₂ with
-    | addLeft _ _ _ _ hs' =>
-      have := ih hs'
-      simp_all
-    | addRight _ _ _ _ hs' => cases hs
+    | addLeft _ e₁'' _ _ hs' =>
+      have heq : (⟨e₁', σ⟩ : DataConfig) = ⟨e₁'', σ⟩ := ih _ hs'
+      injection heq with h_expr _
+      subst h_expr
+      rfl
+    | addRight _ _ _ _ _ => cases hs
     | addEval => cases hs
   | addRight n₁ e₂ e₂' σ hs ih =>
     cases h₂ with
     | addLeft _ _ _ _ hs' => cases hs'
-    | addRight _ _ _ _ hs' =>
-      have := ih hs'
-      simp_all
+    | addRight _ _ e₂'' _ hs' =>
+      have heq : (⟨e₂', σ⟩ : DataConfig) = ⟨e₂'', σ⟩ := ih _ hs'
+      injection heq with h_expr _
+      subst h_expr
+      rfl
     | addEval => cases hs
   | negStep e e' σ hs ih =>
     cases h₂ with
-    | negStep _ _ _ hs' =>
-      have := ih hs'
-      simp_all
+    | negStep _ e'' _ hs' =>
+      have heq : (⟨e', σ⟩ : DataConfig) = ⟨e'', σ⟩ := ih _ hs'
+      injection heq with h_expr _
+      subst h_expr
+      rfl
     | negEval => cases hs
 
 -- ============================================================================
@@ -246,28 +251,28 @@ theorem data_progress (e : DataExpr) (σ : State) :
   | var x => right; exact ⟨DataExpr.lit (σ x), DataStep.varLookup x σ⟩
   | add e₁ e₂ ih₁ ih₂ =>
     right
-    cases ih₁ with
-    | inl hv₁ =>
+    rcases ih₁ with hv₁ | ⟨e₁', hs₁⟩
+    · -- e₁ is a value
       cases e₁ with
       | lit n₁ =>
-        cases ih₂ with
-        | inl hv₂ =>
+        rcases ih₂ with hv₂ | ⟨e₂', hs₂⟩
+        · -- e₂ is a value
           cases e₂ with
           | lit n₂ => exact ⟨DataExpr.lit (n₁ + n₂), DataStep.addEval n₁ n₂ σ⟩
           | _ => simp [DataExpr.isValue] at hv₂
-        | inr ⟨e₂', hs₂⟩ =>
+        · -- e₂ steps
           exact ⟨DataExpr.add (DataExpr.lit n₁) e₂', DataStep.addRight n₁ e₂ e₂' σ hs₂⟩
       | _ => simp [DataExpr.isValue] at hv₁
-    | inr ⟨e₁', hs₁⟩ =>
+    · -- e₁ steps
       exact ⟨DataExpr.add e₁' e₂, DataStep.addLeft e₁ e₁' e₂ σ hs₁⟩
   | neg e' ih =>
     right
-    cases ih with
-    | inl hv =>
+    rcases ih with hv | ⟨e'', hs⟩
+    · -- e' is a value
       cases e' with
       | lit n => exact ⟨DataExpr.lit (-n), DataStep.negEval n σ⟩
       | _ => simp [DataExpr.isValue] at hv
-    | inr ⟨e'', hs⟩ =>
+    · -- e' steps
       exact ⟨DataExpr.neg e'', DataStep.negStep e' e'' σ hs⟩
 
 /--
@@ -289,46 +294,82 @@ theorem data_state_preservation (c₁ c₂ : DataConfig) :
 -- SECTION 6: TERMINATION THEOREMS (Operational)
 -- ============================================================================
 
-/--
+/-
   **Theorem (Data Termination via Small-Step)**:
   Every Data expression reaches a value in finite steps.
+  (Stated and proved as `data_terminates` below, after the context-lift lemmas.)
 -/
-/-- Lift DataStepStar through addLeft context -/
+
+/-- Generic congruence-friendly form of DataStepStar over a context, parametrised
+    by a function on configurations and a witness that the function lifts single
+    steps. Avoids the "indices not variables" induction obstacle on the
+    context-specific lemmas. -/
+private theorem dataStepStar_lift
+    (f : DataConfig → DataConfig)
+    (hstep : ∀ c c', DataStep c c' → DataStep (f c) (f c'))
+    (c₁ c₂ : DataConfig) (h : DataStepStar c₁ c₂) :
+    DataStepStar (f c₁) (f c₂) := by
+  induction h with
+  | refl _ => exact DataStepStar.refl _
+  | step a b _ hs _ ih => exact DataStepStar.step (f a) (f b) _ (hstep a b hs) ih
+
+/-- Lift DataStepStar through addLeft context. -/
 theorem dataStepStar_addLeft (e₁ e₁' e₂ : DataExpr) (σ : State) :
     DataStepStar ⟨e₁, σ⟩ ⟨e₁', σ⟩ →
     DataStepStar ⟨DataExpr.add e₁ e₂, σ⟩ ⟨DataExpr.add e₁' e₂, σ⟩ := by
   intro h
-  induction h with
-  | refl _ => exact DataStepStar.refl _
-  | step c₁ c₂ c₃ hs hstar ih =>
-    -- c₁ = ⟨e₁_start, σ⟩, c₂ = ⟨e₁_mid, σ⟩ (state preserved by data_state_preservation)
-    apply DataStepStar.step
-    · exact DataStep.addLeft c₁.expr c₂.expr e₂ σ hs
-    · exact ih
+  -- We only lift over configs whose state remains σ; the lift function below is
+  -- only meaningful on such configs, and data_state_preservation guarantees
+  -- that DataStepStar walks only stay in state σ.
+  let f : DataConfig → DataConfig := fun c => ⟨DataExpr.add c.expr e₂, c.state⟩
+  have hstep : ∀ c c', DataStep c c' → DataStep (f c) (f c') := by
+    intro c c' hs
+    have hstate : c.state = c'.state := data_state_preservation c c' hs
+    cases c with
+    | mk ec sc =>
+      cases c' with
+      | mk ec' sc' =>
+        simp at hstate
+        subst hstate
+        exact DataStep.addLeft ec ec' e₂ sc hs
+  exact dataStepStar_lift f hstep ⟨e₁, σ⟩ ⟨e₁', σ⟩ h
 
-/-- Lift DataStepStar through addRight context -/
+/-- Lift DataStepStar through addRight context. -/
 theorem dataStepStar_addRight (n₁ : Int) (e₂ e₂' : DataExpr) (σ : State) :
     DataStepStar ⟨e₂, σ⟩ ⟨e₂', σ⟩ →
     DataStepStar ⟨DataExpr.add (DataExpr.lit n₁) e₂, σ⟩ ⟨DataExpr.add (DataExpr.lit n₁) e₂', σ⟩ := by
   intro h
-  induction h with
-  | refl _ => exact DataStepStar.refl _
-  | step c₁ c₂ c₃ hs hstar ih =>
-    apply DataStepStar.step
-    · exact DataStep.addRight n₁ c₁.expr c₂.expr σ hs
-    · exact ih
+  let f : DataConfig → DataConfig :=
+    fun c => ⟨DataExpr.add (DataExpr.lit n₁) c.expr, c.state⟩
+  have hstep : ∀ c c', DataStep c c' → DataStep (f c) (f c') := by
+    intro c c' hs
+    have hstate : c.state = c'.state := data_state_preservation c c' hs
+    cases c with
+    | mk ec sc =>
+      cases c' with
+      | mk ec' sc' =>
+        simp at hstate
+        subst hstate
+        exact DataStep.addRight n₁ ec ec' sc hs
+  exact dataStepStar_lift f hstep ⟨e₂, σ⟩ ⟨e₂', σ⟩ h
 
-/-- Lift DataStepStar through neg context -/
+/-- Lift DataStepStar through neg context. -/
 theorem dataStepStar_neg (e e' : DataExpr) (σ : State) :
     DataStepStar ⟨e, σ⟩ ⟨e', σ⟩ →
     DataStepStar ⟨DataExpr.neg e, σ⟩ ⟨DataExpr.neg e', σ⟩ := by
   intro h
-  induction h with
-  | refl _ => exact DataStepStar.refl _
-  | step c₁ c₂ c₃ hs hstar ih =>
-    apply DataStepStar.step
-    · exact DataStep.negStep c₁.expr c₂.expr σ hs
-    · exact ih
+  let f : DataConfig → DataConfig := fun c => ⟨DataExpr.neg c.expr, c.state⟩
+  have hstep : ∀ c c', DataStep c c' → DataStep (f c) (f c') := by
+    intro c c' hs
+    have hstate : c.state = c'.state := data_state_preservation c c' hs
+    cases c with
+    | mk ec sc =>
+      cases c' with
+      | mk ec' sc' =>
+        simp at hstate
+        subst hstate
+        exact DataStep.negStep ec ec' sc hs
+  exact dataStepStar_lift f hstep ⟨e, σ⟩ ⟨e', σ⟩ h
 
 /-- Transitivity of DataStepStar -/
 theorem dataStepStar_trans (c₁ c₂ c₃ : DataConfig) :
@@ -380,10 +421,9 @@ def infiniteLoop : ControlStmt :=
 -/
 theorem infinite_loop_steps (σ : State) :
     ∃ c', CtrlStep ⟨infiniteLoop, σ⟩ c' := by
-  use ⟨ControlStmt.seq ControlStmt.skip infiniteLoop, σ⟩
-  apply CtrlStep.whileTrue
-  · exact DataBigStep.lit 1 σ
-  · simp
+  refine ⟨⟨ControlStmt.seq ControlStmt.skip infiniteLoop, σ⟩, ?_⟩
+  exact CtrlStep.whileTrue (DataExpr.lit 1) ControlStmt.skip σ 1
+    (DataBigStep.lit 1 σ) (by decide)
 
 -- ============================================================================
 -- SECTION 8: HARVARD ARCHITECTURE INVARIANT
@@ -400,17 +440,14 @@ theorem infinite_loop_steps (σ : State) :
 theorem data_is_pure (c₁ c₂ : DataConfig) (h : c₁ ⟶ᴰ c₂) : c₁.state = c₂.state :=
   data_state_preservation c₁ c₂ h
 
-/--
-  Control Language CAN modify state (demonstrated by assignment).
--/
-/-- Control Language CAN modify state: demonstrated with a specific state where x ≠ 42 -/
+/-- Control Language CAN modify state: demonstrated with a specific state where
+    `x` becomes 42 (≠ 0 = `State.empty "x"`). -/
 example : ∃ σ' : State, σ' ≠ State.empty ∧
     CtrlStep ⟨ControlStmt.assign "x" (DataExpr.lit 42), State.empty⟩ ⟨ControlStmt.skip, σ'⟩ := by
-  use State.empty["x" ↦ 42]
-  constructor
+  refine ⟨State.empty["x" ↦ 42], ?_, ?_⟩
   · intro h
-    -- State.empty["x" ↦ 42] = State.empty means (State.empty["x" ↦ 42]) "x" = State.empty "x"
-    -- i.e., 42 = 0, contradiction
-    have : (State.empty["x" ↦ 42]) "x" = State.empty "x" := by rw [h]
-    simp [State.update, State.empty] at this
+    have hpoint : (State.empty["x" ↦ 42]) "x" = State.empty "x" := by rw [h]
+    have hbeq : ("x" == "x") = true := by decide
+    simp only [State.update, State.empty, hbeq, if_true] at hpoint
+    exact absurd hpoint (by decide)
   · exact CtrlStep.assign "x" (DataExpr.lit 42) State.empty 42 (DataBigStep.lit 42 State.empty)

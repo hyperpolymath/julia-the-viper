@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 = Julia the Viper — Roadmap
 
 This roadmap describes the *actual development trajectory* of JtV as a research language.

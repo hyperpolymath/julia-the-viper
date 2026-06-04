@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: MIT OR GPL-3.0-or-later OR Palimpsest-0.8
+// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 // SPDX-FileCopyrightText: 2025 Julia the Viper Contributors
 //
 // Julia the Viper - Code Formatter
