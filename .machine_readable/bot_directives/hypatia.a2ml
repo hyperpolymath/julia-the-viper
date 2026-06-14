@@ -1,0 +1,36 @@
+# SPDX-License-Identifier: MPL-2.0
+# hypatia.a2ml — Hypatia scanner directives for julia-the-viper.
+# Per the estate bot_directives standard (estate-standardization wave).
+
+[metadata]
+repo = "julia-the-viper"
+last-updated = "2026-06-14"
+owner = "hyperpolymath"
+
+[scanner]
+ignore-file = ".hypatia-ignore"   # present at repo root; each entry carries a verified-false-positive rationale
+workflow = ".github/workflows/hypatia-scan.yml"
+
+# ============================================================
+# Accepted findings (known false positives / adjudicated). Do not re-raise.
+# ============================================================
+
+[[accepted-findings]]
+rule = "code_safety/js_hardcoded_secret"
+path = "playground/experiments/_attic/database-demos/arangodb-demo/queries.js"
+status = "verified-false-positive"
+reason = """
+Placeholder DB password ("rootpassword") in the FROZEN demo archive
+(playground/experiments/_attic/, see its FROZEN.md) — not a real
+credential and not shipped code. Exempted in .hypatia-ignore.
+"""
+
+[[accepted-findings]]
+rule = "workflow_audit/missing_timeout_minutes"
+path = "(reusable-workflow caller jobs)"
+status = "not-applicable"
+reason = """
+`timeout-minutes` is invalid on jobs that call reusable workflows
+(governance/mirror/scorecard/hypatia-scan + the SLSA provenance job);
+the timeout lives in the reusable. These flags are false positives.
+"""

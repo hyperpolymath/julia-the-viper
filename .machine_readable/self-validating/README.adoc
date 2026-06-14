@@ -1,0 +1,22 @@
+// SPDX-License-Identifier: MPL-2.0
+// SPDX-FileCopyrightText: 2026 Jonathan D.A. Jewell
+= Self-validating K9 templates — julia-the-viper
+:toc:
+
+Estate K9 self-validation templates (k9-validate-action format: `K9!`
+magic + pedigree + security leash). Three leash tiers:
+
+* `template-kennel.k9.ncl` — Kennel (most restricted; read-only, no network).
+* `template-yard.k9.ncl`   — Yard (moderate; bounded subprocess).
+* `template-hunt.k9.ncl`   — Hunt (most capable; `signature_required = true`).
+
+These are the estate-standard starting points; copy and specialise per
+service. Validated by the `Validate K9 contracts` job in
+`.github/workflows/dogfood-gate.yml`.
+
+NOTE: the contractile k9-components under `.machine_readable/contractiles/`
+(when present in the standards `{family}/` trident form) are a DIFFERENT
+artifact — Nickel runner-companions, not `K9!`-magic service files — and
+are out of scope for that validator. julia-the-viper uses the estate-wave
+*flat* contractile layout, so its `contractiles/` holds only `*file.a2ml`
+declarations (+ a `Justfile`), no `.k9.ncl`.

@@ -1,0 +1,35 @@
+// SPDX-License-Identifier: MPL-2.0
+// SPDX-FileCopyrightText: 2026 Jonathan D.A. Jewell
+= Bot directives — julia-the-viper
+:toc:
+
+== Purpose
+
+Per-repo directives for automated agents operating on
+`hyperpolymath/julia-the-viper`: what is safe, what is forbidden, and
+which findings are already adjudicated, so automated runs do not
+relitigate settled decisions or touch protected surfaces.
+
+== Precedence
+
+. Maintainer instruction (see `MAINTAINERS.adoc`) — always wins.
+. These directives.
+. Bot built-in defaults.
+
+== Scope
+
+* *Hypatia* scanner — `hypatia.a2ml` (config pointers + accepted findings).
+* *gitbot fleet* — `gitbot-fleet.a2ml` (roster, branch policy, never-touch).
+* *.git-private-farm propagation* — `git-private-farm.a2ml`.
+
+== Repo-specific ground rules (summary)
+
+* Load-bearing, bot-off-limits surfaces: the Lean proof suite
+  (`jtv_proofs/`, `*.lean`), the Idris2 ABI (`src/abi/Types.idr`,
+  `%default total`), the canonical grammar (`crates/jtv-core/src/grammar.pest`,
+  `spec/`), and the ADR trail (`docs/design-decisions/` — ADR-0006/0007 are
+  current truth).
+* Addition-only is a core mandate (ADR-0007): no `×`/primitive `−`;
+  subtraction is reverse addition. Bots MUST NOT introduce a subtract token.
+* CI green precedes merge; bots never auto-merge and never delete branches.
+* Escalation channel is an issue, not PR-comment spam.

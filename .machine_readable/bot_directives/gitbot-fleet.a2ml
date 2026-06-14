@@ -1,0 +1,45 @@
+# SPDX-License-Identifier: MPL-2.0
+# gitbot-fleet.a2ml — gitbot fleet directives for julia-the-viper.
+# Per the estate bot_directives standard (estate-standardization wave).
+
+[metadata]
+repo = "julia-the-viper"
+last-updated = "2026-06-14"
+owner = "hyperpolymath"
+
+[fleet]
+bots = ["rhodibot", "echidnabot", "sustainabot", "glambot", "seambot", "finishbot"]
+
+[fleet.roles]
+rhodibot = "git operations"
+echidnabot = "code quality"
+sustainabot = "dependency updates"
+glambot = "documentation"
+seambot = "integration"
+finishbot = "task completion"
+
+[branch-policy]
+working-branch-pattern = "<bot>/<topic>"
+draft-PRs-only = true
+ci-green-before-merge = true
+never-touch = [
+  "CLAUDE.md",
+  ".claude/CLAUDE.md",
+  "jtv_proofs/",
+  "*.lean",
+  "src/abi/Types.idr",
+  "crates/jtv-core/src/grammar.pest",
+  "spec/",
+  "docs/design-decisions/",
+  "LICENSE",
+]
+
+[per-bot.rhodibot]
+deny = ["force-push to main", "branch deletion", "history rewrites"]
+
+[per-bot.echidnabot]
+deny = ["editing Lean proof code", "introducing sorry/admit/axiom or True-typed theorems", "believe_me/assert_total in Idris2", "weakening %default total", "adding a subtract token to the Data grammar (ADR-0007)"]
+note = "Proof integrity is gated by lake build + the NO-VACUITY invariant (PROOF-CAPABILITY-MATRIX.adoc); the only sanctioned escape hatches are enumerated in docs/proof-debt.md style records."
+
+[per-bot.sustainabot]
+allow = ["GitHub Actions group bumps (SHA-pinned)"]
