@@ -6,7 +6,7 @@
 # Then hands off to `just setup` for project-specific configuration.
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/hyperpolymath/julia-the-viper/main/setup.sh | sh
+#   curl -fsSL -o setup.sh https://raw.githubusercontent.com/hyperpolymath/julia-the-viper/main/setup.sh && sh ./setup.sh   # download, inspect, then run
 #   # or after cloning:
 #   ./setup.sh
 #
@@ -140,8 +140,10 @@ install_just() {
     case "$PKG_MGR" in
         dnf)        sudo dnf install -y just ;;
         apt)        sudo apt-get install -y just 2>/dev/null || {
-                        # just not in older apt repos — use installer
-                        curl -fsSL https://just.systems/install.sh | bash -s -- --to /usr/local/bin
+                        # just not in older apt repos — use the installer.
+                        # Hardened: download to a file, then execute (no pipe-to-shell).
+                        curl -fsSL -o /tmp/just-install.sh https://just.systems/install.sh
+                        sh /tmp/just-install.sh --to /usr/local/bin
                     } ;;
         pacman)     sudo pacman -S --noconfirm just ;;
         apk)        sudo apk add just ;;
@@ -152,8 +154,9 @@ install_just() {
         guix)       guix install just ;;
         nix)        nix-env -iA nixpkgs.just ;;
         *)
-            info "Using just installer script..."
-            curl -fsSL https://just.systems/install.sh | bash -s -- --to /usr/local/bin
+            info "Using just installer script (download-then-run, no pipe-to-shell)..."
+            curl -fsSL -o /tmp/just-install.sh https://just.systems/install.sh
+            sh /tmp/just-install.sh --to /usr/local/bin
             ;;
     esac
 

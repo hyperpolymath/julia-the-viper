@@ -60,7 +60,10 @@ jobs:
       - name: Install elan (Lean toolchain manager)
         if: steps.detect.outputs.present == 'true'
         run: |
-          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
+          # Hardened: download the installer to a file, then execute -- avoids
+          # the pipe-to-shell stream-execute pattern (download_then_run audit).
+          curl -sSf -o /tmp/elan-init.sh https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh
+          sh /tmp/elan-init.sh -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
       # NOTE: no actions/cache step — a pinned cache SHA can be auto-failed by
@@ -112,7 +115,7 @@ jobs:
             scheme_bin="$(command -v chez || command -v chezscheme || command -v scheme || echo chez)"
             echo "Using Scheme backend: $scheme_bin"
             # IMPORTANT: download the installer to a FILE. Running it via
-            # `curl | bash` makes its interactive `read SCHEME` consume the
+            # piping the script to bash makes its interactive `read SCHEME` consume the
             # script's own text as the answer. With a file + the Scheme name on
             # stdin, the prompt is answered correctly and later reads hit EOF
             # (taking defaults).
