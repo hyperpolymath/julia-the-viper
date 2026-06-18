@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
-# Trustfile — Agent trust contract for julia-the-viper.
+# Trustfile — Agent trust contract for jtv.
 # Author: Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 # Migrated 2026-06-13 from .machine_readable/TRUST.contractile (content preserved).
 

@@ -1,9 +1,9 @@
 {
-  "name": "julia-the-viper",
-  "displayName": "Julia the Viper",
-  "description": "Syntax highlighting and language support for Julia the Viper (.jtv files)",
+  "name": "jtv",
+  "displayName": "JtV",
+  "description": "Syntax highlighting and language support for JtV (.jtv files)",
   "version": "0.1.0",
-  "publisher": "julia-the-viper",
+  "publisher": "jtv",
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -13,7 +13,7 @@
   "contributes": {
     "languages": [{
       "id": "jtv",
-      "aliases": ["Julia the Viper", "jtv"],
+      "aliases": ["JtV", "jtv"],
       "extensions": [".jtv"],
       "configuration": "./language-configuration.json"
     }],

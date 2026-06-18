@@ -1,4 +1,4 @@
-= Julia the Viper Type System Specification (V2 Corrected Draft)
+= JtV Type System Specification (V2 Corrected Draft)
 :version: 2.0.0-draft
 :date: 2026-04-16
 

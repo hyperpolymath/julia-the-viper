@@ -4,7 +4,7 @@
 
 ## Executive Summary
 
-Julia the Viper v2 extends the addition-only Data Language with **reversible computing** to enable quantum algorithm simulation. This is not a gimmick - it's a natural consequence of the Harvard Architecture design.
+JtV v2 extends the addition-only Data Language with **reversible computing** to enable quantum algorithm simulation. This is not a gimmick - it's a natural consequence of the Harvard Architecture design.
 
 ## The Connection
 

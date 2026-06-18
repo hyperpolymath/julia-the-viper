@@ -1,8 +1,8 @@
-# Julia the Viper (JtV)
+# JtV
 
 ## Project Overview
 
-**Julia the Viper** is a Harvard Architecture programming language designed as a "universal extender" to fix code injection vulnerabilities in legacy systems (Python/PHP/JS). The name honors mathematician **Julia Robinson** while making a playful pun on "adder" (snake + addition).
+**JtV** is a Harvard Architecture programming language designed as a "universal extender" to fix code injection vulnerabilities in legacy systems (Python/PHP/JS). The original name — *Julia the Viper* — honored mathematician **Julia Robinson** while punning on "adder" (snake + addition); it is now just **JtV** so the "Julia" is no longer mistaken for the Julia language (see *Etymology & Humor* below).
 
 ### The Core Insight
 
@@ -13,7 +13,7 @@ JtV grammatically separates **Control Language** (Turing-complete, imperative) f
 This repository currently contains the conceptual foundation:
 
 ```
-julia-the-viper/
+jtv/
 ├── README.md           # Project tagline: "It's basically the same thing as an adder"
 ├── julia-viper         # Pseudocode showing the humorous starting point
 ├── LICENSE             # GPL-3.0
@@ -141,9 +141,11 @@ If you see references to:
 
 ## Etymology & Humor
 
-The project embraces wordplay:
+**JtV was formerly named *Julia the Viper*.** It now goes by **JtV** so the
+"Julia" in the title is no longer mistaken — by people and bots alike — for the
+Julia programming language. The wordplay behind the original name lives on:
 
-- **Julia Robinson**: Mathematician who solved Hilbert's 10th problem
+- **Julia Robinson**: Mathematician who solved Hilbert's 10th problem (the "Julia")
 - **Viper**: A snake (like "adder", which is both a snake and a calculator)
 - **"It's basically the same thing as an adder"**: Humble origin story
 - **Addition-only**: Seems limited, actually universal

@@ -1,5 +1,5 @@
 /-
-  Julia the Viper - Denotational Semantics Theorems
+  JtV - Denotational Semantics Theorems
 
   This file contains mechanized proofs of the key properties of JtV's
   Data Language, including:

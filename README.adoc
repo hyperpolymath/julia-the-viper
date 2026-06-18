@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // SPDX-FileCopyrightText: 2025-2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 
-= Julia the Viper (JtV)
+= JtV
 
 image:https://img.shields.io/badge/OpenSSF-Best_Practices-green?logo=opensourcesecurity[OpenSSF Best Practices,link="https://www.bestpractices.dev/en/projects/new?repo_url=https://github.com/hyperpolymath/jtv"]
 image:https://img.shields.io/badge/Code-MPL--2.0-blue.svg[Code: MPL-2.0,link="LICENSE"]
@@ -11,6 +11,13 @@ image:https://api.thegreenwebfoundation.org/greencheckimage/github.com[Green Web
 A Harvard-architecture programming language that makes code injection *grammatically impossible* — not as a runtime check, but as a structural guarantee.
 
 Named after mathematician **Julia Robinson** (Hilbert's 10th problem) with a playful nod to "adder": a snake, and the fundamental operation the language builds everything from.
+
+[NOTE]
+====
+*Formerly "Julia the Viper".* The project now goes by *JtV* so the "Julia" in the
+name is no longer mistaken — by people and bots alike — for the Julia programming
+language. The Julia-Robinson honour and the "adder" pun carry over to the short name.
+====
 
 ---
 
@@ -242,7 +249,7 @@ just build-wasm   # requires wasm-pack
 
 [source]
 ----
-julia-the-viper/
+jtv/
 ├── crates/
 │   ├── jtv-core/         Rust interpreter + type system + reversibility
 │   ├── jtv-cli/          REPL and command-line interface

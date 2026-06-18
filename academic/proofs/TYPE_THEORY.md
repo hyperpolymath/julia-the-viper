@@ -1,4 +1,4 @@
-# Type Theory of Julia the Viper: A Complete Formalization
+# Type Theory of JtV: A Complete Formalization
 
 **SPDX-License-Identifier: CC-BY-SA-4.0
 

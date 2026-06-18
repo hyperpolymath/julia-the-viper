@@ -25,7 +25,7 @@ We release security updates for the following versions:
 
 ### Security Guarantees
 
-Julia the Viper provides the following **architectural security guarantees**:
+JtV provides the following **architectural security guarantees**:
 
 #### 1. Code Injection is Grammatically Impossible
 

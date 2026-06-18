@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
-# Justfile - Julia the Viper build system
+# Justfile - JtV build system
 
 # Default: show all available commands
 import? "contractile.just"
@@ -239,7 +239,7 @@ assail:
 
 # Self-diagnostic — checks dependencies, permissions, paths, proofs. Taxonomy: REF
 doctor:
-    @echo "Running diagnostics for julia-the-viper..."
+    @echo "Running diagnostics for jtv..."
     @FAIL=0; \
     echo "=== Required Tools ==="; \
     command -v just >/dev/null 2>&1 && echo "  [OK] just" || { echo "  [FAIL] just not found"; FAIL=1; }; \
@@ -269,7 +269,7 @@ doctor:
 
 # Auto-repair common issues
 heal:
-    @echo "Attempting auto-repair for julia-the-viper..."
+    @echo "Attempting auto-repair for jtv..."
     @echo "Fixing permissions..."
     @find . -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
     @echo "Cleaning stale caches..."
@@ -278,7 +278,7 @@ heal:
 
 # Guided tour of key features
 tour:
-    @echo "=== julia-the-viper Tour ==="
+    @echo "=== jtv Tour ==="
     @echo ""
     @echo "1. Project structure:"
     @ls -la
@@ -293,12 +293,12 @@ tour:
 
 # Open feedback channel with diagnostic context
 help-me:
-    @echo "=== julia-the-viper Help ==="
+    @echo "=== jtv Help ==="
     @echo "Platform: $(uname -s) $(uname -m)"
     @echo "Shell: $SHELL"
     @echo ""
     @echo "To report an issue:"
-    @echo "  https://github.com/hyperpolymath/julia-the-viper/issues/new"
+    @echo "  https://github.com/hyperpolymath/jtv/issues/new"
     @echo ""
     @echo "Include the output of 'just doctor' in your report."
 

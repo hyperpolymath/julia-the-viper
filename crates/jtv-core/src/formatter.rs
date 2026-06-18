@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
-// SPDX-FileCopyrightText: 2025 Julia the Viper Contributors
+// SPDX-FileCopyrightText: 2025 JtV Contributors
 //
-// Julia the Viper - Code Formatter
+// JtV - Code Formatter
 
 use crate::ast::*;
 

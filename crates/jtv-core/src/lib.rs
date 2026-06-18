@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 //
-// Julia the Viper - Core Language Implementation
+// JtV - Core Language Implementation
 // Harvard Architecture: Control (Turing-complete) + Data (Total)
 
 // Allow some clippy lints that require significant refactoring

@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // Template: QUICKSTART-MAINTAINER.adoc — packaging, deploying, and maintaining
-// Replace julia-the-viper, {{PACKAGE_NAME}}, {{DEPS}} with actuals
-= julia-the-viper — Quick Start for Platform Maintainers
+// Replace jtv, {{PACKAGE_NAME}}, {{DEPS}} with actuals
+= jtv — Quick Start for Platform Maintainers
 :toc:
 :toclevels: 2
 
 == Overview
 
-This guide covers packaging, deploying, and maintaining julia-the-viper for
+This guide covers packaging, deploying, and maintaining jtv for
 distribution on your platform.
 
 == Runtime Dependencies
@@ -18,8 +18,8 @@ distribution on your platform.
 
 [source,bash]
 ----
-git clone https://github.com/hyperpolymath/julia-the-viper.git
-cd julia-the-viper
+git clone https://github.com/hyperpolymath/jtv.git
+cd jtv
 just build-release
 ----
 
@@ -46,7 +46,7 @@ nix build
 [source,bash]
 ----
 just stapeln-export    # Generates Containerfile
-podman build -t julia-the-viper .
+podman build -t jtv .
 ----
 
 === Manual Package
@@ -125,5 +125,5 @@ Each instance has isolated config, data, and logs.
 
 == Reporting Issues
 
-* Upstream: https://github.com/hyperpolymath/julia-the-viper/issues
+* Upstream: https://github.com/hyperpolymath/jtv/issues
 * With diagnostic: `just help-me` (pre-fills context)

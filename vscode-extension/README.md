@@ -1,6 +1,6 @@
-# Julia the Viper VSCode Extension
+# JtV VSCode Extension
 
-Language support for Julia the Viper - a reversible systems programming language with purity guarantees.
+Language support for JtV - a reversible systems programming language with purity guarantees.
 
 ## Features
 
@@ -14,7 +14,7 @@ Language support for Julia the Viper - a reversible systems programming language
 
 ## Requirements
 
-- Julia the Viper toolchain installed (`jtv-cli`, `jtv-lsp`, `jtv-debug`)
+- JtV toolchain installed (`jtv-cli`, `jtv-lsp`, `jtv-debug`)
 - VSCode 1.80.0 or higher
 
 ## Extension Settings
@@ -32,7 +32,7 @@ This extension contributes the following settings:
 
 ## Language Features
 
-Julia the Viper provides:
+JtV provides:
 - **Reversibility**: All computations are reversible
 - **Purity tracking**: `@total` and `@pure` annotations with verification
 - **Formal verification**: Hindley-Milner type system with extensions
@@ -40,7 +40,7 @@ Julia the Viper provides:
 
 ## Installation
 
-1. Install Julia the Viper toolchain
+1. Install JtV toolchain
 2. Install this extension from VSCode marketplace or `.vsix`
 3. Open a `.jtv` file to activate the extension
 
@@ -51,7 +51,7 @@ cd vscode-extension
 npm install
 npm run compile
 npm run package
-code --install-extension julia-the-viper-0.1.0.vsix
+code --install-extension jtv-0.1.0.vsix
 ```
 
 ## License

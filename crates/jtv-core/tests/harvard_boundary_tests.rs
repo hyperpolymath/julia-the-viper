@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 //
-// Harvard Architecture boundary tests for Julia the Viper.
+// Harvard Architecture boundary tests for JtV.
 //
 // These tests verify the fundamental JTV security property: Data Language
 // and Control Language are grammatically separated. Code injection is

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 //
-// Julia the Viper - Pretty-Printer
+// JtV - Pretty-Printer
 // Converts AST nodes back to well-formatted JtV source code.
 // Unlike the Formatter (which parses source then reformats), the
 // pretty-printer works directly on AST nodes and supports individual

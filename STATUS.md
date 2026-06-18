@@ -1,4 +1,4 @@
-# Julia the Viper - Status
+# JtV - Status
 
 **⚠️ THIS FILE IS DEPRECATED**
 
@@ -12,7 +12,7 @@ For current status information, see:
 
 **Current Status (2026-02-07):** ✅ **100% Complete - Production Ready**
 
-Julia the Viper is now production-ready with:
+JtV is now production-ready with:
 - ✅ Complete toolchain (parser, type checker, interpreter, formatter)
 - ✅ WASM backend (591 LOC, fully functional)
 - ✅ LSP server (tower-lsp integration)

@@ -1,5 +1,5 @@
 /-
-  Julia the Viper - Operational Semantics
+  JtV - Operational Semantics
 
   This file defines small-step and big-step operational semantics for JtV,
   complementing the denotational semantics in JtvCore.lean.

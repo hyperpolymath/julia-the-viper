@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-// SPDX-FileCopyrightText: 2025 Julia the Viper Contributors
+// SPDX-FileCopyrightText: 2025 JtV Contributors
 //
 // RSR (Rhodium Standard Repository) Compliance Checker
 

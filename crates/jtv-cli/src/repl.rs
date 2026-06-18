@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
-// SPDX-FileCopyrightText: 2025 Julia the Viper Contributors
+// SPDX-FileCopyrightText: 2025 JtV Contributors
 //
-// Julia the Viper - Interactive REPL
+// JtV - Interactive REPL
 
 use colored::*;
 use jtv_core::{parse_program, Interpreter};
@@ -128,7 +128,7 @@ impl Repl {
         );
         println!(
             "{}",
-            "║         Julia the Viper - Interactive REPL                ║".cyan()
+            "║         JtV - Interactive REPL                            ║".cyan()
         );
         println!(
             "{}",

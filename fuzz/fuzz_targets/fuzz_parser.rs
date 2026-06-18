@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 //
-// Julia the Viper - Parser Fuzzer
+// JtV - Parser Fuzzer
 // Feeds random UTF-8 through the pest parser to detect panics, hangs,
 // and memory-safety issues. The parser must NEVER panic on invalid
 // input; it should always return a clean error.

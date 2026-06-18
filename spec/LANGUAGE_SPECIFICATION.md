@@ -1,4 +1,4 @@
-# Julia the Viper Language Specification
+# JtV Language Specification
 
 **Version:** 1.0.0
 **Date:** 2026-03-14
@@ -24,7 +24,7 @@
 
 ## 1. Introduction
 
-Julia the Viper (JtV) is a statically typed, interpreted language with a Rust-based interpreter and a pest-based parser. It follows a Harvard architecture, separating code and data to enhance security and predictability.
+JtV is a statically typed, interpreted language with a Rust-based interpreter and a pest-based parser. It follows a Harvard architecture, separating code and data to enhance security and predictability.
 
 ### Key Features
 - **Harvard Architecture**: Separation of code (Control Language) and data (Data Language).

@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MPL-2.0
 {
-  description = "Julia the Viper - Harvard Architecture language making code injection grammatically impossible";
+  description = "JtV - Harvard Architecture language making code injection grammatically impossible";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -43,7 +43,7 @@
           default = self.packages.${system}.jtv;
 
           jtv = pkgs.rustPlatform.buildRustPackage {
-            pname = "julia-the-viper";
+            pname = "jtv";
             version = "0.1.0";
 
             src = ./.;
@@ -56,7 +56,7 @@
 
             meta = with pkgs.lib; {
               description = "Harvard Architecture language making code injection grammatically impossible";
-              homepage = "https://github.com/hyperpolymath/julia-the-viper";
+              homepage = "https://github.com/hyperpolymath/jtv";
               license = with licenses; [ gpl3Plus ];
               maintainers = [ ];
             };
@@ -64,7 +64,7 @@
 
           # WASM build
           jtv-wasm = pkgs.stdenv.mkDerivation {
-            pname = "julia-the-viper-wasm";
+            pname = "jtv-wasm";
             version = "0.1.0";
 
             src = ./.;
@@ -113,7 +113,7 @@
           ]);
 
           shellHook = ''
-            echo "🐍 Julia the Viper Development Environment"
+            echo "🐍 JtV Development Environment"
             echo ""
             echo "Available commands:"
             echo "  just --list     # Show all build commands"

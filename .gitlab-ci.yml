@@ -1,4 +1,4 @@
-# GitLab CI/CD Configuration for Julia the Viper
+# GitLab CI/CD Configuration for JtV
 
 variables:
   CARGO_HOME: "${CI_PROJECT_DIR}/.cargo"

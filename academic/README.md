@@ -1,8 +1,8 @@
-# Julia the Viper: Academic Documentation
+# JtV: Academic Documentation
 
 **SPDX-License-Identifier: CC-BY-SA-4.0
 
-This directory contains comprehensive academic documentation for Julia the Viper (JtV), including formal proofs, white papers, and theoretical foundations.
+This directory contains comprehensive academic documentation for JtV, including formal proofs, white papers, and theoretical foundations.
 
 ---
 
@@ -140,11 +140,11 @@ lake build
 
 ```bibtex
 @misc{jtv2025,
-  title = {Julia the Viper: A Harvard Architecture Language for
+  title = {JtV: A Harvard Architecture Language for
            Grammatically Enforced Code Injection Immunity},
   author = {JtV Research Team},
   year = {2025},
-  howpublished = {\url{https://github.com/hyperpolymath/julia-the-viper}},
+  howpublished = {\url{https://github.com/hyperpolymath/jtv}},
   note = {Version 1.0}
 }
 ```

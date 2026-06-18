@@ -1,5 +1,5 @@
 /-
-  Julia the Viper - Type System Formalization
+  JtV - Type System Formalization
 
   This file defines the type system for JtV including:
   1. Type definitions (7 number systems + compound types)

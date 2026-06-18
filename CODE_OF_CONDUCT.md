@@ -132,7 +132,7 @@ For answers to common questions about this code of conduct, see the FAQ at
 [FAQ]: https://www.contributor-covenant.org/faq
 [translations]: https://www.contributor-covenant.org/translations
 
-## Julia the Viper Specific Addendum
+## JtV Specific Addendum
 
 ### Technical Discourse
 

@@ -39,7 +39,7 @@ The JtV LSP provides IDE integration for editors supporting the Language Server 
 
 ### VS Code
 
-Install the "Julia the Viper" extension from the marketplace:
+Install the "JtV" extension from the marketplace:
 
 ```bash
 code --install-extension hyperpolymath.jtv-vscode

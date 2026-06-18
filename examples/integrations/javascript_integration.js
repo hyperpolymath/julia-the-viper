@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Julia the Viper - JavaScript Integration Example
+ * JtV - JavaScript Integration Example
  * Demonstrates using JtV WASM module from Node.js
  */
 
@@ -249,7 +249,7 @@ function reversibleComputingExample() {
 // Main execution
 async function main() {
   console.log("=" . repeat(60));
-  console.log("Julia the Viper - JavaScript Integration Examples");
+  console.log("JtV - JavaScript Integration Examples");
   console.log("=" . repeat(60));
 
   basicSecurityExample();

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 //
-// Property-based tests for Julia the Viper's 7 number systems.
+// Property-based tests for JtV's 7 number systems.
 // Verifies algebraic laws (commutativity, associativity, identity) hold
 // across all number types and cross-type coercion paths.
 

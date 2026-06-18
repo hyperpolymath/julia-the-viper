@@ -1,8 +1,8 @@
-# Mathematical Foundations of Julia the Viper
+# Mathematical Foundations of JtV
 
 **SPDX-License-Identifier: CC-BY-SA-4.0
 
-This document establishes the rigorous mathematical foundations underlying the Julia the Viper programming language, drawing from set theory, category theory, domain theory, and lambda calculus.
+This document establishes the rigorous mathematical foundations underlying the JtV programming language, drawing from set theory, category theory, domain theory, and lambda calculus.
 
 ---
 

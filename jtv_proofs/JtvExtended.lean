@@ -1,5 +1,5 @@
 /-
-  Julia the Viper - Extended Formal Proofs
+  JtV - Extended Formal Proofs
 
   This file contains additional theorems and lemmas extending the core
   proof suite for comprehensive academic verification.

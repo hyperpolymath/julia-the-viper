@@ -1,13 +1,13 @@
 # SPDX-License-Identifier: MPL-2.0
-# stapeln.toml — Layer-based container build for julia-the-viper
+# stapeln.toml — Layer-based container build for jtv
 #
 # stapeln builds containers as composable layers (German: "to stack").
 # Each layer is independently cacheable, verifiable, and signable.
 
 [metadata]
-name = "julia-the-viper"
+name = "jtv"
 version = "0.1.0"
-description = "julia the viper"
+description = "JtV"
 author = "Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>"
 license = "MPL-2.0"
 registry = "ghcr.io/hyperpolymath"
@@ -32,7 +32,7 @@ packages = ["rust", "build-base", "openssl-dev"]
 cache = true
 
 [layers.build]
-description = "julia-the-viper build"
+description = "jtv build"
 extends = "toolchain"
 commands = ["cargo build --release"]
 
@@ -43,7 +43,7 @@ packages = ["ca-certificates", "curl"]
 copy-from = [
     { layer = "build", src = "/app/", dst = "/app/" },
 ]
-entrypoint = ["/app/target/release/julia-the-viper"]
+entrypoint = ["/app/target/release/jtv"]
 user = "nonroot"
 
 # ── Security ───────────────────────────────────────────────────

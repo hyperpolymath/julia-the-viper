@@ -1,4 +1,4 @@
-// Julia the Viper - Pest Grammar for Rust Parser
+// JtV - Pest Grammar for Rust Parser
 // Harvard Architecture: Control (Turing-complete) + Data (Total)
 
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" }

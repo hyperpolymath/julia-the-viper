@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
-# Intentfile — Purpose, anti-purpose, and roadmap intents for julia-the-viper.
+# Intentfile — Purpose, anti-purpose, and roadmap intents for jtv.
 # Author: Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 # Migrated 2026-06-13 from .machine_readable/INTENT.contractile (content preserved).
 # (intend absorbs the deprecated `lust` wishes schema, 2026-04-18.)

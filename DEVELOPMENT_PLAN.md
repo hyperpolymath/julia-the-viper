@@ -1,4 +1,4 @@
-# Julia the Viper: Development Roadmap & Technical Decisions
+# JtV: Development Roadmap & Technical Decisions
 
 **SPDX-License-Identifier: CC-BY-SA-4.0
 **Version:** 1.0
@@ -489,7 +489,7 @@ The Elm Architecture (TEA) / Model-View-Update (MVU) pattern. This provides:
 // package.json
 {
   "name": "jtv-vscode",
-  "displayName": "Julia the Viper",
+  "displayName": "JtV",
   "publisher": "jtv",
   "engines": { "vscode": "^1.85.0" },
   "categories": ["Programming Languages"],
@@ -601,7 +601,7 @@ ENTRYPOINT ["jtv"]
 ## 3. Directory Structure
 
 ```
-julia-the-viper/
+jtv/
 ├── crates/                      # Rust workspace
 │   ├── jtv-core/               # Parser, AST, types
 │   │   ├── src/

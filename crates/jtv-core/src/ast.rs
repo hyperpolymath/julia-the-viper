@@ -1,4 +1,4 @@
-// Abstract Syntax Tree for Julia the Viper
+// Abstract Syntax Tree for JtV
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

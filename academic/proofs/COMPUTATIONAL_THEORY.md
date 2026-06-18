@@ -1,4 +1,4 @@
-# Computational Theory of Julia the Viper
+# Computational Theory of JtV
 
 **SPDX-License-Identifier: CC-BY-SA-4.0
 

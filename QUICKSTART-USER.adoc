@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // Template: QUICKSTART-USER.adoc — 5-minute path to working software
-// Replace julia-the-viper, Julia The Viper — See README.adoc for details., just run, Julia The Viper started successfully. with actuals
-= julia-the-viper — Quick Start for Users
+// Replace jtv, JtV — See README.adoc for details., just run, JtV started successfully. with actuals
+= jtv — Quick Start for Users
 :toc:
 :toclevels: 2
 
-== What is julia-the-viper?
+== What is jtv?
 
-Julia The Viper — See README.adoc for details.
+JtV — See README.adoc for details.
 
 == Prerequisites
 
@@ -37,8 +37,8 @@ Before you begin, ensure you have:
 [source,bash]
 ----
 # Clone and set up
-git clone https://github.com/hyperpolymath/julia-the-viper.git
-cd julia-the-viper
+git clone https://github.com/hyperpolymath/jtv.git
+cd jtv
 just setup
 ----
 
@@ -61,7 +61,7 @@ just stapeln-run
 
 [source,bash]
 ----
-just install --portable --prefix=./julia-the-viper-portable
+just install --portable --prefix=./jtv-portable
 ----
 
 == First Run
@@ -75,7 +75,7 @@ Expected output:
 
 [source]
 ----
-Julia The Viper started successfully.
+JtV started successfully.
 ----
 
 == Self-Diagnostic
@@ -102,7 +102,7 @@ just heal
 * **In-app**: `just run --help`
 * **Guided tour**: `just tour`
 * **Report a problem**: `just help-me` (pre-fills diagnostic context)
-* **Wiki**: https://github.com/hyperpolymath/julia-the-viper/wiki
+* **Wiki**: https://github.com/hyperpolymath/jtv/wiki
 
 == Uninstall
 

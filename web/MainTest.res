@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 // hypatia:ignore cicd_rules/banned_language_file — legacy ReScript pending AffineScript migration
-// Julia the Viper - Web module tests
+// JtV - Web module tests
 
 /** Deno test runner FFI binding */
 @module("Deno") @val

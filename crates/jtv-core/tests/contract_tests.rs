@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 //
-// Contract and invariant tests for Julia the Viper.
+// Contract and invariant tests for JtV.
 // Verifies that declared contracts (addition-only, purity, Harvard separation,
 // reversibility) actually hold at runtime, not just at parse time.
 //

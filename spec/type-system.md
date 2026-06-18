@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: CC-BY-SA-4.0
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 
-# Julia-the-Viper Type System Specification
+# JtV Type System Specification
 
 **Version:** 1.0.0
 **Date:** 2026-03-14

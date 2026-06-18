@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
-# Adjustfile — Accessibility & adaptation invariants for julia-the-viper.
+# Adjustfile — Accessibility & adaptation invariants for jtv.
 # Author: Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 # Migrated 2026-06-13 from .machine_readable/ADJUST.contractile (content preserved).
 # All ADJUST invariants are implicitly MUST invariants (tracked separately for visibility).

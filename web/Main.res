@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 // hypatia:ignore cicd_rules/banned_language_file — legacy ReScript pending AffineScript migration
-// Julia the Viper - Web module entry point
+// JtV - Web module entry point
 
 /** Add two numbers together.
  * The fundamental operation in JtV's addition-only Data Language.

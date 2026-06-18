@@ -1,4 +1,4 @@
-# Julia the Viper: A Harvard Architecture Language for Grammatically Enforced Code Injection Immunity
+# JtV: A Harvard Architecture Language for Grammatically Enforced Code Injection Immunity
 
 **Authors:** The JtV Research Team
 **Version:** 1.0 (Draft)
@@ -9,7 +9,7 @@
 
 ## Abstract
 
-We present **Julia the Viper (JtV)**, a programming language that achieves code injection immunity through grammatical separation rather than runtime detection. By implementing a strict Harvard Architecture at the language level—separating a Turing-complete Control Language from a Total (provably halting) Data Language—JtV makes code injection attacks syntactically impossible. This paper formalizes the theoretical foundations, proves key security properties, and demonstrates practical applicability for retrofitting legacy systems vulnerable to injection attacks.
+We present **JtV**, a programming language that achieves code injection immunity through grammatical separation rather than runtime detection. By implementing a strict Harvard Architecture at the language level—separating a Turing-complete Control Language from a Total (provably halting) Data Language—JtV makes code injection attacks syntactically impossible. This paper formalizes the theoretical foundations, proves key security properties, and demonstrates practical applicability for retrofitting legacy systems vulnerable to injection attacks.
 
 **Keywords:** Code injection, Harvard Architecture, Total languages, Formal verification, Language-based security, Provable security
 
@@ -90,7 +90,7 @@ JtV extends this tradition by making security a grammatical rather than just typ
 
 ---
 
-## 3. The Julia the Viper Language
+## 3. The JtV Language
 
 ### 3.1 Syntax Overview
 
@@ -521,7 +521,7 @@ JtV uniquely combines:
 
 ## 12. Conclusion
 
-Julia the Viper demonstrates that code injection can be eliminated through language design rather than defensive programming. By enforcing Harvard Architecture at the grammar level, JtV achieves:
+JtV demonstrates that code injection can be eliminated through language design rather than defensive programming. By enforcing Harvard Architecture at the grammar level, JtV achieves:
 
 1. **Provable Security:** Code injection is grammatically impossible
 2. **Preserved Expressiveness:** Turing-complete for real applications

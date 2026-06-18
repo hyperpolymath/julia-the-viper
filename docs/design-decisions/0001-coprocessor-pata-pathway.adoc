@@ -9,7 +9,7 @@ Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 :sectnums:
 
 [.lead]
-How Julia the Viper (JtV) admits direct coprocessor access without growing a
+How JtV admits direct coprocessor access without growing a
 GPU-style kernel backend — framed through Alfred Jarry's 'pataphysics (the
 science of the particular, of exceptions, of imaginary solutions) rather than
 conventional meta-compilation.

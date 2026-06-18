@@ -3,13 +3,13 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 -->
 
-# Julia the Viper Wiki
+# JtV Wiki
 
-Welcome to the Julia the Viper documentation wiki.
+Welcome to the JtV documentation wiki.
 
 ## What is JtV?
 
-**Julia the Viper** is a Harvard Architecture programming language that makes code injection **grammatically impossible**. Named after mathematician Julia Robinson, it separates:
+**JtV** is a Harvard Architecture programming language that makes code injection **grammatically impossible**. Named after mathematician Julia Robinson, it separates:
 
 - **Data Language** (Total/Decidable): Addition-only expressions that always halt
 - **Control Language** (Turing-complete): Imperative statements with loops and I/O
@@ -85,7 +85,7 @@ JtV makes injection **grammatically impossible**:
 
 ## Resources
 
-- [GitHub Repository](https://github.com/hyperpolymath/julia-the-viper)
+- [GitHub Repository](https://github.com/hyperpolymath/jtv)
 - [Technical Roadmap](../docs/TECHNICAL_ROADMAP.md)
 - [CHANGELOG](../CHANGELOG.md)
 - [License](../LICENSE.txt)

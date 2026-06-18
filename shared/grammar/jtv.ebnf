@@ -1,4 +1,4 @@
-(* Julia the Viper - Complete EBNF Grammar *)
+(* JtV - Complete EBNF Grammar *)
 (* Harvard Architecture: Control (Turing-complete) + Data (Total/provably halting) *)
 
 (* ===== PROGRAM STRUCTURE ===== *)

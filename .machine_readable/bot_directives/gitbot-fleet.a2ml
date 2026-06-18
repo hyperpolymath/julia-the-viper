@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: MPL-2.0
-# gitbot-fleet.a2ml — gitbot fleet directives for julia-the-viper.
+# gitbot-fleet.a2ml — gitbot fleet directives for jtv.
 # Per the estate bot_directives standard (estate-standardization wave).
 
 [metadata]
-repo = "julia-the-viper"
+repo = "jtv"
 last-updated = "2026-06-14"
 owner = "hyperpolymath"
 

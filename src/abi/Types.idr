@@ -1,6 +1,6 @@
 -- SPDX-License-Identifier: MPL-2.0
 -- Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath)
--- Julia-the-Viper: Harvard Architecture Safety Proofs
+-- JtV: Harvard Architecture Safety Proofs
 
 module Types
 

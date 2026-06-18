@@ -1,5 +1,5 @@
 /-
-  Julia the Viper — Echo Types: Structured Loss / Non-Total Erasure
+  JtV — Echo Types: Structured Loss / Non-Total Erasure
 
   This module formalises JtV's *Echo system* (spec v2, §8–9, §12) and aligns it
   with the `echo-types` Agda library (hyperpolymath/echo-types) and its

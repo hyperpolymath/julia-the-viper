@@ -24,7 +24,7 @@ demo:
 
 # Show help and available recipes
 help:
-    @echo "JTV Playground - Julia-the-Viper Workbench"
+    @echo "JTV Playground - JtV Workbench"
     @echo "==========================================="
     @echo ""
     @echo "Golden Path (f0):"
@@ -149,7 +149,7 @@ version:
     @echo "JTV Playground v0.1.0-f0"
     @echo ""
     @echo "Milestone: f0 (scope control)"
-    @echo "Focus:     Julia-the-Viper language workbench"
+    @echo "Focus:     JtV language workbench"
 
 # ==============================================================================
 # CI/CD INTEGRATION

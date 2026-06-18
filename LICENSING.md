@@ -5,7 +5,7 @@ SPDX-FileCopyrightText: 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@
 
 # Licensing
 
-Julia the Viper is **dual-licensed by artifact type**:
+JtV is **dual-licensed by artifact type**:
 
 | Artifact | License | SPDX |
 |----------|---------|------|
