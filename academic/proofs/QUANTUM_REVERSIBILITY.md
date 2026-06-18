@@ -1,4 +1,4 @@
-# Quantum Computing and Reversible Computation Theory for Julia the Viper
+# Quantum Computing and Reversible Computation Theory for JtV
 
 **SPDX-License-Identifier: CC-BY-SA-4.0
 

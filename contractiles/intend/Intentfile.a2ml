@@ -3,12 +3,12 @@
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath)
 
 @abstract:
-Declared intent and purpose for Julia The Viper.
+Declared intent and purpose for JtV.
 @end
 
 ## Purpose
 
-Julia The Viper — *Harvard Architecture Language for Security-Critical Applications*
+JtV — *Harvard Architecture Language for Security-Critical Applications*
 
 ## Anti-Purpose
 

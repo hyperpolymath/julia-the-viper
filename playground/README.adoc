@@ -9,7 +9,7 @@ image:https://img.shields.io/badge/Docs-CC--BY--SA--4.0-blue.svg[Docs: CC-BY-SA-
 
 // SPDX-License-Identifier: CC-BY-SA-4.0
 
-*Controlled experimentation workbench for Julia-the-Viper (JTV) language development*
+*Controlled experimentation workbench for JtV language development*
 
 image:https://img.shields.io/badge/Language-JTV-red[JTV]
 image:https://img.shields.io/badge/Milestone-f0-green[f0]
@@ -18,11 +18,11 @@ toc::[]
 
 == Overview
 
-This repository is a **controlled playground** for JTV (Julia-the-Viper) language development. Per the ANCHOR scope policy, all activities are scoped exclusively to JTV language, tooling, and UX experiments.
+This repository is a **controlled playground** for JtV language development. Per the ANCHOR scope policy, all activities are scoped exclusively to JTV language, tooling, and UX experiments.
 
 === What is JTV?
 
-Julia-the-Viper is a systems programming language designed for Harvard architecture embedded systems where code and data live in separate memory spaces.
+JtV is a systems programming language designed for Harvard architecture embedded systems where code and data live in separate memory spaces.
 
 Key features:
 

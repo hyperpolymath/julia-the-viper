@@ -9,7 +9,7 @@ set -e
 SAMPLES_DIR="${1:-jtv/samples}"
 
 echo "=============================================="
-echo "  Julia-the-Viper (JTV) Language Demo"
+echo "  JtV Language Demo"
 echo "  Harvard Architecture Systems Programming"
 echo "=============================================="
 echo ""

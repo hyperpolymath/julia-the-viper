@@ -1,4 +1,4 @@
-# Security Proofs for Julia the Viper: A Formal Analysis
+# Security Proofs for JtV: A Formal Analysis
 
 **SPDX-License-Identifier: CC-BY-SA-4.0
 

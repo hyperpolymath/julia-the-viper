@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: MPL-2.0
-# Julia the Viper - AI Manifest (Gateway File)
+# JtV - AI Manifest (Gateway File)
 #
 # THIS FILE MUST BE READ FIRST BY ALL AI AGENTS.
 #
-# Julia the Viper is a Harvard Architecture programming language that
+# JtV is a Harvard Architecture programming language that
 # grammatically separates Control Language (Turing-complete) from
 # Data Language (Total/provably halting, addition-only). This makes
 # code injection structurally impossible at the grammar level.
@@ -62,7 +62,7 @@
 
 ### Editor Support
 
-- `editors/julia-the-viper.tmLanguage.json`    - TextMate grammar (standalone)
+- `editors/jtv.tmLanguage.json`    - TextMate grammar (standalone)
 - `editors/vscode/syntaxes/jtv.tmLanguage.json` - VS Code extension grammar
 - `editors/vscode/snippets/jtv.json`            - VS Code snippets
 - `editors/vscode/package.json`                 - VS Code extension manifest
@@ -125,7 +125,7 @@
 - `spec/README.adoc` — @taxonomy: spec/index
 - `verification/README.adoc` — @taxonomy: verification/index
 - `crates/jtv-core/src/parser.rs` — @taxonomy: compiler/parser
-- `editors/julia-the-viper.tmLanguage.json` — @taxonomy: editors/textmate-grammar
+- `editors/jtv.tmLanguage.json` — @taxonomy: editors/textmate-grammar
 
 ### New RSR Standard Directories
 

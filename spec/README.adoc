@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // @taxonomy: spec/index
-= julia-the-viper — Specification Directory
+= jtv — Specification Directory
 :toc:
 
 == Overview
 
-This directory contains the canonical language/query specification files for julia-the-viper.
+This directory contains the canonical language/query specification files for jtv.
 
 == Contents
 
 === grammar.ebnf
-The canonical EBNF grammar for julia-the-viper.
+The canonical EBNF grammar for jtv.
 Copied from the original source location; the original is preserved.
 
 === SPEC.core.scm

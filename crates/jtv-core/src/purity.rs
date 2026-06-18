@@ -1,4 +1,4 @@
-// Purity enforcement for Julia the Viper
+// Purity enforcement for JtV
 // Ensures @pure and @total functions respect their contracts
 
 use crate::ast::*;

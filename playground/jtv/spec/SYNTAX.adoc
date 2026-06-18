@@ -10,7 +10,7 @@ toc::[]
 
 == Overview
 
-Julia-the-Viper (JTV) is a systems programming language for Harvard architecture embedded systems.
+JtV is a systems programming language for Harvard architecture embedded systems.
 
 == Lexical Structure
 

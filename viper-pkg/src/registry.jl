@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MPL-2.0
 
-const REGISTRY_URL = "https://packages.julia-the-viper.dev/api/v1"
+const REGISTRY_URL = "https://packages.jtv.dev/api/v1"
 const FALLBACK_MODE = :git  # Use git until registry deployed
 
 """

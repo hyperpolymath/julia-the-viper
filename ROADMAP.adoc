@@ -1,4 +1,4 @@
-= Julia the Viper — Roadmap
+= JtV — Roadmap
 
 This roadmap describes the *actual development trajectory* of JtV as a research language.
 

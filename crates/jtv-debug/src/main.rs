@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-// Interactive debugger for Julia the Viper with reversibility inspection
+// Interactive debugger for JtV with reversibility inspection
 
 #![forbid(unsafe_code)]
 use colored::*;
@@ -160,7 +160,7 @@ impl Debugger {
     }
 
     fn show_help(&self) {
-        println!("\n{}", "Julia the Viper Debugger Commands:".bold().cyan());
+        println!("\n{}", "JtV Debugger Commands:".bold().cyan());
         println!("  {}              - Run the loaded program", "run".green());
         println!("  {}        - Set breakpoint at line N", "break N".green());
         println!(
@@ -187,7 +187,7 @@ impl Debugger {
 }
 
 fn main() -> Result<()> {
-    println!("{}", "Julia the Viper Interactive Debugger".bold().cyan());
+    println!("{}", "JtV Interactive Debugger".bold().cyan());
     println!("{}", "Type 'help' for commands\n".yellow());
 
     let mut debugger = Debugger::new();

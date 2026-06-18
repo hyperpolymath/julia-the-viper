@@ -1,16 +1,16 @@
 <!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
 <!-- Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk> -->
 
-# TOPOLOGY.md — julia-the-viper
+# TOPOLOGY.md — jtv
 
 ## Purpose
 
-Julia the Viper: Harvard Architecture language for security-critical applications. Named after mathematician Julia Robinson and playful "adder" (snake + addition), JtV makes code injection grammatically impossible by separating computation into two distinct channels: Control Language (Turing-complete) and Data Language (total, addition-only).
+JtV: Harvard Architecture language for security-critical applications. Named after mathematician Julia Robinson and playful "adder" (snake + addition), JtV makes code injection grammatically impossible by separating computation into two distinct channels: Control Language (Turing-complete) and Data Language (total, addition-only).
 
 ## Module Map
 
 ```
-julia-the-viper/
+jtv/
 ├── src/
 │   ├── control_language/      # Turing-complete control channel
 │   ├── data_language/         # Provably-halting data channel

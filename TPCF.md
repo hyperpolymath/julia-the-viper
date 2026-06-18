@@ -1,6 +1,6 @@
 # Tri-Perimeter Contribution Framework (TPCF)
 
-Julia the Viper implements the TPCF security model with three graduated trust perimeters.
+JtV implements the TPCF security model with three graduated trust perimeters.
 
 ## Overview
 
@@ -12,7 +12,7 @@ TPCF separates contribution surfaces by trust level:
 
 ## Current Configuration
 
-**Julia the Viper v0.1.0**: **Perimeter 3 (Community Sandbox)**
+**JtV v0.1.0**: **Perimeter 3 (Community Sandbox)**
 
 We are actively seeking founding maintainers and trusted contributors.
 

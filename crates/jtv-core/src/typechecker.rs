@@ -1,4 +1,4 @@
-// Type checker for Julia the Viper
+// Type checker for JtV
 // Implements static type checking for the 7 number systems and compound types
 
 use crate::ast::*;

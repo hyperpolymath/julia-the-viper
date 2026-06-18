@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 = Changelog
 
-All notable changes to Julia the Viper will be documented in this file.
+All notable changes to JtV will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -123,6 +123,6 @@ None yet. See SECURITY.md for reporting vulnerabilities.
 
 ---
 
-For older versions, see [GitHub Releases](https://github.com/Hyperpolymath/julia-the-viper/releases).
+For older versions, see [GitHub Releases](https://github.com/Hyperpolymath/jtv/releases).
 
 Last updated: 2025-01-22

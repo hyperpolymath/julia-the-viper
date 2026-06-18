@@ -1,4 +1,4 @@
-// Parser tests for Julia the Viper
+// Parser tests for JtV
 use jtv_core::parse_program;
 
 #[test]

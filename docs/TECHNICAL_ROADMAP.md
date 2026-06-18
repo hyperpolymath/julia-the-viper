@@ -1,4 +1,4 @@
-# Julia the Viper - Technical Roadmap
+# JtV - Technical Roadmap
 
 ## Overview
 

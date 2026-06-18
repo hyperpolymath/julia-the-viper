@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
-# Bustfile — Adversarial / injection-stress contract for julia-the-viper.
+# Bustfile — Adversarial / injection-stress contract for jtv.
 # Author: Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 # New 2026-06-13. bust = active "safe-hacking" attempts (outrageous-attack catchment),
 # the natural home for JtV's killer property: injection must be grammatically rejected.

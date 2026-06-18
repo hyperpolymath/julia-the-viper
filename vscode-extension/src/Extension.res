@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 // hypatia:ignore cicd_rules/banned_language_file — legacy ReScript pending AffineScript migration
-// Julia the Viper - VS Code Extension
+// JtV - VS Code Extension
 // Provides LSP client, run/debug/format commands for .jtv files
 
 /** VS Code API bindings */
@@ -78,7 +78,7 @@ let runFile = (): unit => {
   | None => Vscode.showErrorMessage("No active editor")
   | Some(editor) => {
       let filePath = Vscode.getDocument(editor).uri.fsPath
-      let terminal = Vscode.createTerminal("Julia the Viper")
+      let terminal = Vscode.createTerminal("JtV")
       Vscode.show(terminal)
       Vscode.sendText(terminal, `jtv-cli run "${filePath}"`)
     }
@@ -113,7 +113,7 @@ let formatFile = (): unit => {
 
 /** Activate the extension: start LSP client and register commands */
 let activate = (context: Vscode.extensionContext): unit => {
-  Js.log("Julia the Viper extension activated")
+  Js.log("JtV extension activated")
 
   let config = Vscode.getConfiguration("jtv")
   let lspPath = switch Vscode.get(config, "lsp.path") {
@@ -135,7 +135,7 @@ let activate = (context: Vscode.extensionContext): unit => {
 
   let lspClient = LanguageClient.make(
     "jtv",
-    "Julia the Viper Language Server",
+    "JtV Language Server",
     serverOptions,
     clientOptions,
   )

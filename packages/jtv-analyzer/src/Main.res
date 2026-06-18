@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 // hypatia:ignore cicd_rules/banned_language_file — legacy ReScript pending AffineScript migration
-// Julia the Viper - Code Analyzer for Python/JavaScript/Ruby
+// JtV - Code Analyzer for Python/JavaScript/Ruby
 // Analyzes legacy code for termination guarantees, purity, and complexity
 
 /** Supported analysis target languages */

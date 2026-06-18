@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 //
-// Julia the Viper - Command Line Interface
+// JtV - Command Line Interface
 
 // Allow some clippy lints for cleaner output
 #![allow(clippy::wildcard_in_or_patterns)]
@@ -27,7 +27,7 @@ use rsr_check::RsrChecker;
 
 #[derive(Parser)]
 #[command(name = "jtv")]
-#[command(about = "Julia the Viper - Harvard Architecture Language", long_about = None)]
+#[command(about = "JtV - Harvard Architecture Language", long_about = None)]
 #[command(version)]
 struct Cli {
     #[command(subcommand)]
@@ -625,14 +625,14 @@ fn cexpr_to_sexpr(expr: &jtv_core::ControlExpr, out: &mut String) {
 }
 
 fn print_version() {
-    println!("{}", "Julia the Viper".cyan().bold());
+    println!("{}", "JtV".cyan().bold());
     println!("Version: {}", env!("CARGO_PKG_VERSION"));
     println!("Build: {}", "Rust");
     println!();
     println!("{}", "Harvard Architecture Language".green());
     println!("Makes code injection grammatically impossible");
     println!();
-    println!("Repository: https://github.com/Hyperpolymath/julia-the-viper");
+    println!("Repository: https://github.com/Hyperpolymath/jtv");
     println!("Documentation: https://docs.julia-viper.dev");
 }
 

@@ -3,9 +3,9 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 -->
 
-# Getting Started with Julia the Viper
+# Getting Started with JtV
 
-Welcome to Julia the Viper (JtV), a security-focused programming language that makes code injection **grammatically impossible**.
+Welcome to JtV, a security-focused programming language that makes code injection **grammatically impossible**.
 
 ## What is JtV?
 
@@ -32,8 +32,8 @@ jtv --version
 
 ```bash
 # Clone the repository
-git clone https://github.com/hyperpolymath/julia-the-viper.git
-cd julia-the-viper
+git clone https://github.com/hyperpolymath/jtv.git
+cd jtv
 
 # Build with Cargo
 cargo build --release
@@ -286,7 +286,7 @@ total = price1 + price2  // 118/100 = $1.18 exactly
 ## Getting Help
 
 - **Documentation**: This wiki
-- **Issues**: [GitHub Issues](https://github.com/hyperpolymath/julia-the-viper/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/hyperpolymath/julia-the-viper/discussions)
+- **Issues**: [GitHub Issues](https://github.com/hyperpolymath/jtv/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/hyperpolymath/jtv/discussions)
 
 Welcome to secure programming with JtV!

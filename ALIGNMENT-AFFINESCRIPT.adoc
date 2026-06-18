@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-= Julia the Viper → AffineScript Alignment Plan
+= JtV → AffineScript Alignment Plan
 :toc:
 :toclevels: 3
 :revdate: 2026-06-02
 
-Bring *Julia the Viper* (JtV) from its current position to the same level of
+Bring *JtV* from its current position to the same level of
 *maturity and governance discipline* that `hyperpolymath/affinescript` has
 reached — *starting with proofs*. This document is the master plan; it is
 deliberately conservative and honest, in the spirit of `ROADMAP.adoc`.

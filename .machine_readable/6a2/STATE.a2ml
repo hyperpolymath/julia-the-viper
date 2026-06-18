@@ -1,16 +1,16 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
-# STATE.a2ml — Julia The Viper project state
+# STATE.a2ml — JtV project state
 [metadata]
-project = "julia-the-viper"
+project = "jtv"
 version = "0.0.1"
 last-updated = "2026-06-18"
 status = "active"
 session = "2026-06-18 — Echo arc completed + number systems stratified. (b) Echo+Epistemic first-class DONE (proof side, ADR-0009): JtvEcho.lean SECTION 5 = Epistemic lattice + Echo×Epistemic product FunctionEffect lattice + comm/assoc/idem composition laws (matching the already-merged echo.rs/epistemic.rs/effect.rs). Number systems STRATIFIED (ADR-0007 D6 realized as ADR-0010): JtvEcho.lean SECTION 6 3-level NumAlgebra tower 1:1 with the Echo lattice (hex/binary=ℤ-encodings collapse to int's tier; float=approxGroup→Neutral); echo.rs carrier-aware classification (CarrierEnv; reversible += graded shape⊔carrier; default-carrier=Int sound) + effect.rs param-seeded env; number.rs runtime-value bridge Value::reversal_echo. PR #44 + #45 (bridge+ADR-0010) merged; float-LOCALS soundness gate also LANDED (typechecker.rs check_echo_admissible{,_with_residue} seed CarrierEnv from the inferred env self.env → reverse{} over a float local correctly rejected, float routes to reversible{}->tok). lake + cargo green (127 lib tests, 0 sorry/unwrap). NEXT rung: value-level semantics beyond τ=int (gap-005)"
 
 [project-context]
-name = "Julia The Viper"
+name = "JtV"
 purpose = """Harvard-architecture programming language with grammatical separation
 of Control (Turing-complete) and Data (total, addition-only). Universal extender
 for injection-resistant retrofits. v2 adds reversibility via reverse blocks.

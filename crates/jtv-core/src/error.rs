@@ -1,4 +1,4 @@
-// Error handling for Julia the Viper
+// Error handling for JtV
 use thiserror::Error;
 
 pub type Result<T> = std::result::Result<T, JtvError>;

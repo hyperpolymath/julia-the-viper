@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
-# Dustfile — Deprecation & recovery semantics for julia-the-viper.
+# Dustfile — Deprecation & recovery semantics for jtv.
 # Author: Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 # New 2026-06-13 (jtv referenced DUST in prose but had no Dustfile).
 

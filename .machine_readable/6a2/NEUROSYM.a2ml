@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
-# NEUROSYM.a2ml — Neurosymbolic integration metadata for julia-the-viper
+# NEUROSYM.a2ml — Neurosymbolic integration metadata for jtv
 [metadata]
 version = "0.2.0"
 last-updated = "2026-04-19"

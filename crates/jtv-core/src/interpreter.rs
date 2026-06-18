@@ -1,4 +1,4 @@
-// Interpreter for Julia the Viper
+// Interpreter for JtV
 use crate::ast::*;
 use crate::coproc::CoprocNamespace;
 use crate::error::{JtvError, Result};

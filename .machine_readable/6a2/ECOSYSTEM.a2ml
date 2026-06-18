@@ -1,13 +1,13 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
-# ECOSYSTEM.a2ml — Julia The Viper ecosystem position
+# ECOSYSTEM.a2ml — JtV ecosystem position
 [metadata]
 version = "1.1"
 last-updated = "2026-04-19"
 
 [project]
-name = "Julia The Viper"
+name = "JtV"
 purpose = "Harvard-architecture programming language with grammatical Control/Data separation; universal extender for injection-resistant retrofits"
 role = "Programming language — user-facing runtime substrate"
 

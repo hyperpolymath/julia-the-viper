@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 // hypatia:ignore cicd_rules/banned_language_file — legacy ReScript pending AffineScript migration
-// Deno server for Julia the Viper PWA
+// Deno server for JtV PWA
 
 /** Deno HTTP request type */
 type request = {url: string}
@@ -59,7 +59,7 @@ let handler = (req: request): response => {
 let () = {
   serve({port: port}, handler)
   Js.log(
-    "Julia the Viper PWA server running at http://localhost:" ++
+    "JtV PWA server running at http://localhost:" ++
     Belt.Int.toString(port) ++
     "/",
   )

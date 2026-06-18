@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // SPDX-FileCopyrightText: 2026 Jonathan D.A. Jewell
-= Self-validating K9 templates — julia-the-viper
+= Self-validating K9 templates — jtv
 :toc:
 
 Estate K9 self-validation templates (k9-validate-action format: `K9!`
@@ -17,6 +17,6 @@ service. Validated by the `Validate K9 contracts` job in
 NOTE: the contractile k9-components under `.machine_readable/contractiles/`
 (when present in the standards `{family}/` trident form) are a DIFFERENT
 artifact — Nickel runner-companions, not `K9!`-magic service files — and
-are out of scope for that validator. julia-the-viper uses the estate-wave
+are out of scope for that validator. jtv uses the estate-wave
 *flat* contractile layout, so its `contractiles/` holds only `*file.a2ml`
 declarations (+ a `Justfile`), no `.k9.ncl`.

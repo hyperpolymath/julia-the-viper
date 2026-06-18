@@ -1,4 +1,4 @@
-# Algebraic Structures in Julia the Viper
+# Algebraic Structures in JtV
 
 **SPDX-License-Identifier: CC-BY-SA-4.0
 

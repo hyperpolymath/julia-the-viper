@@ -7,7 +7,7 @@ Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk
 
 ## Overview
 
-Julia the Viper implements a **Harvard Architecture** at the language level, separating code into two distinct sublanguages:
+JtV implements a **Harvard Architecture** at the language level, separating code into two distinct sublanguages:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐

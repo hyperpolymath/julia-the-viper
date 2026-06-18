@@ -5,7 +5,7 @@ SPDX-FileCopyrightText: 2026 Jonathan D.A. Jewell (hyperpolymath)
 
 # Changelog
 
-All notable changes to `julia-the-viper` will be documented in this file.
+All notable changes to `jtv` will be documented in this file.
 
 This file is generated from conventional commits by the
 [`changelog-reusable.yml`](https://github.com/hyperpolymath/standards/blob/main/.github/workflows/changelog-reusable.yml)

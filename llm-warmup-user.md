@@ -1,6 +1,6 @@
-# LLM Warmup — julia-the-viper (User)
+# LLM Warmup — jtv (User)
 
-## What is julia-the-viper?
+## What is jtv?
 See README.adoc for overview.
 
 ## Key Commands

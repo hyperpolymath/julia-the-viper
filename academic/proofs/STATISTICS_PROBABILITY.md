@@ -1,4 +1,4 @@
-# Statistics and Probability Foundations for Julia the Viper
+# Statistics and Probability Foundations for JtV
 
 **SPDX-License-Identifier: CC-BY-SA-4.0
 

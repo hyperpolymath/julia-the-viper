@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // Template: QUICKSTART-DEV.adoc — clone → build → test → PR
-// Replace julia-the-viper, {{BUILD_CMD}}, {{TEST_CMD}}, {{LANG_STACK}} with actuals
-= julia-the-viper — Quick Start for Developers
+// Replace jtv, {{BUILD_CMD}}, {{TEST_CMD}}, {{LANG_STACK}} with actuals
+= jtv — Quick Start for Developers
 :toc:
 :toclevels: 2
 
@@ -29,8 +29,8 @@ nix develop
 
 [source,bash]
 ----
-git clone https://github.com/hyperpolymath/julia-the-viper.git
-cd julia-the-viper
+git clone https://github.com/hyperpolymath/jtv.git
+cd jtv
 just setup-dev
 ----
 
@@ -52,7 +52,7 @@ just setup-dev
 
 [source]
 ----
-julia-the-viper/
+jtv/
 ├── src/                  # Source code
 ├── src/abi/              # Idris2 ABI definitions (if applicable)
 ├── ffi/zig/              # Zig FFI bridge (if applicable)
@@ -107,5 +107,5 @@ Or read `0-AI-MANIFEST.a2ml` and `.claude/CLAUDE.md` directly.
 == Get Help
 
 * **Architecture**: link:EXPLAINME.adoc[EXPLAINME.adoc]
-* **Wiki**: https://github.com/hyperpolymath/julia-the-viper/wiki
+* **Wiki**: https://github.com/hyperpolymath/jtv/wiki
 * **Report issue**: `just help-me`

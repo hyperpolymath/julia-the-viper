@@ -1,5 +1,5 @@
 /-
-  Julia the Viper - Denotational Semantics Core Definitions
+  JtV - Denotational Semantics Core Definitions
 
   This file defines the semantic domains and evaluation functions for JtV's
   Data Language (the Total, addition-only expression sublanguage).

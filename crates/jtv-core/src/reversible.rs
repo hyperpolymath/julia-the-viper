@@ -1,4 +1,4 @@
-// Reversible computing for Julia the Viper (v2 feature)
+// Reversible computing for JtV (v2 feature)
 // Implements automatic reverse execution for reverse blocks
 
 use crate::ast::*;

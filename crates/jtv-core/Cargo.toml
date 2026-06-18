@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MPL-2.0
-# Julia the Viper - Core Language Implementation
+# JtV - Core Language Implementation
 
 [package]
 name = "jtv-core"

@@ -5,7 +5,7 @@ Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk
 
 # JtV Command Line Interface
 
-The `jtv` CLI is the primary tool for working with Julia the Viper programs.
+The `jtv` CLI is the primary tool for working with JtV programs.
 
 ## Installation
 

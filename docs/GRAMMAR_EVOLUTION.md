@@ -2,7 +2,7 @@
 
 ## Overview
 
-Julia the Viper has two distinct evolutionary stages that must NOT be conflated:
+JtV has two distinct evolutionary stages that must NOT be conflated:
 
 - **v1 (Alpha/Beta)**: Foundation - Harvard Architecture with addition-only Data Language
 - **v2 (Gamma)**: Quantum Leap - Adds reversible computing and quantum simulation

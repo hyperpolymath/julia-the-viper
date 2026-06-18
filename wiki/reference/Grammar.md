@@ -5,7 +5,7 @@ Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk
 
 # JtV Grammar Reference
 
-Complete EBNF grammar specification for Julia the Viper.
+Complete EBNF grammar specification for JtV.
 
 ## Notation
 

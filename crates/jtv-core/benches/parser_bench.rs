@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 //
-// Julia the Viper - Parser Benchmark
+// JtV - Parser Benchmark
 // Measures LOC/sec on synthetic JTV programs exercising the Harvard architecture
 // (data language + control language).
 

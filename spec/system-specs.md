@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: CC-BY-SA-4.0
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 
-# Julia the Viper — System Specifications
+# JtV — System Specifications
 
-Julia the Viper (JtV) is an interpreted language with a Rust interpreter and
+JtV is an interpreted language with a Rust interpreter and
 pest-based parser, following a Harvard architecture where code and data are
 separated.
 

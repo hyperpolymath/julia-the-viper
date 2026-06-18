@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 //
-// Julia the Viper - Error Recovery Parser
+// JtV - Error Recovery Parser
 // Provides parse_recovering() which returns a partial AST alongside
 // a list of diagnostics. This enables IDE features (syntax highlighting,
 // code completion) even when the source is incomplete or malformed.

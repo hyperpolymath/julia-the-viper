@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // SPDX-FileCopyrightText: 2025-2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-= Julia the Viper — Status
+= JtV — Status
 
 _Version is tracked in `Cargo.toml` and `CHANGELOG.adoc`._
 
 *Stage*: Alpha (active research)
 *Assessment*: B- (solid core, proofs now compiling, verification chain still incomplete)
 
-Julia the Viper is an experimental language with a fully implemented Rust core,
+JtV is an experimental language with a fully implemented Rust core,
 a substantial test suite, and formally verified proof artefacts that now compile
 cleanly. The verification chain from proofs to executable is still incomplete.
 

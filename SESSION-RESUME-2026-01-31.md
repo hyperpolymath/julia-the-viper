@@ -1,4 +1,4 @@
-# Session Resume - Julia the Viper (2026-01-31)
+# Session Resume - JtV (2026-01-31)
 
 ## What Was Done Before the Crash
 
@@ -55,7 +55,7 @@ Created complete PWA infrastructure in `web/`:
   - Service worker registration
 
 - `manifest.json` - PWA manifest with:
-  - App name: "Julia the Viper Playground"
+  - App name: "JtV Playground"
   - Theme colors (purple gradient)
   - Icons configuration (192x192, 512x512)
   - Standalone display mode
@@ -112,7 +112,7 @@ Created complete PWA infrastructure in `web/`:
 
 ```bash
 # Build WASM
-cd ~/Documents/hyperpolymath-repos/julia-the-viper
+cd ~/Documents/hyperpolymath-repos/jtv
 just build-wasm
 
 # Serve PWA (production)
@@ -125,8 +125,8 @@ just dev-pwa
 Visit: http://localhost:8000/
 
 ### Repository Location
-- **Canonical:** `~/Documents/hyperpolymath-repos/julia-the-viper/`
-- **Physical:** `/var$REPOS_DIR/julia-the-viper/` (Eclipse drive)
+- **Canonical:** `~/Documents/hyperpolymath-repos/jtv/`
+- **Physical:** `/var$REPOS_DIR/jtv/` (Eclipse drive)
 - **Note:** Always use the symlink path for operations
 
 ## Key Files Modified

@@ -1,4 +1,4 @@
-# Comprehensive Bibliography for Julia the Viper Academic Documentation
+# Comprehensive Bibliography for JtV Academic Documentation
 
 **SPDX-License-Identifier: CC-BY-SA-4.0
 
@@ -358,10 +358,10 @@ When citing JtV academic materials:
 
 ```bibtex
 @misc{jtv2025,
-  title = {Julia the Viper: A Harvard Architecture Language for Grammatically Enforced Code Injection Immunity},
+  title = {JtV: A Harvard Architecture Language for Grammatically Enforced Code Injection Immunity},
   author = {JtV Research Team},
   year = {2025},
-  howpublished = {\url{https://github.com/hyperpolymath/julia-the-viper}},
+  howpublished = {\url{https://github.com/hyperpolymath/jtv}},
   note = {Version 1.0}
 }
 ```

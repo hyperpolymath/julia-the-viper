@@ -1,8 +1,8 @@
-# Julia the Viper - Quick Start Guide
+# JtV - Quick Start Guide
 
 ## What is JtV?
 
-Julia the Viper is a programming language that makes code injection **grammatically impossible** by separating:
+JtV is a programming language that makes code injection **grammatically impossible** by separating:
 
 - **Control Language**: Loops, conditionals, I/O (Turing-complete)
 - **Data Language**: Pure expressions, addition-only (Total/provably halting)
@@ -26,8 +26,8 @@ npm install @jtv/wasm
 ### From Source
 
 ```bash
-git clone https://github.com/Hyperpolymath/julia-the-viper
-cd julia-the-viper
+git clone https://github.com/Hyperpolymath/jtv
+cd jtv
 just build
 ```
 
@@ -282,7 +282,7 @@ reverse {
 
 - **GitHub Issues**: Bug reports and feature requests
 - **Discord**: Community chat and support
-- **Stack Overflow**: Tag questions with `julia-the-viper`
+- **Stack Overflow**: Tag questions with `jtv`
 - **Documentation**: Full docs at https://docs.julia-viper.dev
 
 ## Philosophy

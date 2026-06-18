@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-// Language Server Protocol implementation for Julia the Viper
+// Language Server Protocol implementation for JtV
 
 #![forbid(unsafe_code)]
 use jtv_core::{parser::parse_program, purity::PurityChecker, typechecker::TypeChecker};
@@ -46,7 +46,7 @@ impl LanguageServer for Backend {
 
     async fn initialized(&self, _: InitializedParams) {
         self.client
-            .log_message(MessageType::INFO, "Julia the Viper LSP initialized")
+            .log_message(MessageType::INFO, "JtV LSP initialized")
             .await;
     }
 
@@ -100,7 +100,7 @@ impl LanguageServer for Backend {
     async fn hover(&self, _params: HoverParams) -> Result<Option<Hover>> {
         Ok(Some(Hover {
             contents: HoverContents::Scalar(MarkedString::String(
-                "Julia the Viper: Reversible systems programming".to_string(),
+                "JtV: Reversible systems programming".to_string(),
             )),
             range: None,
         }))

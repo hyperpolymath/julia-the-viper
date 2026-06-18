@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 //
-// WASM bindings for Julia the Viper
+// WASM bindings for JtV
 //
 // Exposes the full JtV language runtime to WebAssembly consumers:
 //   - Parsing and AST inspection

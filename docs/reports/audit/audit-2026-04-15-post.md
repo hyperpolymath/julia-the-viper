@@ -1,7 +1,7 @@
-# Post-audit Status Report: julia-the-viper
+# Post-audit Status Report: jtv
 - **Date:** 2026-04-15
 - **Status:** Complete (M5 Sweep)
-- **Repo:** /var/mnt/eclipse/repos/julia-the-viper
+- **Repo:** /var/mnt/eclipse/repos/jtv
 
 ## Actions Taken
 1. Standard CI/Workflow Sweep: Added blocker workflows (`ts-blocker.yml`, `npm-bun-blocker.yml`) and updated `Justfile`.

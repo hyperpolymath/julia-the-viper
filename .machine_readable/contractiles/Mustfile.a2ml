@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: MPL-2.0
-# Mustfile — Physical-state invariants for julia-the-viper. Hard requirements.
+# Mustfile — Physical-state invariants for jtv. Hard requirements.
 # Author: Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 # Migrated 2026-06-13 from .machine_readable/MUST.contractile (content preserved).
 
 @abstract:
-What MUST be true about julia-the-viper. Violating a MUST is always a bug;
+What MUST be true about jtv. Violating a MUST is always a bug;
 K9 validators + CI gate every PR. The Harvard thesis + addition-only +
 proof invariants are load-bearing.
 @end

@@ -1,15 +1,15 @@
 # SPDX-License-Identifier: MPL-2.0
 # git-private-farm.a2ml — .git-private-farm propagation directives for
-# julia-the-viper. Per the estate bot_directives standard.
+# jtv. Per the estate bot_directives standard.
 
 [metadata]
-repo = "julia-the-viper"
+repo = "jtv"
 last-updated = "2026-06-14"
 owner = "hyperpolymath"
 
 [propagation]
 enabled = false
-# instant-sync.yml is absent in julia-the-viper as of 2026-06-14.
+# instant-sync.yml is absent in jtv as of 2026-06-14.
 # The keys below record the estate contract that applies if/when it is added.
 workflow = ".github/workflows/instant-sync.yml"
 target = "hyperpolymath/.git-private-farm"
@@ -21,4 +21,4 @@ presence-gated = false
 items = ["secrets", "unmerged branches", "work-in-progress"]
 
 [on-token-rotation]
-command = "gh secret set FARM_DISPATCH_TOKEN --repo hyperpolymath/julia-the-viper"
+command = "gh secret set FARM_DISPATCH_TOKEN --repo hyperpolymath/jtv"

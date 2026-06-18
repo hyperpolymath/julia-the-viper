@@ -1,18 +1,18 @@
 ;; SPDX-FileCopyrightText: 2026 Hyperpolymath
 ;; SPDX-License-Identifier: MPL-2.0
 ;;
-;; ANCHOR.scope-arrest.2026-01-01.Jewell.scm  (julia-the-viper)
+;; ANCHOR.scope-arrest.2026-01-01.Jewell.scm  (jtv)
 ;;
 ;; Purpose: Freeze v1 as runnable core; prevent v2/spec ambition from destabilising v1.
 
 (define anchor
   '((schema . "hyperpolymath.anchor/1")
-    (repo . "hyperpolymath/julia-the-viper")
+    (repo . "hyperpolymath/jtv")
     (date . "2026-01-01")
     (authority . "repo-superintendent")
     (purpose . ("Freeze v1 as runnable core; prevent v2/spec ambition from destabilising v1."))
     (identity
-      . ((project . "Julia the Viper (JtV)")
+      . ((project . "JtV")
          (kind . "security language")
          (domain . "grammar-enforced separation (control vs data)")
          (one-sentence . "A Harvard-architecture language where control and data are syntactically separated to reduce injection and hidden-control channels.")))

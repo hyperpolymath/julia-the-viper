@@ -1,4 +1,4 @@
-# Julia the Viper - Development Roadmap
+# JtV - Development Roadmap
 
 ## Vision
 

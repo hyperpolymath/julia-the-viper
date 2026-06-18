@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: CC-BY-SA-4.0
 // SPDX-FileCopyrightText: 2026 Jonathan D.A. Jewell
-= Bot directives — julia-the-viper
+= Bot directives — jtv
 :toc:
 
 == Purpose
 
 Per-repo directives for automated agents operating on
-`hyperpolymath/julia-the-viper`: what is safe, what is forbidden, and
+`hyperpolymath/jtv`: what is safe, what is forbidden, and
 which findings are already adjudicated, so automated runs do not
 relitigate settled decisions or touch protected surfaces.
 

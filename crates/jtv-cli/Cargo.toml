@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: MPL-2.0
-# Julia the Viper - Command Line Interface
+# JtV - Command Line Interface
 
 [package]
 name = "jtv-cli"
-description = "Command-line interface for Julia the Viper"
+description = "Command-line interface for JtV"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

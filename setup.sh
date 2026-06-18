@@ -1,12 +1,12 @@
 #!/bin/sh
 # SPDX-License-Identifier: MPL-2.0
-# setup.sh — Universal setup script for julia-the-viper
+# setup.sh — Universal setup script for jtv
 #
 # Detects your shell, platform, and installs prerequisites.
 # Then hands off to `just setup` for project-specific configuration.
 #
 # Usage:
-#   curl -fsSL -o setup.sh https://raw.githubusercontent.com/hyperpolymath/julia-the-viper/main/setup.sh && sh ./setup.sh   # download, inspect, then run
+#   curl -fsSL -o setup.sh https://raw.githubusercontent.com/hyperpolymath/jtv/main/setup.sh && sh ./setup.sh   # download, inspect, then run
 #   # or after cloning:
 #   ./setup.sh
 #
@@ -170,7 +170,7 @@ install_just() {
 
 # ── Main ──
 main() {
-    printf "%s=== julia-the-viper Setup ===%s\n\n" "$BOLD" "$RESET"
+    printf "%s=== jtv Setup ===%s\n\n" "$BOLD" "$RESET"
 
     # Detect environment
     SHELL_NAME=$(detect_shell)
@@ -201,8 +201,8 @@ main() {
     # Step 2: Check if we're in the repo directory
     if [ ! -f "Justfile" ] && [ ! -f "justfile" ]; then
         warn "Not in a repo directory (no Justfile found)"
-        info "Clone first: git clone https://github.com/hyperpolymath/julia-the-viper.git"
-        info "Then: cd julia-the-viper && ./setup.sh"
+        info "Clone first: git clone https://github.com/hyperpolymath/jtv.git"
+        info "Then: cd jtv && ./setup.sh"
         exit 1
     fi
 

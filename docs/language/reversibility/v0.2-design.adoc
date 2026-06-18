@@ -1,6 +1,6 @@
 = Reversibility (v0.2 Design - Proposed)
 
-This document describes a proposed extension to Julia the Viper introducing
+This document describes a proposed extension to JtV introducing
 reversible execution semantics.
 
 This is a design document only. No features described here are currently

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 //
-// Julia the Viper - Conformance Suite Runner
+// JtV - Conformance Suite Runner
 // Loads .jtv files from conformance/valid/ and conformance/invalid/
 // and asserts that valid files parse successfully and invalid files
 // produce errors (either parse errors OR semantic errors like purity violations).

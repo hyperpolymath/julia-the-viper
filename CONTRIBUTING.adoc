@@ -1,4 +1,4 @@
-= Contributing to Julia the Viper
+= Contributing to JtV
 :toc: left
 :toclevels: 3
 :icons: font
@@ -44,8 +44,8 @@ Be respectful, constructive, and professional. We're building something importan
 [source,bash]
 ----
 # Fork the repo
-git clone https://github.com/YOUR_USERNAME/julia-the-viper
-cd julia-the-viper
+git clone https://github.com/YOUR_USERNAME/jtv
+cd jtv
 
 # Install dependencies
 just install
@@ -108,7 +108,7 @@ just example 01_hello_addition
 
 [source]
 ----
-julia-the-viper/
+jtv/
 ├── packages/
 │   ├── jtzig/        # Core Rust implementation
 │   ├── jtv-analyzer/    # TypeScript code analyzer
@@ -364,7 +364,7 @@ See link:LICENSE.txt[LICENSE.txt] for details.
 
 == Trademark Policy
 
-The name "Julia the Viper" and the JtV logo are trademarks of the Julia the Viper project. When using these marks:
+The name "JtV" and the JtV logo are trademarks of the JtV project. When using these marks:
 
 * You may use them to refer to the project
 * You may use them in documentation and educational materials

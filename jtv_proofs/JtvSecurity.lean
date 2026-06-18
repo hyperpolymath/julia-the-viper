@@ -1,5 +1,5 @@
 /-
-  Julia the Viper - Security Properties
+  JtV - Security Properties
 
   This file formalizes the security guarantees of JtV's Harvard Architecture:
   1. Code injection impossibility (grammatical guarantee)
@@ -129,7 +129,7 @@ theorem no_control_to_data_flow (s : ControlStmt) :
 /-
   **AOLD Philosophy**:
 
-  Julia the Viper implements Aspect-Oriented Language Development at the
+  JtV implements Aspect-Oriented Language Development at the
   grammar level. Traditional AOP separates cross-cutting concerns (logging,
   security, transactions) from business logic at runtime or compile-time.
 
