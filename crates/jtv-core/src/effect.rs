@@ -158,9 +158,8 @@ fn stmt_callees(s: &ControlStmt, out: &mut Vec<String>) {
                 stmt_callees(s, out);
             }
         }
-        ControlStmt::Return(None)
-        | ControlStmt::ReverseToken(_)
-        | ControlStmt::AbandonToken(_) => {}
+        ControlStmt::Return(None) | ControlStmt::ReverseToken(_) | ControlStmt::AbandonToken(_) => {
+        }
     }
 }
 
@@ -301,7 +300,10 @@ mod tests {
         let h = func(
             "h",
             vec![],
-            vec![assign("y", call("g", vec![DataExpr::Number(Number::Int(0))]))],
+            vec![assign(
+                "y",
+                call("g", vec![DataExpr::Number(Number::Int(0))]),
+            )],
         );
         let prog = Program {
             statements: vec![TopLevel::Function(g), TopLevel::Function(h)],
