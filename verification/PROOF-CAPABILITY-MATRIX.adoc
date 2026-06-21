@@ -64,9 +64,15 @@ theorem, guarded by `JtvType.isIntRepr`, covers all three; it depends on **zero
 axioms**. `type_preservation_int` recovers the original `τ = int` statement as a
 corollary. So: addition-only Data totality/determinism/algebra, int-represented-
 family type preservation, and the Echo/reversibility layer are proved over the
-integer model; `rational`/`float`/`complex`/`symbolic` semantics remain
-`stated-unproven` at the value level (they need distinct value carriers). (This is
-orthogonal to v2 — Echo is representation-agnostic.)
+integer model. The carrier-distinct systems are tracked in
+`docs/proofs/number-system-value-models.adoc`: `float`/`complex` are `f64`-based,
+so their non-associativity (`approxGroup → Neutral`) is *witnessed in Rust*
+(`number.rs`, `mod approx_group_witness`) — it is **not** 0-axiom provable in
+Lean (opaque `@[extern]` `Float`; `native_decide` would add `Lean.ofReduceBool`).
+`rational` (exact abelian group) and `symbolic` (associative, non-commutative,
+non-group) admit real 0-axiom Lean value models — *designed* in that doc,
+remaining `stated-unproven` until landed. (This is orthogonal to v2 — Echo is
+representation-agnostic.)
 
 == Believeme remediation (2026-06-04)
 

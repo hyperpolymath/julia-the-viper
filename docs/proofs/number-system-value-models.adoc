@@ -1,0 +1,90 @@
+// SPDX-License-Identifier: CC-BY-SA-4.0
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= Number-system value models (gap-005) — status + design sketch
+:toc:
+:revdate: 2026-06-21
+
+Value-level semantics for JtV's seven number systems. The Lean denotational
+model (`evalDataExpr`) is `Int`-only; this document tracks lifting *value-level*
+algebraic facts to the other systems, faithful to the Rust interpreter
+(`crates/jtv-core/src/number.rs`). It elaborates the `gap-005` row of
+`verification/PROOF-CAPABILITY-MATRIX.adoc` and realises ADR-0010's
+algebra → Echo-tier classification at the value level.
+
+== Status table (faithful to `number.rs`)
+
+[cols="1,2,2,2,1",options="header"]
+|===
+| System | Rust rep | `add` | Algebra | Value-level status
+
+| `int` / `hex` / `binary` | `i64` | `checked_add` | exact abelian group | *Verified* — share the `Int` carrier; `type_preservation` (`JtvTypes.lean`, 0 axioms)
+| `rational` | `Ratio<i64>` | exact fraction `+` | exact abelian group | *Designed* (Lean) — see §Rational
+| `symbolic` | `String` | `"{a} + {b}"` concat | associative, non-commutative, non-group | *Designed* (Lean) — see §Symbolic
+| `float` | `f64` | raw IEEE `+` | approxGroup (non-associative) | *Witnessed* (Rust) — see §Float/Complex
+| `complex` | `Complex<f64>` | componentwise `f64` | approxGroup (inherits f64) | *Witnessed* (Rust) — see §Float/Complex
+|===
+
+== Float / Complex — why a Rust witness, not a Lean proof
+
+`float` and `complex` are IEEE-754 `f64`-based, so their addition is
+*non-associative*: they are `approxGroup → Neutral` (ADR-0010), never the exact
+`abelianGroup → Safe` tier.
+
+This fact is *witnessed in Rust* (`number.rs`, `mod approx_group_witness`):
+`(0.1 + 0.2) + 0.3 ≠ 0.1 + (0.2 + 0.3)` through `Value::Float`/`Value::Complex`
++ `Value::add`, with commutativity shown to hold.
+
+It is **not** provable as a 0-axiom Lean theorem. Lean's `Float` is an opaque
+`@[extern]` primitive: f64 arithmetic does not reduce in the kernel
+(`decide`/`rfl` cannot evaluate `0.1 + 0.2`), and the only evaluator
+(`native_decide`) injects the `Lean.ofReduceBool` axiom — which the jtv_proofs
+0-axiom invariant forbids. So the differential witness against native f64 is the
+faithful check; a Lean "proof" here would be either vacuous or axiom-bearing.
+
+== Rational — Lean exact-group model (design sketch)
+
+Faithful to `Value::Rational(Ratio<i64>)` (exact, auto-reduced). Mathlib- and
+Batteries-free, so build from Lean-core `Int`:
+
+[source,lean]
+----
+structure Q where
+  num : Int
+  den : Int
+  den_nz : den ≠ 0
+def Q.add (a b : Q) : Q := ⟨a.num * b.den + b.num * a.den, a.den * b.den, …⟩
+def Q.neg (a : Q) : Q := ⟨-a.num, a.den, a.den_nz⟩
+def Q.zero : Q := ⟨0, 1, by decide⟩
+def Q.equiv (a b : Q) : Prop := a.num * b.den = b.num * a.den   -- cross-mult
+----
+
+Targets (0 axioms, no `sorry`/`native_decide`): `equiv` is a setoid
+(refl/symm/trans), `add` respects `equiv`, and the abelian-group laws *up to*
+`equiv` — `qadd_comm`, `qadd_assoc`, `qadd_zero`, `qadd_left_neg` — via core
+`Int` ring lemmas. Establishes `rational = exact abelian group → Safe`.
+
+Honest bound: i64 overflow not modelled (unbounded `Int`); worked up to
+cross-multiplication (no reduced-form normalisation). `equiv` transitivity is
+the fiddliest step (Int cancellation by nonzero denominators).
+
+== Symbolic — Lean free-algebra model (design sketch)
+
+Faithful to `Value::Symbolic(String)`: `add a b = a ++ " + " ++ b`,
+`neg s = "-(" ++ s ++ ")"`. Carrier `String` (or `List Char`).
+
+Targets (0 axioms): `sadd_assoc` (the `" + "` separator flattens — both sides
+are `a ++ " + " ++ b ++ " + " ++ c`, via append-associativity);
+`sadd_not_comm` (concrete counterexample `"a + b" ≠ "b + a"` by `decide`);
+a non-group witness (`sadd` strictly grows length → no inverse / no identity).
+Establishes `symbolic = associative, non-commutative, non-group → Breaking`
+— symbolic *retains* structure where int/rational collapse it.
+
+== The full ladder (where this sits)
+
+* *int/hex/binary* — done (`type_preservation`).
+* *float/complex* — approxGroup witnessed (this is the maximal honest 0-axiom
+  Lean statement; the real content lives in Rust).
+* *rational/symbolic* — Lean models designed above; tracked as an issue.
+* The deeper rung (separate): a *multi-sorted evaluator* `evalDataExpr` that
+  produces these carriers, so `type_preservation` extends to them directly.
+  That is a model refactor, not covered here.
