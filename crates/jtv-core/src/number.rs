@@ -414,3 +414,63 @@ mod tests {
         assert_eq!(Value::Unit.reversal_echo(), Echo::Safe);
     }
 }
+
+// ===========================================================================
+// approxGroup witness (ADR-0010 / gap-005, value-level)
+//
+// Float and Complex are IEEE-754 f64-based (`Value::Float(f64)`,
+// `Value::Complex(Complex<f64>)`), so their `add` is NON-associative: they sit
+// at the `approxGroup -> Neutral` tier, never the exact `abelianGroup -> Safe`
+// tier (unlike Int/Hex/Binary/Rational). This is the value-level fact behind
+// `reversal_echo` returning `Neutral` for float.
+//
+// It is witnessed HERE (in Rust, against native f64) rather than in Lean
+// because Lean's `Float` is an opaque `@[extern]` primitive: f64 arithmetic
+// does not reduce in the kernel, and the only way to evaluate it
+// (`native_decide`) injects the `Lean.ofReduceBool` axiom, which the jtv_proofs
+// 0-axiom invariant forbids. So the faithful check is this differential
+// witness. (Rational and Symbolic, being exact, DO admit 0-axiom Lean value
+// models — see docs/proofs/number-system-value-models.adoc + the tracking
+// issue.)
+// ===========================================================================
+#[cfg(test)]
+mod approx_group_witness {
+    use super::*;
+
+    #[test]
+    fn float_add_is_non_associative() {
+        let (a, b, c) = (Value::Float(0.1), Value::Float(0.2), Value::Float(0.3));
+        let left = a.add(&b).unwrap().add(&c).unwrap(); // (0.1 + 0.2) + 0.3
+        let right = a.add(&b.add(&c).unwrap()).unwrap(); // 0.1 + (0.2 + 0.3)
+        assert_ne!(
+            left, right,
+            "float add must be non-associative (approxGroup, not an exact group)"
+        );
+    }
+
+    #[test]
+    fn float_add_is_commutative() {
+        let (a, b) = (Value::Float(0.1), Value::Float(0.2));
+        assert_eq!(a.add(&b).unwrap(), b.add(&a).unwrap());
+    }
+
+    #[test]
+    fn complex_add_inherits_f64_non_associativity() {
+        let a = Value::Complex(Complex64::new(0.1, 1.0));
+        let b = Value::Complex(Complex64::new(0.2, 1.0));
+        let c = Value::Complex(Complex64::new(0.3, 1.0));
+        let left = a.add(&b).unwrap().add(&c).unwrap();
+        let right = a.add(&b.add(&c).unwrap()).unwrap();
+        assert_ne!(
+            left, right,
+            "complex add is componentwise f64 -> non-associative (approxGroup)"
+        );
+    }
+
+    #[test]
+    fn complex_add_is_commutative() {
+        let a = Value::Complex(Complex64::new(0.1, 2.0));
+        let b = Value::Complex(Complex64::new(0.2, 3.0));
+        assert_eq!(a.add(&b).unwrap(), b.add(&a).unwrap());
+    }
+}
