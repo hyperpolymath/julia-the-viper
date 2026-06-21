@@ -165,3 +165,13 @@ example : evalExpr (Expr.add (Term.lit 2) (Term.lit 3)) State.empty = 5 := rfl
 
 example : evalDataExpr (DataExpr.add (DataExpr.lit 2) (DataExpr.lit 3)) State.empty = 5 := rfl
 example : evalDataExpr (DataExpr.neg (DataExpr.lit 5)) State.empty = -5 := rfl
+
+-- Shared "golden corpus": these exact (expr, σ, value) points are mirrored in
+-- crates/jtv-core/src/interpreter.rs (mod denotational_correspondence), pinning
+-- the interpreter ↔ model correspondence at concrete inputs in BOTH the Lean
+-- denotational model and the Rust interpreter (PROOF-2 / gap-001).
+example : evalDataExpr (DataExpr.neg (DataExpr.add (DataExpr.lit 1) (DataExpr.lit 2))) State.empty = -3 := rfl
+example : evalDataExpr (DataExpr.add (DataExpr.neg (DataExpr.lit 2)) (DataExpr.lit 5)) State.empty = 3 := rfl
+example : evalDataExpr (DataExpr.add (DataExpr.var "x") (DataExpr.lit 1)) (State.empty["x" ↦ 4]) = 5 := rfl
+example : evalDataExpr (DataExpr.add (DataExpr.var "x") (DataExpr.neg (DataExpr.var "x"))) (State.empty["x" ↦ 7]) = 0 := rfl
+example : evalDataExpr (DataExpr.add (DataExpr.add (DataExpr.var "x") (DataExpr.var "y")) (DataExpr.lit 1)) (State.empty["x" ↦ 3]["y" ↦ 4]) = 8 := rfl

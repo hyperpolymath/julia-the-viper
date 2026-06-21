@@ -118,7 +118,7 @@ orthogonal to v2 — Echo is representation-agnostic.)
 | `injective_fibre_subsingleton` | JtvEcho | `verified` | `EchoSafe` ⇔ injective ⇔ recoverable.
 | `residue_lossy` | JtvEcho | `verified` | Structured loss is genuine and one-way.
 | `parser_correctness` | — | `absent` | Parser produces a valid AST. (PROOF-1, High.)
-| `interpreter_correctness` | — | `partial` | Interpreter matches denotational semantics. (PROOF-2.)
+| `interpreter_correctness` | JtvCore + interpreter.rs | `partial` | Rust `eval_data_expr` ↔ Lean `evalDataExpr` denotational correspondence over the integer fragment: exhaustive agreement on all height-≤2 expressions × 3 states (~12k cases), the i64 overflow boundary pinned, and a cross-side golden corpus (same points by `rfl` in `JtvCore.lean` and by assertion in `mod denotational_correspondence`). Open: full mechanised refinement + the extended surface. (PROOF-2.)
 | `wasm_compilation_correctness` | — | `absent` | WASM output matches semantics. (PROOF-3, Medium.)
 |===
 
@@ -147,9 +147,35 @@ Echo violation regardless of the variables' type bindings.
 the `echo-types` Agda library is the conceptual source/reference. The Agda↔Lean
 bridge is deferred to Phase 4 — grammar v2 is not blocked on a cross-prover bridge.
 
+== Interpreter ↔ denotational-model correspondence (gap-001)
+
+The Lean `evalDataExpr` (the denotational model) and the Rust `eval_data_expr`
+(the running interpreter) are tied together by a correspondence harness in
+`crates/jtv-core/src/interpreter.rs` (`mod denotational_correspondence`):
+
+[cols="1,3"]
+|===
+| `jtv_proofs/JtvCore.lean` | `crates/jtv-core/src/interpreter.rs`
+
+| `evalDataExpr` (lit / var / add / neg over `σ : String → Int`) | `denot` (the same four rules, re-encoded in `i128`)
+| golden `example … := rfl` corpus | `shared_golden_corpus_matches_lean` (same points, by assertion)
+| (ℤ is unbounded) | `overflow_is_the_correspondence_boundary` (i64 edge: `checked_add`/`checked_neg` error, never wrap)
+|===
+
+`interpreter_matches_denotational_model_on_int_fragment` exhaustively checks
+*every* integer-fragment expression of height ≤ 2 across three states (~12k
+cases) — turning "the interpreter matches the model" from a claim into a
+checked property. Honest bound: integer fragment only, within i64 range,
+exhaustive-up-to-depth (not a Lean-mechanised refinement of the evaluator).
+
 == Outstanding proof work (sequenced in ALIGNMENT-AFFINESCRIPT.adoc)
 
 * PROOF-1 `parser_correctness` (High) — `absent`.
-* PROOF-2 `interpreter_correctness` (High) — `partial`.
+* PROOF-2 `interpreter_correctness` (High) — `partial`. Denotational
+  correspondence harness landed (integer fragment, exhaustive to height 2 +
+  overflow boundary + cross-side golden corpus). Remaining: lift to a
+  Lean-mechanised refinement of the Rust evaluator, and extend past the
+  integer fragment (strings / the carrier-distinct number systems / calls /
+  lists / tuples).
 * PROOF-3 `wasm_compilation_correctness` (Medium) — `absent`.
 * Echo: bridge value-level fibre classification to function-call echo (Phase 2).

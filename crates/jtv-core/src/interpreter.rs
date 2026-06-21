@@ -806,3 +806,197 @@ fn double(x: Int): Int {
         assert_eq!(sum, Value::Int(15)); // 1+2+3+4+5
     }
 }
+
+// ===========================================================================
+// Denotational correspondence (PROOF-2 / gap-001)
+//
+// Bridges this interpreter's `eval_data_expr` to the Lean denotational model
+// `evalDataExpr` in jtv_proofs/JtvCore.lean, over the integer fragment the
+// model covers:  DataExpr = lit | var | add | neg  evaluated against a state
+// σ : String → Int.
+//
+// `denot` re-encodes the four Lean rules exactly (in i128, giving Lean's
+// unbounded ℤ headroom). We then EXHAUSTIVELY enumerate every integer-fragment
+// expression up to height 2 over a small literal/variable set, across several
+// states, and assert the interpreter agrees with `denot` on all of them.
+//
+// Honest bound:
+//   (1) integer fragment only — String/Float/Rational/Complex/Hex/Binary/
+//       Symbolic literals and FunctionCall/List/Tuple are outside the model;
+//   (2) within i64 range — `Value::Int` is i64 (`checked_add`/`checked_neg`),
+//       Lean's ℤ is unbounded, so they agree exactly where no i64 overflow
+//       occurs; the enumeration stays in range by construction, and
+//       `overflow_is_the_correspondence_boundary` pins the edge;
+//   (3) this is exhaustive-up-to-depth correspondence, NOT a Lean-mechanised
+//       refinement of the Rust evaluator (that is the deeper PROOF-2 rung).
+// ===========================================================================
+#[cfg(test)]
+mod denotational_correspondence {
+    use super::*;
+    use crate::ast::{DataExpr, Number};
+    use std::collections::HashMap;
+
+    /// The Lean `evalDataExpr` rules, re-encoded in i128.
+    /// `None` for any node outside the modelled integer fragment.
+    fn denot(e: &DataExpr, sigma: &HashMap<String, i128>) -> Option<i128> {
+        match e {
+            DataExpr::Number(Number::Int(n)) => Some(*n as i128),
+            DataExpr::Identifier(x) => Some(*sigma.get(x).unwrap_or(&0)),
+            DataExpr::Add(l, r) => Some(denot(l, sigma)? + denot(r, sigma)?),
+            DataExpr::Negate(inner) => Some(-denot(inner, sigma)?),
+            _ => None,
+        }
+    }
+
+    /// Every integer-fragment expression of height ≤ `height`.
+    fn enumerate(height: usize, lits: &[i64], vars: &[&str]) -> Vec<DataExpr> {
+        let mut out: Vec<DataExpr> = Vec::new();
+        for &n in lits {
+            out.push(DataExpr::Number(Number::Int(n)));
+        }
+        for &v in vars {
+            out.push(DataExpr::Identifier(v.to_string()));
+        }
+        if height > 0 {
+            let sub = enumerate(height - 1, lits, vars);
+            for e in &sub {
+                out.push(DataExpr::Negate(Box::new(e.clone())));
+            }
+            for a in &sub {
+                for b in &sub {
+                    out.push(DataExpr::Add(Box::new(a.clone()), Box::new(b.clone())));
+                }
+            }
+        }
+        out
+    }
+
+    /// A fresh interpreter with the given state σ seeded as integer variables.
+    fn seed(state: &HashMap<String, i64>) -> Interpreter {
+        let mut interp = Interpreter::new();
+        for (k, v) in state {
+            interp.set_variable(k.clone(), Value::Int(*v));
+        }
+        interp
+    }
+
+    #[test]
+    fn interpreter_matches_denotational_model_on_int_fragment() {
+        let lits = [-2i64, -1, 0, 1, 2];
+        let vars = ["x", "y"];
+        let states: Vec<HashMap<String, i64>> = vec![
+            HashMap::from([("x".to_string(), 0i64), ("y".to_string(), 0i64)]),
+            HashMap::from([("x".to_string(), 3i64), ("y".to_string(), -1i64)]),
+            HashMap::from([("x".to_string(), -2i64), ("y".to_string(), 2i64)]),
+        ];
+        let exprs = enumerate(2, &lits, &vars);
+
+        let mut checked = 0u64;
+        for state in &states {
+            let mut interp = seed(state);
+            let sigma: HashMap<String, i128> =
+                state.iter().map(|(k, v)| (k.clone(), *v as i128)).collect();
+            for e in &exprs {
+                let expected = denot(e, &sigma)
+                    .expect("every enumerated expression is in the integer fragment");
+                // The corpus is constructed to stay within i64 range.
+                assert!(
+                    expected >= i64::MIN as i128 && expected <= i64::MAX as i128,
+                    "corpus left i64 range ({expected}); shrink literals or height"
+                );
+                match interp.eval_data_expr(e) {
+                    Ok(Value::Int(n)) => assert_eq!(
+                        n as i128, expected,
+                        "interpreter vs denotation disagree on {e:?} under {state:?}"
+                    ),
+                    other => panic!(
+                        "expected Ok(Int({expected})) for {e:?} under {state:?}, got {other:?}"
+                    ),
+                }
+                checked += 1;
+            }
+        }
+        // height-2 over 7 leaves = 4039 expressions × 3 states.
+        assert!(
+            checked >= 12_000,
+            "expected a substantial corpus, checked only {checked}"
+        );
+    }
+
+    #[test]
+    fn overflow_is_the_correspondence_boundary() {
+        // i64::MAX + 1 is 2^63 in ℤ — out of i64 range. The interpreter must
+        // SIGNAL overflow (checked_add), never wrap, so the correspondence
+        // boundary is exactly i64 range.
+        let e = DataExpr::Add(
+            Box::new(DataExpr::Number(Number::Int(i64::MAX))),
+            Box::new(DataExpr::Number(Number::Int(1))),
+        );
+        let mut interp = Interpreter::new();
+        let sigma = HashMap::new();
+        let denotational = denot(&e, &sigma).unwrap();
+        assert!(
+            denotational > i64::MAX as i128,
+            "this case is meant to exceed i64"
+        );
+        assert!(
+            interp.eval_data_expr(&e).is_err(),
+            "interpreter must error where ℤ leaves i64 range, not wrap"
+        );
+
+        // neg(i64::MIN) is 2^63 in ℤ — also out of range → must error too.
+        let e2 = DataExpr::Negate(Box::new(DataExpr::Number(Number::Int(i64::MIN))));
+        assert!(
+            interp.eval_data_expr(&e2).is_err(),
+            "neg(i64::MIN) must error (checked_neg), not wrap"
+        );
+    }
+
+    #[test]
+    fn shared_golden_corpus_matches_lean() {
+        // EXACTLY mirrors the golden `example`s in jtv_proofs/JtvCore.lean —
+        // each (expr, σ, value) is pinned by `rfl` on the Lean side.
+        let lit = |n: i64| DataExpr::Number(Number::Int(n));
+        let var = |s: &str| DataExpr::Identifier(s.to_string());
+        let add = |a: DataExpr, b: DataExpr| DataExpr::Add(Box::new(a), Box::new(b));
+        let neg = |a: DataExpr| DataExpr::Negate(Box::new(a));
+
+        let cases: Vec<(DataExpr, HashMap<String, i64>, i64)> = vec![
+            (add(lit(2), lit(3)), HashMap::new(), 5),
+            (neg(lit(5)), HashMap::new(), -5),
+            (neg(add(lit(1), lit(2))), HashMap::new(), -3),
+            (add(neg(lit(2)), lit(5)), HashMap::new(), 3),
+            (
+                add(var("x"), lit(1)),
+                HashMap::from([("x".to_string(), 4i64)]),
+                5,
+            ),
+            (
+                add(var("x"), neg(var("x"))),
+                HashMap::from([("x".to_string(), 7i64)]),
+                0,
+            ),
+            (
+                add(add(var("x"), var("y")), lit(1)),
+                HashMap::from([("x".to_string(), 3i64), ("y".to_string(), 4i64)]),
+                8,
+            ),
+        ];
+
+        for (e, state, expected) in &cases {
+            let sigma: HashMap<String, i128> =
+                state.iter().map(|(k, v)| (k.clone(), *v as i128)).collect();
+            assert_eq!(
+                denot(e, &sigma),
+                Some(*expected as i128),
+                "denotational reference mismatch on {e:?}"
+            );
+            let mut interp = seed(state);
+            assert_eq!(
+                interp.eval_data_expr(e).unwrap(),
+                Value::Int(*expected),
+                "interpreter mismatch on {e:?}"
+            );
+        }
+    }
+}
