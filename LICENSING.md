@@ -18,7 +18,7 @@ This supersedes the earlier PMPL-1.0 / Palimpsest, `MIT OR GPL-3.0-or-later OR P
 
 Every file declares its license in an SPDX header:
 
-- Code: `// SPDX-License-Identifier: MPL-2.0` (or `# …` for shell/YAML/TOML).
+- Code: `// SPDX-License-Identifier: CC-BY-SA-4.0` (or `# …` for shell/YAML/TOML).
 - Docs (Markdown): `<!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->`
 - Docs (AsciiDoc): `// SPDX-License-Identifier: CC-BY-SA-4.0`
 
